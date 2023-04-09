@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint --ext .js,.astro src",
-    "prettier": "prettier --write --plugin-search-dir=. ."
+    "prettier": "prettier --write --plugin-search-dir=. .",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@astrojs/mdx": "^0.18.3",
@@ -29,5 +30,9 @@
     "eslint-plugin-react": "^7.32.2",
     "prettier": "^2.8.7",
     "prettier-plugin-astro": "^0.8.0"
+  },
+  "lint-staged": {
+    "*.{js,astro}": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
   }
 }
