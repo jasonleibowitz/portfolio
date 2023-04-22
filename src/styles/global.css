@@ -14,7 +14,7 @@
 }
 
 html {
-  background-color: #f1f5f9;
+  background-color: #fff;
   font-family: sans-serif;
 }
 
@@ -33,4 +33,14 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+@layer components {
+  .nav-link:hover {
+    @apply bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent;
+  }
+
+  .nav-link-active {
+    @apply bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent;
+  }
 }

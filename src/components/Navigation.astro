@@ -1,9 +1,24 @@
 ---
+const pathname = new URL(Astro.request.url).pathname;
+const currentPath = pathname.slice(1); // remove the first "/"
 ---
 
-<nav>
-  <a href="/">Home</a>
-  <a href="/about">About</a>
-  <a href="/blog">Blog</a>
-  <a href="/lists">Listicles</a>
+<nav class="flex flex-row justify-evenly font-bold text-2xl tracking-tight">
+  <a
+    class={currentPath === '' ? 'nav-link-active' : 'nav-link'}
+    href="/">Home</a
+  >
+  <a
+    class={currentPath === 'about' ? 'nav-link-active' : 'nav-link'}
+    href="/about">About</a
+  >
+  <a
+    class={currentPath === 'blog' ? 'nav-link-active' : 'nav-link'}
+    href="/blog">Blog</a
+  >
+  <a
+    class={currentPath === 'lists' ? 'nav-link-active' : 'nav-link'}
+    href="/lists">Listicles</a
+  >
 </nav>
+<!-- bg-gradient-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent -->
