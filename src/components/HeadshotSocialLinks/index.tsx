@@ -19,7 +19,10 @@ export const HeadshotSocialLinks = () => {
 
   return (
     <div className="min-w-full w-10/12">
-      <img className="rounded-full w-64 max-w-xs m-auto" src={profilePic} />
+      <img
+        className="rounded-full w-64 max-w-xs m-auto border-4 border-black"
+        src={profilePic}
+      />
       <div className="flex flex-row justify-center py-8">
         <SocialIcon
           href=""
