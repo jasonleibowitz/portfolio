@@ -8,8 +8,23 @@
     @apply font-extrabold;
   }
 
+  h2 {
+    @apply text-4xl;
+    @apply font-bold;
+  }
+
   p {
     @apply text-gray-700 text-lg font-light leading-loose mt-2;
+  }
+
+  p {
+    a {
+      @apply text-sky-500;
+
+      &:hover {
+        @apply text-sky-700;
+      }
+    }
   }
 }
 
@@ -24,12 +39,11 @@ html.dark {
 }
 
 body {
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 80ch;
-  padding: 1rem;
   line-height: 1.5;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 * {
@@ -37,11 +51,25 @@ body {
 }
 
 @layer components {
-  .nav-link:hover {
-    @apply bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent;
+  .logo a {
+    @apply duration-200 ease-in-out transition-colors bg-gradient-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent font-bold;
+
+    &:hover {
+      color: black;
+    }
   }
 
-  .nav-link-active {
-    @apply bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent;
+  .nav-link {
+    &:not(:last-child) {
+      @apply mr-6;
+    }
+
+    &.active {
+      @apply bg-gradient-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
+    }
+
+    &:hover {
+      @apply bg-gradient-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
+    }
   }
 }
