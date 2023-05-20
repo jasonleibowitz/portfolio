@@ -20,9 +20,11 @@ module.exports = {
     },
     {
       extends: ['eslint:recommended', 'plugin:react/recommended'],
-      files: ['*.jsx', '*.tsx'],
+      files: ['*.jsx', '*.js', '*.tsx', '*.ts'],
       plugins: ['react'],
       parserOptions: {
+        sourceType: 'module',
+        ecmaVersion: 'latest',
         ecmaFeatures: {
           jsx: true,
         },

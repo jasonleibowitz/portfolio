@@ -8,20 +8,18 @@ const isHomepage = currentPath === '';
   <div class="logo lg:flex-grow tracking-tighter">
     <a href="/">Jason Leibowitz</a>
   </div>
+
+  <a class:list={['nav-link', { active: currentPath === '' }]} href="/">Home</a>
   <a
-    class:list={['nav-link', {'active': currentPath === ''}]}
-    href="/">Home</a
-  >
-  <a
-    class:list={['nav-link', {'active': currentPath === 'about'}]}
+    class:list={['nav-link', { active: currentPath === 'about' }]}
     href="/about">About</a
   >
   <a
-    class:list={['nav-link', {'active': currentPath === 'blog'}]}
+    class:list={['nav-link', { active: currentPath.split('/')[0] === 'blog' }]}
     href="/blog">Blog</a
   >
   <a
-    class:list={['nav-link', {'active': currentPath === 'lists'}]}
+    class:list={['nav-link', { active: currentPath === 'lists' }]}
     href="/lists">Listicles</a
   >
 </nav>

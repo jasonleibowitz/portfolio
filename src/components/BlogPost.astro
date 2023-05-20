@@ -1,0 +1,10 @@
+---
+import { format } from 'date-fns';
+const { url, title, pubDate } = Astro.props;
+---
+
+<li class="py-2">
+  <a class="text-lg" href={url}>{title}</a> - <span class="text-base italic"
+    >{format(new Date(pubDate), 'MMM d, yyyy')}</span
+  >
+</li>

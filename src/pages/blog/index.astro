@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content';
+import BlogPost from '../../components/BlogPost.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const allPosts = await getCollection('blog');
+const sortedBlogEntries = allPosts.reverse().filter((post) => !post.data.draft);
+
+const pageTitle = 'Blog Posts';
+---
+
+<BaseLayout pageTitle={pageTitle}>
+  <article class="mx-auto my-0">
+    <ul class="mt-8">
+      {
+        sortedBlogEntries.map((blogPostEntry) => (
+          <BlogPost
+            url={`/blog/${blogPostEntry.slug}`}
+            title={blogPostEntry.data.title}
+            pubDate={blogPostEntry.data.pubDate}
+          />
+        ))
+      }
+    </ul>
+  </article>
+</BaseLayout>

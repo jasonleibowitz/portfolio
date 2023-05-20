@@ -1,0 +1,71 @@
+---
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+
+<BaseLayout pageTitle={frontmatter.title}>
+  <div class="prose lg:prose-xl mx-auto my-10">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.pubDate.toDateString()}</p>
+    <p>Written by: {frontmatter.author}</p>
+    <img
+      class="mx-auto my-0"
+      src={frontmatter.image.url}
+      width="300"
+      alt={frontmatter.image.alt}
+    />
+    <slot />
+  </div>
+</BaseLayout>
+
+<!-- ---
+import { toAttributeString } from 'astro/dist/runtime/server/render/util';
+import BaseLayout from './BaseLayout.astro';
+
+const { frontmatter } = Astro.props;
+---
+
+<BaseLayout pageTitle={frontmatter.title}>
+  <p>Published on {frontmatter.pubDate.slice(0, 10)}</p>
+  <p><em>{frontmatter.description}</em></p>
+  <p>Written by {frontmatter.author}</p>
+  <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+
+  <div class="tags">
+    {
+      frontmatter.tags.map((tag: string) => (
+        <p class="tag">
+          <a href={`/tags/${tag}`}>{tag}</a>
+        </p>
+      ))
+    }
+  </div>
+
+  <div class="max-w-2xl mx-auto my-0">
+    <slot />
+  </div>
+</BaseLayout>
+<style>
+  h1 {
+    font-size: 24px;
+  }
+
+  a {
+    color: #00539f;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto;
+  }
+
+  .tag {
+    margin: 0.25em;
+    border: dotted 1px #a1a1a1;
+    border-radius: 0.5em;
+    padding: 0.5em 1em;
+    font-size: 1.15em;
+    background-color: #f8fcfd;
+  }
+</style> -->
