@@ -1,7 +1,8 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import { format } from 'date-fns';
-const { frontmatter } = Astro.props;
+
+const { frontmatter, readingTime } = Astro.props;
 ---
 
 <BaseLayout pageTitle={frontmatter.title}>
@@ -9,6 +10,7 @@ const { frontmatter } = Astro.props;
     <h1 class="text-center">{frontmatter.title}</h1>
     <p>{format(new Date(frontmatter.pubDate), 'MMMM d, yyyy')}</p>
     <p>Written by: {frontmatter.author}</p>
+    <p>{readingTime.text}</p>
     {
       frontmatter?.tags && (
         <div>
