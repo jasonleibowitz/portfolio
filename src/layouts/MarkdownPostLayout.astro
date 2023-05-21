@@ -9,20 +9,22 @@ const { frontmatter } = Astro.props;
     <h1 class="text-center">{frontmatter.title}</h1>
     <p>{format(new Date(frontmatter.pubDate), 'MMMM d, yyyy')}</p>
     <p>Written by: {frontmatter.author}</p>
-    <div>
-      {
-        frontmatter.tags.map((tag: string) => (
-          <span class="inline-flex items-center px-1">
-            <a
-              class="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700"
-              href={`/tags/${tag}`}
-            >
-              {tag}
-            </a>
-          </span>
-        ))
-      }
-    </div>
+    {
+      frontmatter?.tags && (
+        <div>
+          {frontmatter.tags.map((tag: string) => (
+            <span class="inline-flex items-center px-1">
+              <a
+                class="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700"
+                href={`/tags/${tag}`}
+              >
+                {tag}
+              </a>
+            </span>
+          ))}
+        </div>
+      )
+    }
     {
       frontmatter?.image?.url && (
         <img
