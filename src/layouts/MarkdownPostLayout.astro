@@ -8,12 +8,16 @@ const { frontmatter } = Astro.props;
     <h1>{frontmatter.title}</h1>
     <p>{frontmatter.pubDate.toDateString()}</p>
     <p>Written by: {frontmatter.author}</p>
-    <img
-      class="mx-auto my-0"
-      src={frontmatter.image.url}
-      width="300"
-      alt={frontmatter.image.alt}
-    />
+    {
+      frontmatter?.image?.url && (
+        <img
+          class="mx-auto my-0"
+          src={frontmatter.image.url}
+          width="300"
+          alt={frontmatter.image.alt}
+        />
+      )
+    }
     <slot />
   </div>
 </BaseLayout>

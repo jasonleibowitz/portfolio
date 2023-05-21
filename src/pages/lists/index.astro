@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
+
+const allLists = await getCollection('lists');
+const pageTitle = 'Listicles';
+---
+
+<BaseLayout pageTitle={pageTitle}>
+  <article class="mx-auto my-0">
+    <ul class="mt-8">
+      {
+        allLists.map((listEntry) => (
+          <BlogPost
+            url={`/lists/${listEntry.slug}`}
+            title={listEntry.data.title}
+            pubDate={listEntry.data.pubDate}
+          />
+        ))
+      }
+    </ul>
+  </article>
+</BaseLayout>
