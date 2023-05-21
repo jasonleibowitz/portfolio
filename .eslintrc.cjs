@@ -32,7 +32,7 @@ module.exports = {
     },
     {
       extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
-      files: ['*.ts'],
+      files: ['*.ts', '*.js'],
       plugins: ['@typescript-eslint'],
       parser: '@typescript-eslint/parser',
       rules: {

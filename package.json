@@ -10,7 +10,8 @@
     "astro": "astro",
     "lint": "eslint --ext .js,.astro src",
     "prettier": "prettier --write --plugin-search-dir=. .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "plop": "plop"
   },
   "dependencies": {
     "@astrojs/mdx": "^0.18.3",
@@ -42,6 +43,7 @@
     "eslint-plugin-react": "^7.32.2",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.1",
+    "plop": "^3.1.2",
     "postcss-import": "^15.1.0",
     "prettier": "^2.8.7",
     "prettier-plugin-astro": "^0.8.0"
