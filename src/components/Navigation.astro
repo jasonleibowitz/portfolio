@@ -1,7 +1,6 @@
 ---
 const pathname = new URL(Astro.request.url).pathname;
 const currentPath = pathname.slice(1); // remove the first "/"
-const isHomepage = currentPath === '';
 ---
 
 <nav class="flex flex-row justify-center font-bold text-2xl tracking-tight">
