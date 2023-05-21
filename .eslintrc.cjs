@@ -14,6 +14,7 @@ module.exports = {
         extraFileExtensions: ['.astro'],
       },
       rules: {
+        'no-unused-vars': ['error', { varsIgnorePattern: 'Props' }],
         // 'astro/no-set-html-directive': 'error',
       },
     },
