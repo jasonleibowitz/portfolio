@@ -1,10 +1,20 @@
 ---
 import { format } from 'date-fns';
-const { url, title, pubDate } = Astro.props;
+const { url, title, pubDate, tags } = Astro.props;
 ---
 
 <li class="py-2">
-  <a class="text-lg" href={url}>{title}</a> - <span class="text-base italic"
-    >{format(new Date(pubDate), 'MMM d, yyyy')}</span
-  >
+  <a class="text-xl hover:underline" href={url}>{title}</a>
+  <p class="text-base">
+    <span>{format(new Date(pubDate), 'MMM d, yyyy')}</span>
+    <span>{' - '}</span>
+    {
+      tags &&
+        tags.map((tag: string, index: number) => (
+          <a href={`/blog/tags/${tag}`}>
+            {`${tag}${index === tags.length - 1 ? '' : ','}`}
+          </a>
+        ))
+    }
+  </p>
 </li>

@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '@layouts/BaseLayout.astro';
-import BlogPost from '@components/BlogPost.astro';
+import ContentListLayout from '@layouts/ContentListLayout.astro';
 
 const allLists = await getCollection('lists');
 
@@ -13,18 +12,8 @@ const filteredLists = allLists.filter((listEntry) => {
 const pageTitle = 'Listicles';
 ---
 
-<BaseLayout pageTitle={pageTitle}>
-  <article class="mx-auto my-0">
-    <ul class="mt-8">
-      {
-        filteredLists.map((listEntry) => (
-          <BlogPost
-            url={`/lists/${listEntry.slug}`}
-            title={listEntry.data.title}
-            pubDate={listEntry.data.pubDate}
-          />
-        ))
-      }
-    </ul>
-  </article>
-</BaseLayout>
+<ContentListLayout
+  pageTitle={pageTitle}
+  items={filteredLists}
+  baseUrl="/lists"
+/>
