@@ -4,6 +4,12 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import BlogPost from '@components/BlogPost.astro';
 
 const allLists = await getCollection('lists');
+
+// Display drafts in non-prod environments
+const filteredLists = allLists.filter((listEntry) => {
+  if (!import.meta.env.PROD) return listEntry;
+  return !listEntry.data.draft;
+});
 const pageTitle = 'Listicles';
 ---
 
@@ -11,7 +17,7 @@ const pageTitle = 'Listicles';
   <article class="mx-auto my-0">
     <ul class="mt-8">
       {
-        allLists.map((listEntry) => (
+        filteredLists.map((listEntry) => (
           <BlogPost
             url={`/lists/${listEntry.slug}`}
             title={listEntry.data.title}
