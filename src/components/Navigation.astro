@@ -18,7 +18,7 @@ const currentPath = pathname.slice(1); // remove the first "/"
     href="/blog">Blog</a
   >
   <a
-    class:list={['nav-link', { active: currentPath === 'lists' }]}
+    class:list={['nav-link', { active: currentPath.split('/')[0] === 'lists' }]}
     href="/lists">Listicles</a
   >
 </nav>
