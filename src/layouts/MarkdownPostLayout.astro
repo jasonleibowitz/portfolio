@@ -1,4 +1,5 @@
 ---
+import TagList from '@components/TagList.astro';
 import BaseLayout from './BaseLayout.astro';
 import { format } from 'date-fns';
 
@@ -8,31 +9,22 @@ const { frontmatter, readingTime } = Astro.props;
 <BaseLayout pageTitle={frontmatter.title}>
   <div class="prose lg:prose-xl mx-auto my-10">
     <h1 class="text-center">{frontmatter.title}</h1>
-    <p>{format(new Date(frontmatter.pubDate), 'MMMM d, yyyy')}</p>
-    <p>Written by: {frontmatter.author}</p>
-    <p>{readingTime.text}</p>
-    {
-      frontmatter?.tags && (
-        <div>
-          {frontmatter.tags.map((tag: string) => (
-            <span class="inline-flex items-center px-1">
-              <a
-                class="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700"
-                href={`/tags/${tag}`}
-              >
-                {tag}
-              </a>
-            </span>
-          ))}
-        </div>
-      )
-    }
+    <div class="text-base">
+      <span class="font-bold"
+        >{format(new Date(frontmatter.pubDate), 'MMMM d, yyyy')}</span
+      >
+      <span
+        class="mx-4 p-4 border-l-2 border-gray-300 text-gray-500 font-normal"
+        >{readingTime.text}</span
+      >
+    </div>
+    <TagList baseUrl="/blog/tags" tags={frontmatter.tags} />
     {
       frontmatter?.image?.url && (
         <img
           class="mx-auto my-0"
           src={frontmatter.image.url}
-          width="300"
+          width="600"
           alt={frontmatter.image.alt}
         />
       )

@@ -1,0 +1,18 @@
+---
+const { baseUrl, tags } = Astro.props;
+---
+
+<div class="mt-4">
+  {
+    tags?.map((tag: string) => (
+      <span class="inline-flex items-center px-2 first:px-0">
+        <a
+          class="rounded-md bg-gray-100 px-2 py-1 font-medium text-gray-600 text-sm"
+          href={`${baseUrl}/${tag}`}
+        >
+          {tag}
+        </a>
+      </span>
+    ))
+  }
+</div>
