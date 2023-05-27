@@ -1,6 +1,6 @@
 ## What does this PR do?
 
-## How did you solve it?
+## Changes
 
 ## Screenshots (if applicable)
 
