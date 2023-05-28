@@ -11,7 +11,7 @@ interface Props {
 const { alt = null, src, caption, attribution = null } = Astro.props;
 ---
 
-<figure class="flex flex-col items-center">
+<figure class="flex flex-col items-center max-w-prose mx-auto my-0">
   <img alt={alt ?? caption} src={src} />
   {
     caption && (
