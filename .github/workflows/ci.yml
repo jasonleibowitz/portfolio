@@ -21,10 +21,10 @@ jobs:
       # Version comes from the `packageManager` field, so CI matches local.
       - uses: pnpm/action-setup@v4
 
-      # Resolves `engines.node` rather than hardcoding a version.
+      # Exact pin from .nvmrc -- `engines.node` is an open range and would float.
       - uses: actions/setup-node@v6
         with:
-          node-version-file: package.json
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install
