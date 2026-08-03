@@ -1,6 +1,3 @@
 // Temporary CI gate probe -- deliberately breaks exactly one gate at a time.
-// ESLint objects to the unused variable; Prettier and tsc do not.
-export function probe(): number {
-  const unused = 'never read';
-  return 1;
-}
+// tsc objects to the type mismatch; Prettier and ESLint do not.
+export const probe: number = 'not a number';
