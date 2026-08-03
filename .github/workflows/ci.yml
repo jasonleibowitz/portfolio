@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# CI only reads the repo -- don't inherit whatever the repo default becomes.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Verify
