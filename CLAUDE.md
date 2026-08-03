@@ -110,6 +110,11 @@ Gradient utilities use the v4 names (`bg-linear-to-r`, not `bg-gradient-to-r`).
   path fails the build with `ImageNotFound`.
 - **React islands** are the exception — only `HeadshotSocialLinks` (`client:load`).
   Write new UI as `.astro` unless it needs client-side state.
+- **Do not set `jsx` or `jsxImportSource` in `tsconfig.json`.** `@astrojs/react` configures
+  the JSX transform itself; setting them explicitly breaks hydration with
+  `TypeError: _jsxDEV is not a function`, which fails in a way that is easy to miss — the
+  server HTML is correct and complete, and the island is only emptied on the client.
+  Verify island changes in a browser, not by reading the served markup.
 - Prettier: single quotes, semicolons, 2-space, es5 trailing commas, `prettier-plugin-astro`.
 
 ## Deployment
