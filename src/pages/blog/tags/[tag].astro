@@ -1,28 +1,23 @@
 ---
-import { getCollection } from 'astro:content';
 import ContentListLayout from '@layouts/ContentListLayout.astro';
+import { getPublished, getPublishedTags } from '../../../lib/content';
 
 export async function getStaticPaths() {
-  const allPosts = await getCollection('blog');
-  const uniqueTags = [
-    ...new Set(allPosts.map((post) => post.data.tags).flat()),
-  ];
+  const posts = await getPublished('blog');
+  const tags = await getPublishedTags();
 
-  return uniqueTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) =>
-      post.data.tags.includes(tag)
-    );
-
-    return {
-      params: { tag },
-      props: { posts: filteredPosts },
-    };
-  });
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { posts: posts.filter((post) => post.data.tags.includes(tag)) },
+  }));
 }
 
 const { tag } = Astro.params;
 const { posts } = Astro.props;
-const pageTitle = `Blog Posts tagged with ${tag}`;
 ---
 
-<ContentListLayout pageTitle={pageTitle} items={posts} baseUrl="/blog" />
+<ContentListLayout
+  pageTitle={`Blog Posts tagged with ${tag}`}
+  items={posts}
+  baseUrl="/blog"
+/>

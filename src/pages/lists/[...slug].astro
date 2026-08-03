@@ -1,19 +1,20 @@
 ---
 import readingTime from 'reading-time';
-import { getCollection } from 'astro:content';
+import { render } from 'astro:content';
 import MarkdownPostLayout from '@layouts/MarkdownPostLayout.astro';
+import { getPublished } from '../../lib/content';
 
 export async function getStaticPaths() {
-  const listEntries = await getCollection('lists');
-  return listEntries.map((entry) => ({
-    params: { slug: entry.slug },
+  const entries = await getPublished('lists');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
     props: { entry },
   }));
 }
 
 const { entry } = Astro.props;
-const { Content } = await entry.render();
-const stats = readingTime(entry.body);
+const { Content } = await render(entry);
+const stats = readingTime(entry.body ?? '');
 ---
 
 <MarkdownPostLayout frontmatter={entry.data} readingTime={stats}>

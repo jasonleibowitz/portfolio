@@ -1,18 +1,19 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
+import type { APIContext } from 'astro';
+import { getPublished } from '../lib/content';
 
-export async function get() {
-  const posts = await getCollection('blog');
+export async function GET(context: APIContext) {
+  const posts = await getPublished('blog');
 
   return rss({
     title: "Jason Leibowitz's Blog",
     description: 'A blog about web development and other things.',
-    site: 'https://leibowitz.me',
+    site: context.site ?? 'https://leibowitz.me',
     items: posts.map((post) => ({
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      link: `/blog/${post.slug}`,
+      link: `/blog/${post.id}/`,
     })),
     customData: `<language>en-US</language>`,
   });
