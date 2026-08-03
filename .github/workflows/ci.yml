@@ -31,15 +31,15 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Separate steps so a failure names which gate broke.
-      - name: Build
-        run: pnpm build
-
-      - name: Typecheck
-        run: pnpm check
+      # Separate steps so a failure names which gate broke. Cheapest first.
+      - name: Format
+        run: pnpm format:check
 
       - name: Lint
         run: pnpm lint
 
-      - name: Format
-        run: pnpm format:check
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Build
+        run: pnpm build
