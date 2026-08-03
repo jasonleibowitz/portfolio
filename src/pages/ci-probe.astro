@@ -1,0 +1,8 @@
+---
+// Temporary CI gate probe -- type-valid, lint-clean, prettier-clean.
+// Fails only when Astro renders the page at build time.
+const fail = (): never => {
+  throw new Error('CI probe: deliberate build failure');
+};
+fail();
+---
