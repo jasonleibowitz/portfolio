@@ -1,0 +1,36 @@
+---
+import TagList from '@components/TagList.astro';
+import BaseLayout from './BaseLayout.astro';
+import { format } from 'date-fns';
+
+const { frontmatter, readingTime } = Astro.props;
+---
+
+<BaseLayout pageTitle={frontmatter.title}>
+  <div
+    class="prose-base prose-h1:my-4 prose-h2:my-3 lg:prose-lg dark:prose-invert lg:prose-h1:text-4xl lg:prose-h2:my-3 lg:prose-h2:text-3xl mx-auto my-10"
+  >
+    <h1 class="text-center">{frontmatter.title}</h1>
+    <div class="text-base">
+      <span class="font-bold"
+        >{format(new Date(frontmatter.pubDate), 'MMMM d, yyyy')}</span
+      >
+      <span
+        class="mx-4 p-4 border-l-2 border-gray-300 text-gray-500 font-normal"
+        >{readingTime.text}</span
+      >
+    </div>
+    <TagList baseUrl="/blog/tags" tags={frontmatter.tags} />
+    {
+      frontmatter?.image?.url && (
+        <img
+          class="mx-auto my-0"
+          src={frontmatter.image.url}
+          width="600"
+          alt={frontmatter.image.alt}
+        />
+      )
+    }
+    <slot />
+  </div>
+</BaseLayout>

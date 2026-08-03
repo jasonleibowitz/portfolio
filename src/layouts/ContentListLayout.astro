@@ -1,0 +1,26 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BlogPost from '@components/BlogPost.astro';
+import type { BasePost } from 'src/types/Post';
+const { pageTitle, items, baseUrl } = Astro.props;
+---
+
+<BaseLayout pageTitle={pageTitle}>
+  <div class="max-w-4xl mx-auto mt-20 mb-0">
+    <h1>{pageTitle}</h1>
+    <article class="mx-auto my-0">
+      <ul class="mt-8">
+        {
+          items.map((item: BasePost) => (
+            <BlogPost
+              url={`${baseUrl}/${item.slug}`}
+              title={item.data.title}
+              pubDate={item.data.pubDate}
+              tags={item.data.tags}
+            />
+          ))
+        }
+      </ul>
+    </article>
+  </div>
+</BaseLayout>

@@ -1,0 +1,28 @@
+---
+interface Props {
+  alt?: string;
+  src: string;
+  caption?: string;
+  attribution?: {
+    src: string;
+    text: string;
+  };
+}
+const { alt = null, src, caption, attribution = null } = Astro.props;
+---
+
+<figure class="flex flex-col items-center max-w-prose mx-auto my-0">
+  <img alt={alt ?? caption} src={src} />
+  {
+    caption && (
+      <p class="text-sm pt-2 text-center">
+        {caption}
+        {attribution && (
+          <a target="_blank" rel="noopener noreferrer" href={attribution.src}>
+            {attribution.text}
+          </a>
+        )}
+      </p>
+    )
+  }
+</figure>

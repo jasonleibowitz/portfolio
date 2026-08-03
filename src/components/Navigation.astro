@@ -1,27 +1,24 @@
 ---
 const pathname = new URL(Astro.request.url).pathname;
 const currentPath = pathname.slice(1); // remove the first "/"
-const isHomepage = currentPath === '';
 ---
 
 <nav class="flex flex-row justify-center font-bold text-2xl tracking-tight">
   <div class="logo lg:flex-grow tracking-tighter">
     <a href="/">Jason Leibowitz</a>
   </div>
+
+  <a class:list={['nav-link', { active: currentPath === '' }]} href="/">Home</a>
   <a
-    class:list={['nav-link', {'active': currentPath === ''}]}
-    href="/">Home</a
-  >
-  <a
-    class:list={['nav-link', {'active': currentPath === 'about'}]}
+    class:list={['nav-link', { active: currentPath === 'about' }]}
     href="/about">About</a
   >
   <a
-    class:list={['nav-link', {'active': currentPath === 'blog'}]}
+    class:list={['nav-link', { active: currentPath.split('/')[0] === 'blog' }]}
     href="/blog">Blog</a
   >
   <a
-    class:list={['nav-link', {'active': currentPath === 'lists'}]}
+    class:list={['nav-link', { active: currentPath.split('/')[0] === 'lists' }]}
     href="/lists">Listicles</a
   >
 </nav>

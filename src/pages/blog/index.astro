@@ -1,0 +1,17 @@
+---
+import { getCollection } from 'astro:content';
+import ContentListLayout from '@layouts/ContentListLayout.astro';
+const allPosts = await getCollection('blog');
+const sortedBlogEntries = allPosts.reverse().filter((post) => {
+  if (!import.meta.env.PROD) return post;
+  return !post.data.draft;
+});
+
+const pageTitle = 'Blog';
+---
+
+<ContentListLayout
+  pageTitle={pageTitle}
+  items={sortedBlogEntries}
+  baseUrl="/blog"
+/>
