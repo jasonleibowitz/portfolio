@@ -1,23 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Tailwind 4 is configured in CSS rather than tailwind.config.cjs.
+   The font family is registered here so `font-sans` resolves to Noto Sans,
+   which @fontsource/noto-sans loads in BaseLayout. */
+@theme {
+  --font-sans: 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
+}
 
 @layer base {
+  html {
+    background-color: #fff;
+    font-family: var(--font-sans);
+  }
+
+  html.dark {
+    background-color: #0d0950;
+    color: #fff;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
   h1 {
-    @apply text-5xl;
-    @apply font-extrabold;
+    @apply text-5xl font-extrabold;
   }
 
   h2 {
-    @apply text-4xl;
-    @apply font-bold;
+    @apply text-4xl font-bold;
   }
 
   p {
     @apply text-gray-700 text-lg font-light leading-loose mt-2;
-  }
 
-  p {
     a {
       @apply text-sky-500;
 
@@ -28,31 +48,9 @@
   }
 }
 
-html {
-  background-color: #fff;
-  font-family: sans-serif;
-}
-
-html.dark {
-  background-color: #0d0950;
-  color: #fff;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  line-height: 1.5;
-  min-height: 100vh;
-}
-
-* {
-  box-sizing: border-box;
-}
-
 @layer components {
   .logo a {
-    @apply duration-200 ease-in-out transition-colors bg-gradient-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent font-bold;
+    @apply duration-200 ease-in-out transition-colors bg-linear-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent font-bold;
 
     &:hover {
       color: black;
@@ -64,12 +62,9 @@ body {
       @apply mr-6;
     }
 
-    &.active {
-      @apply bg-gradient-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
-    }
-
+    &.active,
     &:hover {
-      @apply bg-gradient-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
+      @apply bg-linear-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
     }
   }
 }

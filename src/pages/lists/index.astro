@@ -1,19 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
 import ContentListLayout from '@layouts/ContentListLayout.astro';
+import { getPublished } from '../../lib/content';
 
-const allLists = await getCollection('lists');
-
-// Display drafts in non-prod environments
-const filteredLists = allLists.filter((listEntry) => {
-  if (!import.meta.env.PROD) return listEntry;
-  return !listEntry.data.draft;
-});
-const pageTitle = 'Listicles';
+const lists = await getPublished('lists');
 ---
 
-<ContentListLayout
-  pageTitle={pageTitle}
-  items={filteredLists}
-  baseUrl="/lists"
-/>
+<ContentListLayout pageTitle="Listicles" items={lists} baseUrl="/lists" />

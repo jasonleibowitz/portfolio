@@ -1,7 +1,14 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import BlogPost from '@components/BlogPost.astro';
-import type { BasePost } from 'src/types/Post';
+import type { PublishableEntry } from '../lib/content';
+
+interface Props {
+  pageTitle: string;
+  items: PublishableEntry[];
+  baseUrl: string;
+}
+
 const { pageTitle, items, baseUrl } = Astro.props;
 ---
 
@@ -11,12 +18,12 @@ const { pageTitle, items, baseUrl } = Astro.props;
     <article class="mx-auto my-0">
       <ul class="mt-8">
         {
-          items.map((item: BasePost) => (
+          items.map((item) => (
             <BlogPost
-              url={`${baseUrl}/${item.slug}`}
+              url={`${baseUrl}/${item.id}/`}
               title={item.data.title}
               pubDate={item.data.pubDate}
-              tags={item.data.tags}
+              tags={'tags' in item.data ? item.data.tags : undefined}
             />
           ))
         }

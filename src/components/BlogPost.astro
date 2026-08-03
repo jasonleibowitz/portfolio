@@ -1,20 +1,33 @@
 ---
 import { format } from 'date-fns';
+
+interface Props {
+  url: string;
+  title: string;
+  pubDate: Date;
+  tags?: string[];
+}
+
 const { url, title, pubDate, tags } = Astro.props;
 ---
 
 <li class="py-2">
   <a class="text-xl hover:underline" href={url}>{title}</a>
   <p class="text-base">
-    <span>{format(new Date(pubDate), 'MMM d, yyyy')}</span>
-    <span>{' - '}</span>
+    <time datetime={pubDate.toISOString()}>
+      {format(pubDate, 'MMM d, yyyy')}
+    </time>
     {
-      tags &&
-        tags.map((tag: string, index: number) => (
-          <a href={`/blog/tags/${tag}`}>
-            {`${tag}${index === tags.length - 1 ? '' : ','}`}
-          </a>
-        ))
+      tags && tags.length > 0 && (
+        <>
+          <span>{' - '}</span>
+          {tags.map((tag, index) => (
+            <a class="hover:underline" href={`/blog/tags/${tag}/`}>
+              {`${tag}${index === tags.length - 1 ? '' : ','}`}
+            </a>
+          ))}
+        </>
+      )
     }
   </p>
 </li>
