@@ -5,6 +5,14 @@
 allowBuilds:
   esbuild: true
   sharp: true
+
+# Don't install packages published in the last 24h -- the window in which a
+# compromised release is most likely to still be up.
+minimumReleaseAge: 1440
+
+# Temporary: typescript-eslint 8.66.0 was published 2026-08-03 17:36 UTC,
+# hours before this lockfile was generated. Delete this whole block after
+# 2026-08-04 17:36 UTC -- see #16.
 minimumReleaseAgeExclude:
   - '@typescript-eslint/eslint-plugin@8.66.0'
   - '@typescript-eslint/parser@8.66.0'
