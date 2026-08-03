@@ -54,10 +54,10 @@ placeholder image before publishing.
 
 MDX bodies can import Astro components — `CaptionedImage` is the one used in practice:
 
-```mdx
+```text
 import CaptionedImage from '@components/CaptionedImage.astro';
 
-;
+<CaptionedImage src="/blog-images/2023-05-21/flair-58.jpg" caption="Flair 58" />
 ```
 
 ## Layouts and routing
