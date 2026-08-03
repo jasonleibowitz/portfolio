@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
 
-# A newer push to the same PR cancels the in-flight run.
+# A newer push supersedes the in-flight run for the same ref -- PR or main.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
