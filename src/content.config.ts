@@ -44,6 +44,18 @@ const lists = defineCollection({
     updated: z.coerce.date(),
     /** Ranked lists are numbered and never grouped. */
     ranked: z.boolean().default(false),
+    /**
+     * Artwork ratio for the whole list, since it is a property of the kind of
+     * thing being listed rather than of any one entry:
+     *
+     *   square  56x56  (1:1)  podcast and album art, the default
+     *   poster  56x84  (2:3)  film and book covers
+     *
+     * Both are 56px wide, so the artwork column lines up across every list and
+     * only the row height changes. Cropping a 2:3 poster into a square would
+     * keep the middle and throw away the title.
+     */
+    thumb: z.enum(['square', 'poster']).default('square'),
     /** A list carries `items` (ranked or flat) or `groups`, not both. */
     items: z.array(listItem).default([]),
     groups: z

@@ -1,7 +1,32 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { tv } from 'tailwind-variants';
 import Chip from './ui/Chip.astro';
 import Ph from './ui/Ph.astro';
+
+/**
+ * Artwork is 56px wide in both shapes, so the column lines up across every
+ * list and only the row height changes:
+ *
+ *   square  56x56  (1:1)  podcast and album art, the default
+ *   poster  56x84  (2:3)  film and book covers
+ *
+ * The height comes from the aspect ratio rather than a second fixed number, so
+ * the two stay in step. The initials fallback takes the same shape, or a list
+ * with artwork on only some entries would have rows of two different heights.
+ */
+const artwork = tv({
+  base: 'row-span-3 w-14 rounded-2xl border border-line',
+  variants: {
+    shape: {
+      square: 'aspect-square',
+      poster: 'aspect-[2/3]',
+    },
+  },
+});
+
+/** Only for the width/height attributes, which reserve space before layout. */
+const ARTWORK_HEIGHT = { square: 56, poster: 84 } as const;
 
 type Item = {
   name: string;
@@ -20,9 +45,11 @@ interface Props {
    * renumber from one as soon as a row above it disappeared.
    */
   rank?: number;
+  /** Set once per list, not per entry -- see the `thumb` field on the schema. */
+  shape?: 'square' | 'poster';
 }
 
-const { item, rank } = Astro.props;
+const { item, rank, shape = 'square' } = Astro.props;
 
 /** An entry with no href is not a link: no arrow, no hover, no pointer. */
 const isLink = Boolean(item.href);
@@ -70,13 +97,17 @@ const initials = item.name
           src={item.image}
           alt=""
           width="56"
-          height="56"
+          height={ARTWORK_HEIGHT[shape]}
           loading="lazy"
-          class="row-span-3 size-14 rounded-2xl border border-line object-cover"
+          class={artwork({ shape, class: 'object-cover' })}
         />
       ) : (
         <span
-          class="initials row-span-3 grid size-14 place-items-center rounded-2xl border border-line bg-linear-100 from-violet to-cyan font-display text-sm font-bold tracking-[-0.02em] text-white"
+          class={artwork({
+            shape,
+            class:
+              'initials grid place-items-center bg-linear-100 from-violet to-cyan font-display text-sm font-bold tracking-[-0.02em] text-white',
+          })}
           data-initials={initials}
           aria-hidden="true"
         />
