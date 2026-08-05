@@ -1,0 +1,86 @@
+---
+/**
+ * Sticky filter rail. On mobile it becomes a horizontally scrolling chip row
+ * above the list, which is where a filter belongs when the list is below it.
+ */
+interface Props {
+  tags: { tag: string; count: number }[];
+  total: number;
+  heading?: string;
+}
+
+const { tags, total, heading = 'Filter by tag' } = Astro.props;
+---
+
+<aside class="order-first rail:order-none rail:sticky rail:top-[88px]">
+  <h2
+    class="mb-3 font-mono text-meta font-normal tracking-[0.16em] text-faint uppercase"
+  >
+    {heading}
+  </h2>
+
+  {
+    /*
+    A flex row of chips in an auto-sized grid track sizes to max-content and
+    pushes the whole page ~400px wide at 320px. The grid parent constrains the
+    track; `overflow-x-auto` lets the row scroll inside it.
+  */
+  }
+  <div
+    class="flex gap-2 overflow-x-auto pb-2 rail:flex-col rail:overflow-visible"
+  >
+    <button type="button" data-tag="" aria-pressed="true" class="tag-btn">
+      All <b>{total}</b>
+    </button>
+    {
+      tags.map(({ tag, count }) => (
+        <button
+          type="button"
+          data-tag={tag}
+          aria-pressed="false"
+          class="tag-btn"
+        >
+          {tag} <b>{count}</b>
+        </button>
+      ))
+    }
+  </div>
+</aside>
+
+<style>
+  .tag-btn {
+    font: inherit;
+    font-size: var(--text-ui);
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding-inline: 14px;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-panel);
+    color: var(--color-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tag-btn:hover {
+    color: var(--color-ink);
+    border-color: var(--color-line-strong);
+  }
+  .tag-btn b {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    font-weight: 400;
+    color: var(--color-faint);
+  }
+  .tag-btn[aria-pressed='true'] {
+    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
+    border-color: transparent;
+    color: #fff;
+  }
+  .tag-btn[aria-pressed='true'] b {
+    color: rgb(255 255 255 / 0.75);
+  }
+</style>

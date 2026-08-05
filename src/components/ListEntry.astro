@@ -1,0 +1,120 @@
+---
+import { Icon } from 'astro-icon/components';
+import Chip from './ui/Chip.astro';
+import Ph from './ui/Ph.astro';
+
+type Item = {
+  name: string;
+  href?: string;
+  image?: string;
+  note?: string;
+  tags: string[];
+  placeholder: string[];
+};
+
+interface Props {
+  item: Item;
+  /**
+   * The entry's position in the full list, written into the markup. Filtering
+   * hides rows, so a rank derived from <ol> numbering or a CSS counter would
+   * renumber from one as soon as a row above it disappeared.
+   */
+  rank?: number;
+}
+
+const { item, rank } = Astro.props;
+
+/** An entry with no href is not a link: no arrow, no hover, no pointer. */
+const isLink = Boolean(item.href);
+const Tag = isLink ? 'a' : 'div';
+
+const host = item.href
+  ? new URL(item.href).hostname.replace(/^www\./, '')
+  : 'no link';
+
+const initials = item.name
+  .replace(/[^\p{L}\p{N} ]/gu, '')
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((word) => word[0].toUpperCase())
+  .join('');
+---
+
+<li data-tags={item.tags.join(' ')} class="[&[hidden]]:hidden">
+  <Tag
+    class:list={[
+      'entry group -mx-3 grid min-h-14 content-center gap-0.5 rounded-2xl p-3 no-underline',
+      isLink
+        ? 'transition-colors duration-150 hover:bg-panel'
+        : 'cursor-default',
+      rank
+        ? 'grid-cols-[26px_56px_minmax(0,1fr)]'
+        : 'grid-cols-[56px_minmax(0,1fr)]',
+    ]}
+    {...isLink
+      ? { href: item.href, target: '_blank', rel: 'noreferrer noopener' }
+      : {}}
+  >
+    {
+      rank && (
+        <span class="row-span-3 self-center font-mono text-ui text-faint tabular-nums">
+          {rank}
+        </span>
+      )
+    }
+
+    {
+      item.image ? (
+        <img
+          src={item.image}
+          alt=""
+          width="56"
+          height="56"
+          loading="lazy"
+          class="row-span-3 size-14 rounded-2xl border border-line object-cover"
+        />
+      ) : (
+        <span
+          class="initials row-span-3 grid size-14 place-items-center rounded-2xl border border-line bg-linear-100 from-violet to-cyan font-display text-sm font-bold tracking-[-0.02em] text-white"
+          data-initials={initials}
+          aria-hidden="true"
+        />
+      )
+    }
+
+    <span
+      class:list={[
+        'inline-flex items-center gap-[7px] font-semibold tracking-[-0.01em]',
+        isLink ? 'group-hover:text-violet' : 'text-ink',
+      ]}
+    >
+      <Ph when={item.placeholder.includes('name')}>{item.name}</Ph>
+      {
+        isLink && (
+          <Icon
+            name="lucide:arrow-up-right"
+            class="size-3.5 shrink-0 opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:-translate-y-px group-hover:opacity-100"
+          />
+        )
+      }
+    </span>
+
+    {
+      item.note && (
+        <Ph
+          as="p"
+          when={item.placeholder.includes('note')}
+          class="max-w-[68ch] text-ui text-muted"
+        >
+          {item.note}
+        </Ph>
+      )
+    }
+
+    <span class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      <span class="font-mono text-meta text-faint">{host}</span>
+      {item.tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
+    </span>
+  </Tag>
+</li>

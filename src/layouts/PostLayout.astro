@@ -1,0 +1,106 @@
+---
+import type { MarkdownHeading } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import { formatDay, isoDay } from '../lib/dates';
+import BaseLayout from './BaseLayout.astro';
+import Shell from '@components/ui/Shell.astro';
+import Eyebrow from '@components/ui/Eyebrow.astro';
+import Toc from '@components/Toc.astro';
+import { readingMinutes, wordCount } from '../lib/reading';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  headings: MarkdownHeading[];
+  next?: CollectionEntry<'blog'>;
+}
+
+const { post, headings, next } = Astro.props;
+const { title, pubDate, description, tags, image } = post.data;
+
+const minutes = readingMinutes(post.body);
+const words = wordCount(post.body);
+---
+
+<BaseLayout pageTitle={title} page="post" description={description}>
+  <article class="py-(--section)">
+    <Shell>
+      {/* One centred column at a 46rem measure — 40rem read too narrow. */}
+      <header class="mx-auto max-w-measure">
+        <Eyebrow>Writing</Eyebrow>
+        <h1
+          class="mt-3 mb-4 font-display text-h1 leading-[1.04] font-bold tracking-[-0.04em]"
+        >
+          {title}
+        </h1>
+
+        {
+          /* Promoted from small print at the bottom to chips under the title. */
+        }
+        <div class="mb-4 flex flex-wrap gap-2">
+          {
+            tags.map((tag) => (
+              <a
+                href={`/writing/tags/${tag}/`}
+                class="inline-flex min-h-11 items-center rounded-full border border-line bg-panel px-3.5 font-mono text-meta tracking-[0.06em] text-muted no-underline before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
+              >
+                {tag}
+              </a>
+            ))
+          }
+        </div>
+
+        <div
+          class="flex flex-wrap gap-4 border-b border-line pb-6 font-mono text-meta tracking-[0.08em] text-faint uppercase"
+        >
+          <time datetime={isoDay(pubDate)}>{formatDay(pubDate)}</time>
+          <span>{minutes} min read</span>
+          <span>{words.toLocaleString('en-US')} words</span>
+        </div>
+      </header>
+
+      <div class="mx-auto max-w-measure">
+        <Toc headings={headings} />
+
+        {
+          image?.url && (
+            <figure class="my-12">
+              <img
+                src={image.url}
+                alt={image.alt}
+                class="aspect-video w-full rounded-card object-cover shadow-lift"
+                loading="eager"
+              />
+            </figure>
+          )
+        }
+
+        <div class="prose"><slot /></div>
+
+        <div
+          class="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-ui text-muted"
+        >
+          <span>Filed under {tags.join(' · ')}</span>
+          {
+            next && (
+              <span>
+                Next:{' '}
+                <a
+                  href={`/writing/${next.id}/`}
+                  class="inline-flex min-h-11 items-center text-ink no-underline hover:text-violet"
+                >
+                  {next.data.title}
+                </a>
+              </span>
+            )
+          }
+        </div>
+      </div>
+    </Shell>
+  </article>
+</BaseLayout>
+
+<script>
+  import { initFootnotes } from '../lib/footnotes';
+
+  initFootnotes();
+</script>

@@ -1,0 +1,38 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Panel from './ui/Panel.astro';
+import Eyebrow from './ui/Eyebrow.astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+/** Top-level sections only; a two-level TOC on a 12-minute post is a sitemap. */
+const { headings } = Astro.props;
+const sections = headings.filter((heading) => heading.depth === 2);
+---
+
+{
+  sections.length > 1 && (
+    <Panel as="nav" class="my-8 px-6 py-4" aria-label="Contents">
+      <Eyebrow as="span">Contents</Eyebrow>
+      {/*
+        These are navigation, not links inside a sentence, so the inline
+        exception to the target-size rule doesn't apply to them: each row is a
+        full 44px rather than the 19px a bare list item comes out at.
+      */}
+      <ol class="mt-2 list-decimal pl-[1.3em] text-ui text-muted">
+        {sections.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              class="flex min-h-11 items-center no-underline hover:text-violet"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </Panel>
+  )
+}

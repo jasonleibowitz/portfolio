@@ -1,0 +1,24 @@
+---
+/**
+ * Marks copy that is still waiting on Jason. The gap stays visible on the page
+ * rather than being described in a document, and nothing gets invented to fill
+ * it in the meantime.
+ */
+interface Props {
+  as?: 'span' | 'p' | 'dd' | 'li' | 'figcaption' | 'b' | 'time';
+  /** Pass through a frontmatter flag; false renders the copy unmarked. */
+  when?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'span',
+  when = true,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<Tag class:list={[when && 'placeholder-copy', className]} {...rest}
+  ><slot /></Tag
+>

@@ -1,0 +1,48 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import RailLayout from '@components/ui/RailLayout.astro';
+import Eyebrow from '@components/ui/Eyebrow.astro';
+import PostRow from '@components/PostRow.astro';
+import TagRail from '@components/TagRail.astro';
+import { getPublished, getPublishedTags } from '../../lib/content';
+
+const posts = await getPublished('blog');
+const tags = await getPublishedTags();
+---
+
+<BaseLayout
+  pageTitle="Writing"
+  page="writing"
+  description="Long reviews of hardware I probably didn't need to buy, plus the occasional how-to."
+>
+  <PageHead
+    eyebrow="Archive"
+    title="Writing"
+    lead="Long reviews of hardware I probably didn't need to buy, plus the occasional how-to I wrote so I'd never have to work it out twice."
+  />
+
+  <Section>
+    <Shell>
+      <RailLayout data-filter-root data-unit="posts">
+        <div>
+          <Eyebrow class="mb-4" data-filter-count>
+            {posts.length} posts
+          </Eyebrow>
+
+          <ul>
+            {posts.map((post) => <PostRow post={post} />)}
+          </ul>
+
+          <p class="py-8 text-muted" data-filter-empty hidden>
+            No posts with that tag yet.
+          </p>
+        </div>
+
+        <TagRail tags={tags} total={posts.length} />
+      </RailLayout>
+    </Shell>
+  </Section>
+</BaseLayout>

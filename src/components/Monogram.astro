@@ -1,0 +1,37 @@
+---
+/**
+ * JL monogram — gradient squircle, the J's bowl and the L's stem sharing a
+ * baseline. Also the favicon at 32px (public/favicon.svg, kept in sync by hand).
+ *
+ * The gradient is defined inside the SVG rather than in a shared <defs> block,
+ * so the mark works anywhere it is dropped without a hidden dependency.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg class={className} viewBox="0 0 32 32" aria-hidden="true">
+  <defs>
+    <linearGradient id="jl-monogram" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b3df5"></stop>
+      <stop offset="100%" stop-color="#0e9fb8"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="9" fill="url(#jl-monogram)"></rect>
+  <path
+    d="M12.6 8.5v11.2c0 2.2-1.4 3.6-3.5 3.6-1.1 0-2-.35-2.7-1"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.4"
+    stroke-linecap="round"></path>
+  <path
+    d="M17.8 8.5v14.4h7.4"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+</svg>

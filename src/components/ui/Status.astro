@@ -1,0 +1,33 @@
+---
+import { tv } from 'tailwind-variants';
+
+/**
+ * The pulse is not decoration: it distinguishes a project that is actively
+ * moving from one that is parked, so only the former gets it.
+ */
+const dot = tv({
+  base: 'block size-[7px] rounded-full',
+  variants: {
+    pulse: {
+      true: 'animate-status bg-linear-100 from-violet to-cyan',
+      false: 'bg-faint',
+    },
+  },
+});
+
+interface Props {
+  pulse?: boolean;
+  class?: string;
+}
+
+const { pulse = false, class: className } = Astro.props;
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-[7px] font-mono text-meta tracking-[0.1em] text-muted uppercase',
+    className,
+  ]}
+>
+  <i class={dot({ pulse })}></i><slot />
+</span>

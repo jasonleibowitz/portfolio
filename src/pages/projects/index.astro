@@ -1,0 +1,37 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import PhNote from '@components/ui/PhNote.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+import { getPublished } from '../../lib/content';
+
+const projects = await getPublished('projects');
+---
+
+<BaseLayout
+  pageTitle="Projects"
+  page="projects"
+  description="Two mobile apps in TestFlight, plus the site you're reading."
+>
+  <PageHead
+    eyebrow="Side projects"
+    title="Things I'm building"
+    lead="Two mobile apps in TestFlight, plus the site you're reading. Each has a write-up: what it does, why it exists, and what I'd do differently."
+  />
+
+  <Section>
+    <Shell>
+      {/* One card per row: the screenshot and the copy get room to breathe. */}
+      <div class="grid gap-4">
+        {projects.map((project) => <ProjectCard project={project} wide />)}
+      </div>
+
+      <PhNote>
+        Pitches and screenshots are placeholder. The homepage shows only the two
+        flagged <code>is_featured</code>.
+      </PhNote>
+    </Shell>
+  </Section>
+</BaseLayout>

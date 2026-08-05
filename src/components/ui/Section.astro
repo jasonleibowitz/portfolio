@@ -1,0 +1,29 @@
+---
+/**
+ * One vertical rhythm token, used by every band on the page.
+ *
+ * `flush` drops the top padding: the block above has already paid a section's
+ * worth of bottom padding, and two of them stacked reads as a hole. That is
+ * every section after the first, so it is the common case rather than the
+ * exception.
+ */
+interface Props {
+  as?: 'div' | 'section' | 'article';
+  flush?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'section',
+  flush = true,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<Tag
+  class:list={[flush ? 'pb-(--section)' : 'py-(--section)', className]}
+  {...rest}
+>
+  <slot />
+</Tag>

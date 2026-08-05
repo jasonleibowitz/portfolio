@@ -1,27 +1,88 @@
 ---
+import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
-import '@fontsource/noto-sans';
+import Dock from '@components/Dock.astro';
+import Footer from '@components/Footer.astro';
+import type { PageKey } from '../lib/site';
+
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/inter';
+import '@fontsource/jetbrains-mono';
 import '@styles/global.css';
 
 interface Props {
   pageTitle: string;
   description?: string;
+  /** Drives the active nav state and the reading-progress bar. */
+  page: PageKey;
 }
 
-const { pageTitle, description } = Astro.props;
+const { pageTitle, description, page } = Astro.props;
+const title =
+  pageTitle === 'Home' ? 'Jason Leibowitz' : `${pageTitle} · Jason Leibowitz`;
+const showProgress = page === 'post' || page === 'case';
 ---
 
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Jason Leibowitz"
+      href="/rss.xml"
+    />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     {description && <meta name="description" content={description} />}
-    <title>{pageTitle}</title>
+    <title>{title}</title>
+    {
+      /*
+      Blocking on purpose. Every page of a static site is a fresh document, so
+      deferring this flashes white on each navigation.
+    */
+    }
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          document.documentElement.dataset.theme =
+            saved ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light');
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
-  <body class="max-w-7xl mx-auto my-0 p-4">
-    <Header />
-    <slot />
+
+  {
+    /* The dock floats over the end of the page, so the body reserves its height. */
+  }
+  <body
+    class="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom,0px))] nav:pb-0"
+    data-page={page}
+  >
+    <Aurora />
+    <a
+      href="#main"
+      class="absolute -left-[9999px] z-60 bg-ink px-4 py-3 text-base focus:top-4 focus:left-4"
+      >Skip to content</a
+    >
+
+    <Header page={page} progress={showProgress} />
+    <main id="main" class="flex-1"><slot /></main>
+    <Footer />
+    <Dock page={page} />
   </body>
 </html>
+
+<script>
+  import { initChrome } from '../lib/chrome';
+
+  initChrome();
+</script>

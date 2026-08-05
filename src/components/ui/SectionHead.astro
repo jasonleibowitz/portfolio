@@ -1,0 +1,24 @@
+---
+/** Section title, with an optional link out to the full thing. */
+interface Props {
+  title: string;
+  more?: { label: string; href: string };
+  class?: string;
+}
+
+const { title, more, class: className } = Astro.props;
+---
+
+<div class:list={['mb-6 flex items-baseline justify-between gap-4', className]}>
+  <h2 class="font-display text-h2 font-bold tracking-[-0.03em]">{title}</h2>
+  {
+    more && (
+      <a
+        href={more.href}
+        class="inline-flex min-h-11 items-center text-ui whitespace-nowrap text-muted no-underline hover:text-violet"
+      >
+        {more.label} →
+      </a>
+    )
+  }
+</div>

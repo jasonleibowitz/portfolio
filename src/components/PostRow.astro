@@ -1,0 +1,49 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDay } from '../lib/dates';
+import Chip from './ui/Chip.astro';
+import { readingMinutes } from '../lib/reading';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  /** The homepage strip runs tighter than the archive. */
+  compact?: boolean;
+}
+
+const { post, compact = false } = Astro.props;
+const { title, pubDate, description, tags } = post.data;
+---
+
+<li data-tags={tags.join(' ')} class="border-b border-line [&[hidden]]:hidden">
+  <a
+    href={`/writing/${post.id}/`}
+    class="group -mx-3 grid gap-2 rounded-xl px-3 no-underline transition-colors duration-150 hover:bg-panel"
+    class:list={[compact ? 'py-4' : 'py-6']}
+  >
+    <span
+      class:list={[
+        'leading-tight tracking-[-0.025em] group-hover:text-violet',
+        compact
+          ? 'text-body font-semibold tracking-[-0.01em]'
+          : 'font-display text-h3 font-bold',
+      ]}>{title}</span
+    >
+
+    {
+      description && (
+        <p class="max-w-[62ch] text-ui text-muted">{description}</p>
+      )
+    }
+
+    <span
+      class="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-meta tracking-[0.06em] text-faint"
+    >
+      <span>{formatDay(pubDate)}</span>
+      <span class="opacity-50">·</span>
+      <span>{readingMinutes(post.body)} min</span>
+      <span class="flex flex-wrap gap-1.5">
+        {tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
+      </span>
+    </span>
+  </a>
+</li>

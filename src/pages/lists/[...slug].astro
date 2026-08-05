@@ -1,22 +1,115 @@
 ---
-import readingTime from 'reading-time';
+import { formatDay } from '../../lib/dates';
 import { render } from 'astro:content';
-import MarkdownPostLayout from '@layouts/MarkdownPostLayout.astro';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import RailLayout from '@components/ui/RailLayout.astro';
+import ListEntry from '@components/ListEntry.astro';
+import TagRail from '@components/TagRail.astro';
+import PhNote from '@components/ui/PhNote.astro';
 import { getPublished } from '../../lib/content';
+import { allItems, listTags } from '../../lib/lists';
 
 export async function getStaticPaths() {
-  const entries = await getPublished('lists');
-  return entries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
+  const lists = await getPublished('lists');
+
+  return lists.map((list) => ({
+    params: { slug: list.id },
+    props: { list },
   }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await render(entry);
-const stats = readingTime(entry.body ?? '');
+const { list } = Astro.props;
+const { data } = list;
+const { Content } = await render(list);
+
+const items = allItems(data);
+const tags = listTags(data);
+
+/**
+ * Some entries carry a placeholder note or placeholder tags, some carry none
+ * at all. Both are Jason's to fill in, so the note below counts them together
+ * rather than claiming a tag is "missing" when a placeholder one is on screen.
+ */
+const provisional = items.filter((item) => item.placeholder.length > 0).length;
+const untagged = items.filter((item) => item.tags.length === 0).length;
+
+/**
+ * Ranks are assigned here, over the full list, and written into the markup.
+ * Filtering only hides rows, so an entry keeps its real position.
+ */
+let rank = 0;
 ---
 
-<MarkdownPostLayout frontmatter={entry.data} readingTime={stats}>
-  <Content />
-</MarkdownPostLayout>
+<BaseLayout pageTitle={data.title} page="list" description={data.description}>
+  <PageHead
+    eyebrow={`List · ${data.ranked ? 'ranked' : 'unranked, grouped'}`}
+    title={data.title}
+    lead={data.description}
+  >
+    <div
+      class="mt-4 flex flex-wrap gap-x-4 gap-y-2 font-mono text-meta tracking-[0.08em] text-faint uppercase"
+    >
+      <span>Updated {formatDay(data.updated)}</span>
+      <span data-filter-count>{items.length} entries</span>
+      <span>
+        {data.ranked ? 'Ranked' : `${data.groups.length} groups`}
+      </span>
+    </div>
+  </PageHead>
+
+  <Section>
+    <Shell>
+      <RailLayout data-filter-root data-unit="entries">
+        <div>
+          {
+            data.ranked ? (
+              <ul class="grid gap-2">
+                {data.items.map((item) => (
+                  <ListEntry item={item} rank={++rank} />
+                ))}
+              </ul>
+            ) : (
+              data.groups.map((group) => (
+                <div class="mb-12" data-filter-group>
+                  <h2 class="mb-4 flex items-baseline justify-between gap-4 border-b border-line pb-2 font-display text-h3 font-bold tracking-[-0.025em]">
+                    {group.name}
+                    <span class="font-mono text-meta font-normal text-faint">
+                      {group.items.length}
+                    </span>
+                  </h2>
+                  <ul class="grid gap-2">
+                    {group.items.map((item) => (
+                      <ListEntry item={item} />
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )
+          }
+
+          <p class="py-8 text-muted" data-filter-empty hidden>
+            Nothing tagged that yet.
+          </p>
+
+          {
+            provisional > 0 && (
+              <PhNote>
+                {provisional} of {items.length} entries still carry placeholder
+                copy
+                {untagged > 0 && `, and ${untagged} have no tags yet`}. Artwork
+                falls back to an initials tile until real images land.
+              </PhNote>
+            )
+          }
+
+          <div class="prose mt-8 max-w-measure text-ui"><Content /></div>
+        </div>
+
+        {tags.length > 0 && <TagRail tags={tags} total={items.length} />}
+      </RailLayout>
+    </Shell>
+  </Section>
+</BaseLayout>

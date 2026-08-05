@@ -1,0 +1,155 @@
+---
+import { Icon } from 'astro-icon/components';
+import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
+
+/**
+ * Floating glass capsule, five tabs, collapsing to icons on scroll down.
+ *
+ * The capsule has no padding, so the active tab reaches its inner edge: the
+ * first and last tabs take the capsule's own end cap on their outer side via
+ * per-position border-radius, and nothing is left uncoloured around the active
+ * item. Chosen deliberately over an Apple-style inset tinted chip.
+ *
+ * At a 320px viewport five tabs are 59px each — above the 44px target rule.
+ * Labels ellipsis rather than widen the dock.
+ */
+interface Props {
+  page: PageKey;
+}
+
+const { page } = Astro.props;
+const active = NAV_FOR_PAGE[page];
+---
+
+<nav class="dock" aria-label="Primary">
+  {
+    NAV.map((item) => (
+      <a
+        href={item.href}
+        aria-current={item.key === active ? 'page' : undefined}
+        class:list={[
+          'dock-tab',
+          item.key === active
+            ? 'bg-linear-100 from-violet to-cyan text-white'
+            : 'text-faint',
+        ]}
+      >
+        <Icon name={item.icon} class="size-[19px] shrink-0" />
+        <span>{item.label}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .dock {
+    position: fixed;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: min(420px, calc(100vw - 24px));
+    display: flex;
+    z-index: 40;
+    isolation: isolate;
+    border-radius: 999px;
+    padding: 0;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-base) 28%, transparent);
+    /* One of only two live blurs on the page: the dock sits over scrolling
+       content, so it has to composite against something that moves. No SVG
+       refraction — that needs feDisplacementMap inside backdrop-filter, which
+       Safari and Firefox ignore, so it would be invisible on the phones that
+       would recognise it. */
+    backdrop-filter: blur(30px) saturate(210%);
+    -webkit-backdrop-filter: blur(30px) saturate(210%);
+    border: 1px solid rgb(255 255 255 / 0.62);
+    box-shadow:
+      0 14px 40px rgb(24 18 60 / 0.22),
+      0 2px 6px rgb(24 18 60 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      inset 0 -14px 24px -14px rgb(24 18 60 / 0.42);
+    transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  :root[data-theme='dark'] .dock {
+    background: color-mix(in srgb, var(--color-base) 36%, transparent);
+    border-color: rgb(255 255 255 / 0.2);
+    box-shadow:
+      0 16px 44px rgb(0 0 0 / 0.62),
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      inset 0 -14px 24px -14px rgb(0 0 0 / 0.6);
+  }
+
+  /* One block per selector: a second `.dock-tab { transition: … }` elsewhere
+     silently replaced this one during the mockup and the collapse stopped
+     animating. */
+  .dock-tab {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 56px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    font-size: 10px;
+    padding-inline: 2px;
+    overflow: hidden;
+    transition:
+      transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+      height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      gap 0.3s ease;
+  }
+  .dock-tab:active {
+    transform: scale(0.93);
+  }
+  .dock-tab:first-child {
+    border-radius: 999px 18px 18px 999px;
+  }
+  .dock-tab:last-child {
+    border-radius: 18px 999px 999px 18px;
+  }
+
+  .dock-tab span {
+    max-width: 100%;
+    max-height: 14px;
+    opacity: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition:
+      max-height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.18s ease;
+  }
+
+  /* Collapsed: icons only, added by the scroll handler in lib/chrome.ts. */
+  .dock.is-min {
+    width: min(300px, calc(100vw - 24px));
+  }
+  .dock.is-min .dock-tab {
+    height: 46px;
+    border-radius: 15px;
+    gap: 0;
+  }
+  .dock.is-min .dock-tab:first-child {
+    border-radius: 999px 15px 15px 999px;
+  }
+  .dock.is-min .dock-tab:last-child {
+    border-radius: 15px 999px 999px 15px;
+  }
+  .dock.is-min .dock-tab span {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  @media (min-width: 50rem) {
+    .dock {
+      display: none;
+    }
+  }
+</style>

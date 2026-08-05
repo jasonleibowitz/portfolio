@@ -1,0 +1,59 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import Eyebrow from '@components/ui/Eyebrow.astro';
+import PostRow from '@components/PostRow.astro';
+import { getPublished, getPublishedTags } from '../../../lib/content';
+
+/**
+ * The Writing index filters in place, but each tag also gets a real URL: the
+ * chips on a post have to lead somewhere, and a filter held in JS is not
+ * linkable, shareable or crawlable.
+ *
+ * No tag rail here — the set is already narrowed, so a second filter over it
+ * would show counts that don't match what is on screen.
+ */
+export async function getStaticPaths() {
+  const posts = await getPublished('blog');
+  const tags = await getPublishedTags();
+
+  return tags.map(({ tag }) => ({
+    params: { tag },
+    props: { posts: posts.filter((post) => post.data.tags.includes(tag)) },
+  }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+
+<BaseLayout
+  pageTitle={`Writing tagged ${tag}`}
+  page="writing"
+  description={`Posts tagged ${tag}.`}
+>
+  <PageHead eyebrow="Archive" title={`Tagged “${tag}”`} />
+
+  <Section>
+    <Shell class="max-w-measure">
+      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+        <Eyebrow>
+          {posts.length}
+          {posts.length === 1 ? 'post' : 'posts'}
+        </Eyebrow>
+        <a
+          href="/writing/"
+          class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"
+        >
+          ← All writing
+        </a>
+      </div>
+
+      <ul>
+        {posts.map((post) => <PostRow post={post} />)}
+      </ul>
+    </Shell>
+  </Section>
+</BaseLayout>

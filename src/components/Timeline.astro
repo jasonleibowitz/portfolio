@@ -1,0 +1,129 @@
+---
+import Ph from './ui/Ph.astro';
+
+/**
+ * The career as a spine with a pulse travelling up it. Dates, titles and every
+ * bullet are placeholder — the repo only gave the order of the companies, so
+ * nothing here was invented beyond that.
+ */
+const ROLES = [
+  {
+    company: 'Carta',
+    when: '2022 — present',
+    title: 'Staff Software Engineer',
+    bullets: [
+      'Bullet one — the thing you owned, and the scale it ran at.',
+      'Bullet two — a number: latency, revenue, users, build time.',
+      'Bullet three — something you led or changed for the team.',
+    ],
+  },
+  {
+    company: 'Capsule Pharmacy',
+    when: '2020 — 2022',
+    title: 'Senior Engineer',
+    bullets: ['Bullet one.', 'Bullet two.'],
+  },
+  {
+    company: 'Invitae',
+    when: '2018 — 2020',
+    title: 'Senior Engineer',
+    bullets: ['Bullet one.', 'Bullet two.'],
+  },
+  {
+    company: 'TodayTix',
+    when: '2016 — 2018',
+    title: 'Engineer',
+    bullets: ['Bullet one.', 'Bullet two.'],
+  },
+];
+---
+
+<ul class="track relative m-0 list-none p-0 pl-6">
+  {
+    ROLES.map((role) => (
+      <li class="relative py-6">
+        <Ph class="font-mono text-meta tracking-[0.08em] text-faint">
+          {role.when}
+        </Ph>
+
+        <h3 class="my-1 font-display text-h3 font-bold tracking-[-0.025em]">
+          {role.company}{' '}
+          <em class="font-normal not-italic text-muted">
+            — <Ph>{role.title}</Ph>
+          </em>
+        </h3>
+
+        <ul class="m-0 grid max-w-[60ch] list-none gap-1.5 p-0">
+          {role.bullets.map((bullet) => (
+            <li class="relative pl-4 text-ui text-muted">
+              <Ph>{bullet}</Ph>
+            </li>
+          ))}
+        </ul>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .track::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
+    opacity: 0.45;
+  }
+
+  /* Travels upward, so the career reads as progression. */
+  .track::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    width: 4px;
+    height: 64px;
+    border-radius: 4px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-violet),
+      transparent
+    );
+    filter: blur(1px);
+    opacity: 0.85;
+    animation: var(--animate-travel);
+  }
+
+  .track > li::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 30px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-base);
+    border: 2px solid var(--color-violet);
+    z-index: 1;
+  }
+  .track > li:first-child::before {
+    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
+    border-color: transparent;
+    box-shadow: 0 0 0 4px var(--color-glow-a);
+  }
+
+  .track > li > ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-violet);
+    opacity: 0.55;
+  }
+</style>

@@ -1,34 +1,48 @@
 ---
-const socialLinks = [
-  {
-    url: 'https://github.com/jasonleibowitz',
-    src: '/icons/github-black.svg',
-    label: 'GitHub',
-  },
-  {
-    url: 'https://www.linkedin.com/in/jasonleibowitz/',
-    src: '/icons/linkedin-black.svg',
-    label: 'LinkedIn',
-  },
-  {
-    url: 'https://twitter.com/jasonleibowitz',
-    src: '/icons/twitter-black.svg',
-    label: 'Twitter',
-  },
-];
+import Shell from './ui/Shell.astro';
+import SocialRow from './SocialRow.astro';
+import { NAV } from '../lib/site';
+
+const year = new Date().getFullYear();
 ---
 
-<footer class="mt-auto bg-linear-to-r from-purple-700 to-blue-600 h-40 p-8">
-  <div class="text-white">
-    <h3 class="text-2xl">Jason Leibowitz</h3>
-    <div class="flex pt-4">
-      {
-        socialLinks.map(({ url, src, label }) => (
-          <a href={url} target="_blank" rel="noreferrer noopener">
-            <img class="h-10 w-10" src={src} alt={label} />
-          </a>
-        ))
-      }
+<footer class="mt-auto border-t border-line py-(--section)">
+  <Shell class="grid gap-6">
+    <p class="max-w-[16ch] font-display text-h2 font-bold tracking-[-0.03em]">
+      Let's build <span class="text-gradient">something</span>.
+    </p>
+
+    {
+      /*
+      Centred as a block on mobile, spread on wider screens. The nav is five
+      short links, so a wrapping row beats a two-column grid — that left an
+      orphan cell opposite the fifth item.
+    */
+    }
+    <div
+      class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-between"
+    >
+      <div class="flex flex-wrap justify-center gap-x-6 sm:justify-start">
+        {
+          NAV.map((item) => (
+            <a
+              href={item.href}
+              class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </div>
+
+      {/* Complete, rather than an arbitrary two of four. */}
+      <SocialRow class="justify-center sm:-ml-2.5 sm:justify-start" />
+
+      <p
+        class="text-center font-mono text-meta tracking-[0.06em] whitespace-nowrap text-faint sm:text-right"
+      >
+        © {year} · Made with ❤️ in NYC
+      </p>
     </div>
-  </div>
+  </Shell>
 </footer>

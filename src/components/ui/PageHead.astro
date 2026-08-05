@@ -1,0 +1,23 @@
+---
+import Shell from './Shell.astro';
+import Eyebrow from './Eyebrow.astro';
+
+/** The masthead every page but the homepage opens with. */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+}
+
+const { eyebrow, title, lead } = Astro.props;
+---
+
+<Shell class="py-(--section)">
+  {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+  <slot name="eyebrow" />
+  <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
+    {title}
+  </h1>
+  {lead && <p class="max-w-[56ch] text-lead text-muted">{lead}</p>}
+  <slot />
+</Shell>

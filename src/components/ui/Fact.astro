@@ -1,0 +1,41 @@
+---
+import Ph from './Ph.astro';
+
+/**
+ * One label/value row in a facts panel.
+ *
+ * Label above value on narrow screens: a fixed label column left the value
+ * ~180px at 390px, so short answers broke onto a second line for no reason.
+ * Stacked, the value gets the full width and only genuinely long values wrap.
+ */
+interface Props {
+  label: string;
+  /** Marks the value as copy still waiting on Jason. */
+  ph?: boolean;
+  /** The case-study rail is narrower, so its label column is too. */
+  narrow?: boolean;
+}
+
+const { label, ph = false, narrow = false } = Astro.props;
+---
+
+<div
+  class:list={[
+    'grid grid-cols-[minmax(0,1fr)] gap-0.5 border-b border-line py-3 last:border-0',
+    'sm:items-baseline sm:gap-4',
+    narrow
+      ? 'sm:grid-cols-[84px_minmax(0,1fr)]'
+      : 'sm:grid-cols-[132px_minmax(0,1fr)]',
+  ]}
+>
+  <dt class="font-mono text-meta tracking-[0.12em] text-faint uppercase">
+    {label}
+  </dt>
+  <Ph
+    as="dd"
+    when={ph}
+    class="m-0 text-ui [&_a]:font-medium [&_a]:text-violet [&_a]:no-underline"
+  >
+    <slot />
+  </Ph>
+</div>

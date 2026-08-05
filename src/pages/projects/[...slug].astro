@@ -1,0 +1,93 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import Panel from '@components/ui/Panel.astro';
+import Fact from '@components/ui/Fact.astro';
+import Status from '@components/ui/Status.astro';
+import Button from '@components/ui/Button.astro';
+import Ph from '@components/ui/Ph.astro';
+import PhNote from '@components/ui/PhNote.astro';
+import DeviceFrame from '@components/DeviceFrame.astro';
+import { getPublished } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const projects = await getPublished('projects');
+
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+---
+
+<BaseLayout pageTitle={data.title} page="case" description={data.description}>
+  <Shell class="py-(--section)">
+    <Status pulse={data.status_pulse}>
+      {data.status_text_case ?? data.status_text}
+    </Status>
+    <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
+      {data.title}
+    </h1>
+    <Ph
+      as="p"
+      when={data.placeholder.includes('description')}
+      class="max-w-[56ch] text-lead text-muted"
+    >
+      {data.description}
+    </Ph>
+  </Shell>
+
+  <Section>
+    <Shell
+      class="grid gap-8 case:grid-cols-[minmax(0,1fr)_268px] case:items-start case:gap-16 [&>*]:min-w-0"
+    >
+      <div>
+        <div class="flex gap-6 overflow-x-auto pt-2 pb-6">
+          {
+            [0, 1, 2].map((variant) => (
+              <DeviceFrame
+                kind={data.frame}
+                size="shot"
+                variant={variant as 0 | 1 | 2}
+              />
+            ))
+          }
+        </div>
+
+        <div class="prose max-w-measure"><Content /></div>
+
+        <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
+      </div>
+
+      <aside class="case:sticky case:top-[88px]">
+        <Panel class="px-6 py-2">
+          <dl>
+            {
+              data.specs.map((spec) => (
+                <Fact label={spec.label} ph={spec.placeholder} narrow>
+                  {spec.value}
+                </Fact>
+              ))
+            }
+          </dl>
+        </Panel>
+
+        {
+          data.cta && (
+            <div class="mt-4 flex flex-wrap gap-2">
+              <Button href={data.cta.href} variant="primary">
+                {data.cta.label}
+              </Button>
+            </div>
+          )
+        }
+      </aside>
+    </Shell>
+  </Section>
+</BaseLayout>

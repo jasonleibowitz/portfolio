@@ -1,8 +1,64 @@
 ---
-import ContentListLayout from '@layouts/ContentListLayout.astro';
+import { formatDay } from '../../lib/dates';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import Status from '@components/ui/Status.astro';
+import Chip from '@components/ui/Chip.astro';
 import { getPublished } from '../../lib/content';
+import { allItems } from '../../lib/lists';
 
 const lists = await getPublished('lists');
 ---
 
-<ContentListLayout pageTitle="Listicles" items={lists} baseUrl="/lists" />
+<BaseLayout
+  pageTitle="Lists"
+  page="lists"
+  description="Recommendations I get asked for often enough that it was easier to write them down."
+>
+  <PageHead
+    eyebrow="Lists"
+    title="Things, ranked and sorted"
+    lead="Recommendations I get asked for often enough that it was easier to write them down. Shorter than a post, updated whenever something changes."
+  />
+
+  <Section>
+    <Shell>
+      <div
+        class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]"
+      >
+        {
+          lists.map((list) => {
+            const count = allItems(list.data).length;
+            return (
+              <a
+                href={`/lists/${list.id}/`}
+                class="group flex flex-col gap-4 rounded-card border border-line bg-panel p-6 no-underline transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-[3px] hover:border-line-strong hover:shadow-lift"
+              >
+                <Status>Updated {formatDay(list.data.updated)}</Status>
+
+                <h3 class="font-display text-h3 font-bold tracking-[-0.028em]">
+                  {list.data.title}
+                </h3>
+
+                {list.data.description && (
+                  <p class="text-ui text-muted">{list.data.description}</p>
+                )}
+
+                <div class="mt-auto flex flex-wrap gap-1.5">
+                  <Chip>{count} entries</Chip>
+                  <Chip>{list.data.ranked ? 'Ranked' : 'Grouped'}</Chip>
+                </div>
+
+                <span class="inline-flex min-h-11 items-center text-ui text-muted group-hover:text-violet">
+                  Read the list →
+                </span>
+              </a>
+            );
+          })
+        }
+      </div>
+    </Shell>
+  </Section>
+</BaseLayout>

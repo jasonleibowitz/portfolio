@@ -5,8 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Overview
 
 Personal portfolio and blog for Jason Leibowitz (leibowitz.me) — a static **Astro 7** site.
-Content is MDX; UI is Astro components with **Tailwind 4**, plus one React island.
-Package manager is **pnpm**; Node **>=22.12**.
+Content is MDX; UI is Astro components styled with **Tailwind 4**. The site ships
+**zero JS islands** — no framework runtime, only a few kB of hand-written vanilla
+modules. Package manager is **pnpm**; Node **>=22.12**.
 
 ## Commands
 
@@ -15,7 +16,7 @@ pnpm dev           # dev server
 pnpm build         # static build to dist/
 pnpm preview       # serve the built dist/
 pnpm check         # astro check (typecheck .astro + .ts)
-pnpm lint          # eslint (flat config, covers .ts/.tsx/.astro)
+pnpm lint          # eslint (flat config, covers .ts/.astro)
 pnpm format        # prettier --write .
 pnpm format:check  # prettier --check .  (CI gate)
 pnpm plop          # scaffold a new blog post
@@ -27,23 +28,34 @@ There is no test suite. The four gates that must stay green are `build`, `check`
 When verifying a change, **check the exit code** — grepping build output for a success string
 will silently pass on a failed build.
 
+**None of the four gates render a page.** Layout regressions, dead client-side scripts and
+overflow are all invisible to them, so anything visual or interactive has to be checked in a
+real browser. See "Verifying the design" below.
+
 ## Content architecture
 
 Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _not_
 `src/content/config.ts`) using `glob()` loaders:
 
-| Collection | Directory           | Route base | Required frontmatter                             |
-| ---------- | ------------------- | ---------- | ------------------------------------------------ |
-| `blog`     | `src/content/blog`  | `/blog`    | `title, pubDate, author, image{url,alt}, tags[]` |
-| `lists`    | `src/content/lists` | `/lists`   | `title, pubDate`                                 |
+| Collection | Directory              | Route base  | Required frontmatter                                      |
+| ---------- | ---------------------- | ----------- | --------------------------------------------------------- |
+| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, image{url,alt}, tags[]`          |
+| `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]` |
+| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`        |
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from
 `astro:content` is deprecated.
 
+A `placeholder: []` array on an entry names the frontmatter fields that are still
+awaiting real copy; the templates render those with a dotted underline
+(`placeholder-copy`) so the gaps are visible on the page rather than described in a
+document. Do not invent replacements — see "Placeholder content" below.
+
 ### Reading content: always go through `src/lib/content.ts`
 
 `getPublished(collection)` is the **only** supported way to read publishable content.
-It excludes drafts in production builds and sorts by `pubDate` descending.
+It excludes drafts in production builds and sorts each collection by what "most relevant
+first" means for it: `blog` by `pubDate`, `lists` by `updated`, `projects` by `order`.
 
 Draft filtering used to live in the index pages alone, which meant `draft: true` posts were
 still written to `dist/` and syndicated in `rss.xml` — unlinked rather than unpublished.
@@ -51,13 +63,20 @@ Centralising it means a new route cannot opt out by forgetting to filter. **Do n
 `getCollection` directly** in a route.
 
 Drafts render in `pnpm dev` and disappear from `pnpm build`. To verify, check build output
-rather than reading code: a draft's slug must not appear anywhere under `dist/`.
+rather than reading code: a draft's slug must not appear anywhere under `dist/`. The espresso
+post is currently `draft: true`, so it is a dev-only page.
+
+### Dates are plain days, formatted in UTC
+
+Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. Formatting one
+in local time renders the day before anywhere west of Greenwich. Always format through
+`formatDay()` in `src/lib/dates.ts`, never `toLocaleDateString` or a local-time formatter.
 
 ### URLs and ordering
 
 Posts are named `YYYY-MM-DD-kebab-title.mdx`. The glob loader derives `entry.id` from the
 filename, so the date prefix appears in the URL:
-`/blog/2023-05-21-so-you-want-to-get-an-espresso-machine/`. Ordering comes from `pubDate`,
+`/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. Ordering comes from `pubDate`,
 not the filename — renaming a file changes its URL but not its position.
 
 Post images live in `public/blog-images/YYYY-MM-DD/` and are referenced by absolute path.
@@ -76,45 +95,126 @@ placeholder image. Replace the placeholder before publishing.
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into
 `{ { expr } }`, which breaks the generator silently.
 
+A post body must start at `##`. The page already renders the title as its `h1`, so a `#`
+in the body produces a second one.
+
 MDX bodies can import Astro components — `CaptionedImage` is the one in use.
 
 ## Routing
 
-- `[...slug].astro` for both collections: `getStaticPaths` over `getPublished(...)`,
-  `params: { slug: entry.id }`, then `render(entry)` from `astro:content`
-  (**not** the removed `entry.render()`).
-- `/blog/tags/[tag]` — tag archives, built from `getPublishedTags()`.
-- `rss.xml.ts` exports **`GET()`** (Astro 3+ renamed it from `get()`).
+| Route                 | Notes                                                         |
+| --------------------- | ------------------------------------------------------------- |
+| `/`                   | Hero → At a glance → featured projects                        |
+| `/about`              | Bio with a floated photo → Experience → Stack → Beyond the CV |
+| `/projects`           | Full-width cards, one per row                                 |
+| `/projects/[slug]`    | Case study with a sticky spec rail                            |
+| `/writing`            | One list, sticky tag rail that filters in place               |
+| `/writing/[...slug]`  | Post: 46rem measure, TOC, progress bar, footnote popovers     |
+| `/writing/tags/[tag]` | Tag archive — the filter on the index is not a linkable URL   |
+| `/lists`              | Card grid                                                     |
+| `/lists/[...slug]`    | Ranked or grouped, with a tag rail                            |
 
-Layouts nest: `MarkdownPostLayout` and `ContentListLayout` both wrap `BaseLayout`.
-`ContentListLayout` serves both collections via `items` + `baseUrl`, typed as
-`CollectionEntry<'blog' | 'lists'>` — guard with `'tags' in item.data` since `lists`
-entries have no tags.
+**`/writing` is canonical.** `/blog/*` redirects to it via `redirects` in
+`astro.config.mjs`; the old posts have a decade of inbound links. Astro validates redirect
+targets against real routes at build time, so a broken redirect fails the build.
+
+- `getStaticPaths` over `getPublished(...)`, `params: { slug: entry.id }`, then
+  `render(entry)` from `astro:content` (**not** the removed `entry.render()`).
+- `rss.xml.ts` exports **`GET()`** (Astro 3+ renamed it from `get()`).
 
 ## Styling
 
-Tailwind 4 is configured **in CSS**, not a JS config file. `src/styles/global.css` holds
-`@import 'tailwindcss'`, `@plugin '@tailwindcss/typography'`, and a `@theme` block for the
-font family. There is no `tailwind.config.cjs` and no PostCSS config — `@tailwindcss/vite`
-handles the pipeline from `astro.config.mjs`.
+Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no PostCSS config —
+`@tailwindcss/vite` handles the pipeline from `astro.config.mjs`.
 
-Gradient utilities use the v4 names (`bg-linear-to-r`, not `bg-gradient-to-r`).
+`src/styles/global.css` is the whole design system:
+
+- an `@theme` block defining every design token, so they generate real utilities
+  (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-shell` →
+  `max-w-shell`);
+- `:root[data-theme='dark']` overriding those same custom properties, so utilities
+  re-derive in dark mode instead of needing a `dark:` twin for every colour;
+- `@custom-variant dark` pointed at the same attribute, for the cases that do need one;
+- `@utility` blocks for the handful of things with no utility form — `text-gradient`,
+  `placeholder-copy`, and `prose` (Markdown output has no classes to hang utilities on).
+
+**Do not add keys to the `--spacing` namespace.** Defining `--spacing-foo` in `@theme`
+drops Tailwind's own `--spacing` base, and every numeric `p-*`/`gap-*`/`size-*` utility
+silently stops resolving — with an error that points at the wrong file. The design's
+`--section` and `--gutter` deliberately live in plain `:root` and are used as
+`py-(--section)` / `px-(--gutter)`.
+
+The spacing ladder itself is Tailwind's default: the design's 4/8/12/16/24/32/40/48/64px
+steps are exactly `p-1` … `p-16`.
+
+Breakpoints are named after the layout decision they make (`nav:`, `card:`, `rail:`,
+`case:`, `bio:`, `hero:`) rather than `sm:`/`md:`/`lg:`.
+
+Component-specific CSS that genuinely isn't a utility — the aurora's stacked radial
+gradients, the dock's per-position border radii, the timeline spine — lives in a scoped
+`<style>` block in the component that owns it, not in a global file.
+
+Gradient utilities use the v4 names (`bg-linear-100 from-violet to-cyan`, not
+`bg-gradient-to-r`).
+
+## Client-side code
+
+Vanilla TypeScript in `src/lib/`, imported from an Astro `<script>`:
+
+- `chrome.ts` — theme toggle, dock scroll-collapse, reading progress, and the tag filter.
+  Loaded on every page from `BaseLayout`.
+- `filter.ts` — tag filtering. **A page has at most one `[data-filter-root]`.** Rows and
+  group headings are scoped to it; the count and empty-state elements are looked up
+  page-wide, because on a list page the count sits up in the page header.
+- `footnotes.ts` — upgrades GFM footnote references into popovers. Progressive: with JS off
+  the anchors and the footnote list still work.
+
+Two things that will bite:
+
+- **`viewTransition.ready` rejects** whenever the browser skips the transition — a hidden
+  tab, or a second click mid-transition. The theme has already applied, so it just needs
+  `.catch(() => {})` to stay out of the console.
+- **A ranked list must not renumber when filtered.** Rank comes from the item's index in the
+  data and is written into the markup. `<ol>` numbering or a CSS counter both renumber the
+  moment a row above is hidden.
+
+## Verifying the design
+
+- **Measure layout, don't eyeball it.** Compare `document.documentElement.scrollWidth`
+  against the viewport at 320/360/390/414/768/1280 in both themes on every page. A 10–20px
+  overflow is invisible in a screenshot. Load the page in an iframe of an exact CSS pixel
+  width — an iframe establishes its own layout viewport, so it measures what a phone measures.
+- **Verify anything client-side in a real browser with the console open.** Note that
+  `window.scrollTo()` from a remote eval context does not reliably fire `scroll` events;
+  drive real input, or the handlers will look broken when they are fine.
+- Controls and chrome are ≥44px. Inline text links inside prose are exempt.
+- Grid children need `min-width: 0` and `minmax(0, 1fr)` tracks. The tag rail is a flex row
+  of chips; in an auto-sized track it measures to max-content and drags the page ~400px wide
+  at a 320px viewport.
+
+## Placeholder content
+
+Employment dates and titles, app pitches, case-study bodies, the About bio, the "Beyond the
+CV" numbers and most list notes are placeholder, marked with a dotted underline. **Do not
+invent replacements** — Jason fills these in. `PhNote` blocks name what is outstanding.
+
+`public/resume.pdf` does not exist yet; the "Download resume" buttons point at it.
 
 ## Conventions
 
 - **Path aliases** (`tsconfig.json`): `@components/*`, `@layouts/*`, `@images/*`, `@styles/*`.
   `src/lib/*` is imported relatively.
 - **Images**: `src/images/*` is imported and passed to `<Image>` from `astro:assets`, which
-  requires `sharp` and cuts the About hero from 2.8 MB to ~76 kB. Files in `public/` are
-  **not importable** — reference them as URL strings (`'/headshot.png'`). Importing a public
-  path fails the build with `ImageNotFound`.
-- **React islands** are the exception — only `HeadshotSocialLinks` (`client:load`).
-  Write new UI as `.astro` unless it needs client-side state.
-- **Do not set `jsx` or `jsxImportSource` in `tsconfig.json`.** `@astrojs/react` configures
-  the JSX transform itself; setting them explicitly breaks hydration with
-  `TypeError: _jsxDEV is not a function`, which fails in a way that is easy to miss — the
-  server HTML is correct and complete, and the island is only emptied on the client.
-  Verify island changes in a browser, not by reading the served markup.
+  requires `sharp`. The five portraits went from ~843 kB of PNG to ~26 kB of webp this way.
+  Files in `public/` are **not importable** — reference them as URL strings. Importing a
+  public path fails the build with `ImageNotFound`.
+- **Icons** come from `astro-icon` (`lucide:*`, `simple-icons:*`), not hand-pasted SVG paths.
+  The JL monogram is the exception — it is bespoke, and `public/favicon.svg` is a copy of it
+  kept in sync by hand.
+- **Component variants** use `tailwind-variants` (`Button`, `Chip`, `Status`, `DeviceFrame`),
+  not modifier classes.
+- UI primitives in `src/components/ui/` spread `...rest`, so `data-*` and ARIA attributes
+  pass through to the rendered element.
 - Prettier: single quotes, semicolons, 2-space, es5 trailing commas, `prettier-plugin-astro`.
 
 ## Deployment

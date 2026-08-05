@@ -1,0 +1,98 @@
+---
+import { tv } from 'tailwind-variants';
+
+/**
+ * A drawn stand-in for a screenshot — a phone body for the apps, a browser
+ * window for the web project. Real captures drop into the same box.
+ *
+ * The compositions are arbitrary; they exist so three frames side by side in a
+ * case study don't read as the same image repeated.
+ */
+type Slab = { h?: number; accent?: boolean; fill?: boolean };
+
+const SLABS: Record<'phone' | 'window', Slab[][]> = {
+  phone: [
+    [{ h: 40, accent: true }, { h: 24 }, { fill: true }],
+    [{ h: 52 }, { h: 24, accent: true }, { fill: true }],
+    [{ h: 32 }, { h: 32 }, { accent: true, fill: true }],
+  ],
+  window: [
+    [{ h: 34, accent: true }, { fill: true }],
+    [{ h: 26 }, { accent: true, fill: true }],
+    [{ h: 44, accent: true }, { fill: true }],
+  ],
+};
+
+const frame = tv({
+  base: 'flex w-full shrink-0 flex-col gap-1.5 border border-line-strong bg-panel p-2 shadow-lift',
+  variants: {
+    kind: {
+      phone: 'aspect-[9/19] rounded-[20px]',
+      window: 'aspect-[4/3] rounded-[14px]',
+    },
+    // A full-width card has room to the right, so the frame grows into it.
+    size: { default: '', wide: '', shot: '' },
+  },
+  compoundVariants: [
+    { kind: 'phone', size: 'default', class: 'max-w-[140px]' },
+    { kind: 'phone', size: 'wide', class: 'max-w-[140px] card:max-w-[200px]' },
+    { kind: 'phone', size: 'shot', class: 'max-w-[172px]' },
+    { kind: 'window', size: 'default', class: 'max-w-[240px]' },
+    { kind: 'window', size: 'wide', class: 'max-w-[240px] card:max-w-[280px]' },
+    { kind: 'window', size: 'shot', class: 'max-w-[240px]' },
+  ],
+  defaultVariants: { kind: 'phone', size: 'default' },
+});
+
+interface Props {
+  kind?: 'phone' | 'window';
+  size?: 'default' | 'wide' | 'shot';
+  /** Picks one of three compositions. */
+  variant?: 0 | 1 | 2;
+  class?: string;
+}
+
+const {
+  kind = 'phone',
+  size = 'default',
+  variant = 0,
+  class: className,
+} = Astro.props;
+
+const slabs = SLABS[kind][variant];
+---
+
+<div class={frame({ kind, size, class: className })} aria-hidden="true">
+  {
+    kind === 'window' && (
+      <div class="flex gap-1 pb-1">
+        <i class="block size-1.5 rounded-full bg-line-strong" />
+        <i class="block size-1.5 rounded-full bg-line-strong" />
+        <i class="block size-1.5 rounded-full bg-line-strong" />
+      </div>
+    )
+  }
+
+  <div
+    class:list={[
+      'h-[7px] rounded bg-line',
+      variant % 2 === 0 ? 'w-3/5' : 'w-2/5',
+    ]}
+  >
+  </div>
+
+  {
+    slabs.map((slab) => (
+      <div
+        class:list={[
+          kind === 'phone' ? 'rounded-[10px]' : 'rounded-lg',
+          slab.fill && 'flex-1',
+          slab.accent
+            ? 'bg-linear-100 from-violet to-cyan opacity-55'
+            : 'bg-line',
+        ]}
+        style={slab.h ? `height: ${slab.h}px` : undefined}
+      />
+    ))
+  }
+</div>

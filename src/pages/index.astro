@@ -1,20 +1,61 @@
 ---
-// Component Imports
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { HeadshotSocialLinks } from '@components/HeadshotSocialLinks';
+import Hero from '@components/Hero.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+import Shell from '@components/ui/Shell.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHead from '@components/ui/SectionHead.astro';
+import Panel from '@components/ui/Panel.astro';
+import Fact from '@components/ui/Fact.astro';
+import { getPublished } from '../lib/content';
 
-// Full Astro Component Syntax:
-// https://docs.astro.build/core-concepts/astro-components/
+const featured = (await getPublished('projects')).filter(
+  (project) => project.data.is_featured
+);
 ---
 
-<BaseLayout pageTitle="Home">
-  <div class="grid place-items-center h-full content-center">
-    <HeadshotSocialLinks client:load />
-    <h1
-      class="bg-linear-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent"
-    >
-      Jason Leibowitz
-    </h1>
-    <p>web developer passionate about design, creativity and soccer.</p>
-  </div>
+<BaseLayout
+  pageTitle="Home"
+  page="home"
+  description="Jason Leibowitz — full-stack engineer in New York. Eleven years of products people use every day, plus two mobile apps of my own."
+>
+  <Hero />
+
+  <Section>
+    <Shell>
+      <SectionHead
+        title="At a glance"
+        more={{ label: 'About me', href: '/about/' }}
+      />
+      <Panel class="px-6 py-2">
+        <dl>
+          <Fact label="Now" ph>Staff engineer at Carta</Fact>
+          <Fact label="Focus" ph>
+            Product engineering across web and mobile — design systems,
+            developer experience
+          </Fact>
+          <Fact label="Before">
+            Capsule Pharmacy · Invitae · TodayTix · Reserve · TigerSpike
+          </Fact>
+          <Fact label="Studied">
+            New York University · Hebrew University · General Assembly
+          </Fact>
+          <Fact label="Based">New York City · Eastern Time</Fact>
+          <Fact label="Outside work" ph>Espresso, podcasts, soccer</Fact>
+        </dl>
+      </Panel>
+    </Shell>
+  </Section>
+
+  <Section>
+    <Shell>
+      <SectionHead
+        title="What I'm building"
+        more={{ label: 'All projects', href: '/projects/' }}
+      />
+      <div class="grid gap-4 card:grid-cols-2">
+        {featured.map((project) => <ProjectCard project={project} />)}
+      </div>
+    </Shell>
+  </Section>
 </BaseLayout>
