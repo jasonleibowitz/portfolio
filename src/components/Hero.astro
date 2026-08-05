@@ -28,8 +28,13 @@ import { EMAIL, RESUME_HREF } from '../lib/site';
         <h1
           class="mt-4 mb-6 font-display text-mega leading-[0.96] font-bold tracking-[-0.042em]"
         >
-          <span class="inline hero:block">I build things</span>
-          <span class="inline hero:block"
+          <span class="inline hero:block">I build things</span>{
+            /*
+            Explicit: the compiler strips the whitespace between these two
+            spans, and below 26rem they are inline, where that newline is the
+            only thing separating "things" from "that".
+          */
+          }{' '}<span class="inline hero:block"
             >that <span class="whitespace-nowrap"
               ><Cycler words={['ship', 'last', 'delight', 'scale']} /><span
                 class="text-gradient">.</span
