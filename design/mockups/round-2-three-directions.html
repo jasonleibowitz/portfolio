@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>leibowitz.me — design directions, round 2</title>
+    <style>
+      :root {
+        --bg: #0e0e11;
+        --panel: #16161b;
+        --panel-2: #1d1d24;
+        --line: #2b2b34;
+        --text: #ececf1;
+        --muted: #9c9cab;
+        --faint: #71717f;
+        --d1: #5cd6ae;
+        --d2: #eaa14e;
+        --d3: #9b8cff;
+        --sans:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue',
+          Arial, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1500px;
+        margin-inline: auto;
+        padding: 24px clamp(16px, 2vw, 32px) 96px;
+      }
+      header.top {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 20px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.125rem);
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0;
+        max-width: 80ch;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        background: var(--panel-2);
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+        padding: 12px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .group > span {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+      .seg {
+        display: flex;
+        flex-wrap: wrap;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .seg button {
+        font: 500 13px/1 var(--sans);
+        background: var(--panel);
+        color: var(--muted);
+        border: 0;
+        border-right: 1px solid var(--line);
+        padding: 9px 11px;
+        cursor: pointer;
+        min-height: 38px;
+      }
+      .seg button:last-child {
+        border-right: 0;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--text);
+        color: #111;
+      }
+      .seg button:hover:not([aria-pressed='true']) {
+        color: var(--text);
+      }
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .frames {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .frames.stacked {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .col {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .col-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .col-head b {
+        font-size: 14px;
+      }
+      .col-head .tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--faint);
+      }
+      .col-head a {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 9px;
+      }
+      .col-head a:hover {
+        color: var(--text);
+        border-color: var(--muted);
+      }
+      .stage {
+        background: #000;
+        overflow: hidden;
+        position: relative;
+      }
+      .stage iframe {
+        border: 0;
+        display: block;
+        transform-origin: top left;
+        background: #fff;
+      }
+      .measure {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--faint);
+        padding: 8px 14px;
+        border-top: 1px solid var(--line);
+      }
+      .doc {
+        margin-top: 56px;
+        max-width: 92ch;
+      }
+      .doc h2 {
+        font-size: 1.375rem;
+        letter-spacing: -0.02em;
+        margin: 48px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      .doc h3 {
+        font-size: 1.0625rem;
+        margin: 26px 0 6px;
+      }
+      .doc p,
+      .doc li {
+        color: #d4d4de;
+      }
+      .doc p {
+        margin: 0 0 14px;
+      }
+      .doc ul {
+        margin: 0 0 16px;
+        padding-left: 20px;
+      }
+      .doc li {
+        margin-bottom: 6px;
+      }
+      .doc strong {
+        color: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0 24px;
+        font-size: 13.5px;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 9px 12px 9px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 400;
+      }
+      td:first-child {
+        color: var(--muted);
+        white-space: nowrap;
+        padding-right: 20px;
+      }
+      .ok {
+        color: #7fdba1;
+      }
+      .warn {
+        color: #f0c274;
+      }
+      .callout {
+        border-left: 3px solid var(--d1);
+        background: var(--panel);
+        padding: 14px 18px;
+        border-radius: 0 8px 8px 0;
+        margin: 20px 0;
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+      .todo {
+        border-left: 3px solid var(--d2);
+        background: var(--panel);
+        padding: 14px 18px;
+        border-radius: 0 8px 8px 0;
+        margin: 20px 0;
+      }
+      .d1 {
+        background: var(--d1);
+      }
+      .d2 {
+        background: var(--d2);
+      }
+      .d3 {
+        background: var(--d3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>Design directions — round 2</h1>
+        <p class="sub">
+          Rebuilt against your notes: portfolio first and blog second, a
+          Projects section with a case study per app, the résumé scroll on the
+          homepage, your warm off-white base, no ticker, bottom tabs kept, the
+          headshot swap kept and made to work on touch, B's stats block and
+          year-grouped index kept, a wider article measure, footnotes and
+          syntax-highlighted code. One direction each from minimalism, tech and
+          sci-fi. Seven screens per direction — switch below.
+        </p>
+      </header>
+
+      <div class="controls">
+        <div class="group">
+          <span>Screen</span>
+          <div class="seg" id="seg-page">
+            <button data-page="home" aria-pressed="true">Home</button>
+            <button data-page="projects" aria-pressed="false">Projects</button>
+            <button data-page="case" aria-pressed="false">Case study</button>
+            <button data-page="writing" aria-pressed="false">Writing</button>
+            <button data-page="post" aria-pressed="false">Post</button>
+            <button data-page="about" aria-pressed="false">About</button>
+            <button data-page="spec" aria-pressed="false">Spec</button>
+          </div>
+        </div>
+        <div class="group">
+          <span>Viewport</span>
+          <div class="seg" id="seg-width">
+            <button data-width="320" aria-pressed="false">320</button>
+            <button data-width="360" aria-pressed="true">360</button>
+            <button data-width="390" aria-pressed="false">390</button>
+            <button data-width="414" aria-pressed="false">414</button>
+            <button data-width="768" aria-pressed="false">768</button>
+            <button data-width="1280" aria-pressed="false">1280</button>
+          </div>
+        </div>
+        <div class="group">
+          <span>Theme</span>
+          <div class="seg" id="seg-theme">
+            <button data-theme="light" aria-pressed="true">Light</button>
+            <button data-theme="dark" aria-pressed="false">Dark</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="frames">
+        <section class="col">
+          <div class="col-head">
+            <span class="dot d1"></span><b>D1 · Signal</b
+            ><span class="tag">minimal</span>
+            <a href="d1-signal.html" target="_blank" rel="noopener">Open ↗</a>
+          </div>
+          <div class="stage"><iframe data-file="d1-signal.html"></iframe></div>
+          <div class="measure" data-measure="d1-signal.html">—</div>
+        </section>
+        <section class="col">
+          <div class="col-head">
+            <span class="dot d2"></span><b>D2 · Console</b
+            ><span class="tag">tech</span>
+            <a href="d2-console.html" target="_blank" rel="noopener">Open ↗</a>
+          </div>
+          <div class="stage"><iframe data-file="d2-console.html"></iframe></div>
+          <div class="measure" data-measure="d2-console.html">—</div>
+        </section>
+        <section class="col">
+          <div class="col-head">
+            <span class="dot d3"></span><b>D3 · Orbit</b
+            ><span class="tag">sci-fi</span>
+            <a href="d3-orbit.html" target="_blank" rel="noopener">Open ↗</a>
+          </div>
+          <div class="stage"><iframe data-file="d3-orbit.html"></iframe></div>
+          <div class="measure" data-measure="d3-orbit.html">—</div>
+        </section>
+      </div>
+
+      <div class="doc">
+        <h2>The short version</h2>
+        <table>
+          <tr>
+            <th>&nbsp;</th>
+            <th>D1 — Signal</th>
+            <th>D2 — Console</th>
+            <th>D3 — Orbit</th>
+          </tr>
+          <tr>
+            <td>Lens</td>
+            <td>Minimalism</td>
+            <td>Tech / developer tool</td>
+            <td>Sci-fi</td>
+          </tr>
+          <tr>
+            <td>Type</td>
+            <td>Inter Tight + Inter + JetBrains Mono</td>
+            <td>IBM Plex Sans + IBM Plex Mono</td>
+            <td>Space Grotesk + Inter</td>
+          </tr>
+          <tr>
+            <td>Colour</td>
+            <td>Near-monochrome + deep green</td>
+            <td>Ink + signal amber (+ syntax colours)</td>
+            <td>Violet→cyan spectrum + aurora</td>
+          </tr>
+          <tr>
+            <td>Surface</td>
+            <td>Flat, hairlines, no shadows</td>
+            <td>Panels with title bars, 1px hard shadows</td>
+            <td>Glass, blur, soft elevation</td>
+          </tr>
+          <tr>
+            <td>Experience shown as</td>
+            <td>Plain dated rows</td>
+            <td>A deploy log with nodes</td>
+            <td>Gradient timeline</td>
+          </tr>
+          <tr>
+            <td>Mobile nav</td>
+            <td>Edge-to-edge tab bar</td>
+            <td>Tab bar with amber active border</td>
+            <td>Floating glass dock</td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>Fade-up on scroll, underline sweep</td>
+            <td>Blinking caret, hover fills, no scroll motion</td>
+            <td>Drifting aurora, orbiting dot, pulse</td>
+          </tr>
+          <tr>
+            <td>Risk</td>
+            <td class="ok">Low — ages well, quietest</td>
+            <td class="ok">Low–medium — reads "engineer" hardest</td>
+            <td class="warn">Medium — most distinctive, most to maintain</td>
+          </tr>
+          <tr>
+            <td>Build effort</td>
+            <td>~1 day</td>
+            <td>~1.5 days</td>
+            <td>~2 days</td>
+          </tr>
+        </table>
+
+        <div class="callout">
+          <p>
+            <strong>Recommendation: D2 Console.</strong> You're sending this to
+            engineering hiring managers, and it's the one that signals "this
+            person builds things" in the first two seconds without saying it. It
+            also handles your content best: the repo-style cards suit two apps
+            with real stacks, the deploy-log experience section reads as a
+            career rather than a list, and the line-numbered code panel makes
+            the footnotes-and-code requirement look deliberate instead of bolted
+            on. D3 is the one to pick if you'd rather be remembered than
+            understood — it's the most striking, and the aurora plus glass is
+            genuinely distinctive, but it's also the most likely to feel dated
+            in two years and the heaviest to keep consistent. D1 is the safe
+            floor: nothing in it will ever look wrong, and nothing in it will
+            ever be the reason someone remembers the site.
+          </p>
+        </div>
+
+        <h2>What changed since round 1</h2>
+        <ul>
+          <li>
+            <strong>The homepage is a résumé now.</strong> Hero → at a glance →
+            experience → projects → writing. The blog is the last section on the
+            page rather than the whole page.
+          </li>
+          <li>
+            <strong>Projects is a real section</strong> — an index plus a case
+            study per app, with a sticky spec rail on desktop listing status,
+            platform, stack and role. Winnie leads (nearer release), Reel Watch
+            second, both marked TestFlight.
+          </li>
+          <li>
+            <strong>The headshot swap survives</strong> and now works on touch:
+            hover on desktop, tap on mobile, chip stays lit until you tap
+            another. It's about 15 lines of vanilla JS in the layout — no React
+            island, so the site still ships zero islands.
+          </li>
+          <li>
+            <strong>The ticker is gone.</strong> So is the cream background —
+            all three sit on <code>#FCFAF6</code>, the one you preferred.
+          </li>
+          <li>
+            <strong>Kept from B:</strong> the at-a-glance stats block and the
+            year-grouped index with date, read time and tags on every row. The
+            article measure went from 36rem to <strong>40rem</strong>, and the
+            table of contents is in all three.
+          </li>
+          <li>
+            <strong>Footnotes and code are designed, not assumed</strong> — the
+            post screen shows both. Production side is Astro's built-in Shiki
+            plus <code>remark-gfm</code> and <code>remark-footnotes</code>.
+          </li>
+          <li>
+            <strong>About stayed</strong>, as you asked: long bio, résumé PDF,
+            and a "beyond the CV" row of fun stats. Nav is Home / Projects /
+            Writing / About, with Lists as a tab inside Writing — that keeps the
+            bottom bar at four slots, which is the most that fits cleanly at
+            320px.
+          </li>
+        </ul>
+
+        <div class="todo">
+          <p>
+            <strong>What's still placeholder</strong> — everything marked with a
+            dotted underline in the mockups, so you can see the gaps rather than
+            trust a summary:
+          </p>
+          <ul>
+            <li>
+              <strong>Employment dates and job titles.</strong> The repo only
+              told me the order of the companies, so I did not invent them.
+            </li>
+            <li>
+              <strong>One-line pitches</strong> for Winnie the Poo Tracker and
+              Reel Watch, plus all case-study body copy.
+            </li>
+            <li>
+              <strong>App screenshots</strong> — the phone frames are drawn in
+              CSS. Real screenshots drop straight in.
+            </li>
+            <li>
+              <strong>The About bio</strong> and the "beyond the CV" numbers.
+              Once you pick a direction I'll draft the bio with you — countries
+              visited is a good one; cities lived in, concerts, a "currently
+              reading" slot and a small map are other options.
+            </li>
+          </ul>
+        </div>
+
+        <h2>Honest weaknesses</h2>
+        <ul>
+          <li>
+            <strong>D1</strong> — the least memorable of the three. It is a very
+            well-made version of a layout a lot of good engineers already have.
+            If "modern and techy" was the brief, this is the one that answers
+            "modern" and mostly skips "techy".
+          </li>
+          <li>
+            <strong>D2</strong> — the monospace and the <code>~/</code> paths
+            are a deliberate bet. Engineers read it as fluency; a non-technical
+            recruiter may read it as noise, and lowercase headings can look like
+            an affectation if you're not into it. Easy to dial back: keep the
+            panels and the amber, set headings in sentence case.
+          </li>
+          <li>
+            <strong>D3</strong> — <code>backdrop-filter</code> on a dozen
+            elements per page is the expensive part, and it's the direction most
+            likely to trip the performance audit (#10). Cyan is only 3.1:1 on
+            the light base, which is why it never carries body text — that
+            constrains the palette more than it looks. It is also the most "of
+            its moment".
+          </li>
+        </ul>
+
+        <h2>How this was verified</h2>
+        <p>
+          Every screen of every direction was measured in Chrome rather than
+          eyeballed — <code>document.documentElement.scrollWidth</code> against
+          viewport width at 320, 360, 390, 414, 768 and 1280px in both themes,
+          plus a tap-target sweep at 360px. Numbers and method are in
+          <code>MEASUREMENTS.md</code>; the row under each frame shows the live
+          number for whatever you have selected.
+        </p>
+        <p>
+          Round 1 is archived in <code>round-1/</code> if you want to compare
+          against what you rejected.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var state = { page: 'home', width: 360, theme: 'light' };
+        var frames = Array.prototype.slice.call(
+          document.querySelectorAll('iframe[data-file]')
+        );
+
+        function layout() {
+          document
+            .querySelector('.frames')
+            .classList.toggle('stacked', state.width >= 768);
+          frames.forEach(function (f) {
+            var stage = f.parentElement;
+            var avail = stage.clientWidth;
+            var scale = Math.min(1, avail / state.width);
+            var h = state.width <= 420 ? 780 : 900;
+            f.style.width = state.width + 'px';
+            f.style.height = h + 'px';
+            f.style.transform = 'scale(' + scale + ')';
+            f.style.marginLeft =
+              Math.max(0, (avail - state.width * scale) / 2) + 'px';
+            stage.style.height = Math.round(h * scale) + 'px';
+          });
+        }
+
+        function load() {
+          frames.forEach(function (f) {
+            f.src =
+              f.dataset.file + '?page=' + state.page + '&theme=' + state.theme;
+          });
+          layout();
+        }
+
+        function measure() {
+          frames.forEach(function (f) {
+            var out = document.querySelector(
+              '[data-measure="' + f.dataset.file + '"]'
+            );
+            var doc;
+            try {
+              doc = f.contentDocument;
+            } catch (e) {
+              doc = null;
+            }
+            if (!doc || !doc.documentElement) {
+              out.textContent =
+                'measure blocked — serve over http:// to read the frame';
+              return;
+            }
+            var sw = doc.documentElement.scrollWidth;
+            var over = sw - state.width;
+            out.innerHTML =
+              'scrollWidth ' +
+              sw +
+              ' / viewport ' +
+              state.width +
+              ' → ' +
+              (over > 0
+                ? '<span style="color:#f08a8a">overflow ' + over + 'px</span>'
+                : '<span style="color:#7fdba1">no overflow</span>');
+          });
+        }
+
+        function bind(id, key, cast) {
+          var seg = document.getElementById(id);
+          seg.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
+            if (!btn) return;
+            state[key] = cast(btn.dataset[key]);
+            Array.prototype.forEach.call(seg.children, function (b) {
+              b.setAttribute('aria-pressed', String(b === btn));
+            });
+            load();
+          });
+        }
+        bind('seg-page', 'page', String);
+        bind('seg-width', 'width', Number);
+        bind('seg-theme', 'theme', String);
+
+        frames.forEach(function (f) {
+          f.addEventListener('load', function () {
+            setTimeout(measure, 60);
+          });
+        });
+        window.addEventListener('resize', layout);
+        load();
+      })();
+    </script>
+  </body>
+</html>
