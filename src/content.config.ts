@@ -25,45 +25,59 @@ const blog = defineCollection({
   }),
 });
 
-/** One entry in a list -- a recommendation, so it is usually a link out. */
-const listItem = z.object({
-  name: z.string(),
-  /** Optional. An entry with no href renders as plain text, not a dead link. */
-  href: z.string().optional(),
-  image: z.string().optional(),
-  note: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  placeholder,
-});
-
 const lists = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lists' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    updated: z.coerce.date(),
-    /** Ranked lists are numbered and never grouped. */
-    ranked: z.boolean().default(false),
-    /**
-     * Artwork ratio for the whole list, since it is a property of the kind of
-     * thing being listed rather than of any one entry:
-     *
-     *   square  56x56  (1:1)  podcast and album art, the default
-     *   poster  56x84  (2:3)  film and book covers
-     *
-     * Both are 56px wide, so the artwork column lines up across every list and
-     * only the row height changes. Cropping a 2:3 poster into a square would
-     * keep the middle and throw away the title.
-     */
-    thumb: z.enum(['square', 'poster']).default('square'),
-    /** A list carries `items` (ranked or flat) or `groups`, not both. */
-    items: z.array(listItem).default([]),
-    groups: z
-      .array(z.object({ name: z.string(), items: z.array(listItem) }))
-      .default([]),
-    draft: z.boolean().default(false),
-    placeholder,
-  }),
+  // The schema takes the `image()` helper, so artwork paths resolve relative to
+  // the entry file and go through astro:assets. `listItem` is declared in here
+  // rather than at module scope because it needs that helper.
+  schema: ({ image }) => {
+    /** One entry in a list -- a recommendation, so usually a link out. */
+    const listItem = z.object({
+      name: z.string(),
+      /** Optional. No href renders as plain text rather than a dead link. */
+      href: z.string().optional(),
+      /**
+       * A path relative to this file, e.g. './artwork/the-matrix.jpg'.
+       *
+       * Deliberately a local file rather than a remote URL: Astro resizes and
+       * re-encodes it at build time, which takes a ~60kB poster down to ~4kB
+       * at the size it actually renders. Allowing remote URLs would mean
+       * either shipping the full-size original or making every build depend on
+       * someone else's server being up.
+       */
+      image: image().optional(),
+      note: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+      placeholder,
+    });
+
+    return z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      updated: z.coerce.date(),
+      /** Ranked lists are numbered and never grouped. */
+      ranked: z.boolean().default(false),
+      /**
+       * Artwork ratio for the whole list, since it is a property of the kind of
+       * thing being listed rather than of any one entry:
+       *
+       *   square  56x56  (1:1)  podcast and album art, the default
+       *   poster  56x84  (2:3)  film and book covers
+       *
+       * Both are 56px wide, so the artwork column lines up across every list
+       * and only the row height changes. Cropping a 2:3 poster into a square
+       * would keep the middle and throw away the title.
+       */
+      thumb: z.enum(['square', 'poster']).default('square'),
+      /** A list carries `items` (ranked or flat) or `groups`, not both. */
+      items: z.array(listItem).default([]),
+      groups: z
+        .array(z.object({ name: z.string(), items: z.array(listItem) }))
+        .default([]),
+      draft: z.boolean().default(false),
+      placeholder,
+    });
+  },
 });
 
 const projects = defineCollection({

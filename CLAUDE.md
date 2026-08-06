@@ -208,6 +208,15 @@ invent replacements** — Jason fills these in. `PhNote` blocks name what is out
   requires `sharp`. The five portraits went from ~843 kB of PNG to ~26 kB of webp this way.
   Files in `public/` are **not importable** — reference them as URL strings. Importing a
   public path fails the build with `ImageNotFound`.
+- **List artwork** goes through the same pipeline. The `lists` schema is a function of
+  `({ image })`, so an entry's `image` is a path _relative to its own `.mdx`_ —
+  `./artwork/the-matrix.jpg`, with the files alongside the list in `src/content/lists/`.
+  A 1 MB source came out at 1 kB (1x) and 3 kB (2x) in the 56px column.
+
+  It deliberately does **not** accept a remote URL. Astro can optimise those too, via
+  `image.remotePatterns`, but then every build fetches them and a dead host or a 404 fails
+  the deploy. Download the artwork once instead.
+
 - **Icons** come from `astro-icon` (`lucide:*`, `simple-icons:*`), not hand-pasted SVG paths.
   The JL monogram is the exception — it is bespoke, and `public/favicon.svg` is a copy of it
   kept in sync by hand.

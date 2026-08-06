@@ -1,4 +1,6 @@
 ---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { tv } from 'tailwind-variants';
 import Chip from './ui/Chip.astro';
@@ -28,14 +30,8 @@ const artwork = tv({
 /** Only for the width/height attributes, which reserve space before layout. */
 const ARTWORK_HEIGHT = { square: 56, poster: 84 } as const;
 
-type Item = {
-  name: string;
-  href?: string;
-  image?: string;
-  note?: string;
-  tags: string[];
-  placeholder: string[];
-};
+/** Taken from the schema so the two cannot drift apart. */
+type Item = CollectionEntry<'lists'>['data']['items'][number];
 
 interface Props {
   item: Item;
@@ -93,11 +89,13 @@ const initials = item.name
 
     {
       item.image ? (
-        <img
+        <Image
           src={item.image}
           alt=""
-          width="56"
+          width={56}
           height={ARTWORK_HEIGHT[shape]}
+          fit="cover"
+          densities={[2]}
           loading="lazy"
           class={artwork({ shape, class: 'object-cover' })}
         />
