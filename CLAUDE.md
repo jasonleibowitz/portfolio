@@ -203,7 +203,9 @@ in and are no longer placeholder. Accomplishment bullets under Experience are no
 at all — the resume is where a recruiter reads what a role achieved — so a role that
 renders as title and dates alone is finished, not unfinished.
 
-`public/resume.pdf` does not exist yet; the "Download resume" buttons point at it.
+`public/resume.pdf` is the real two-page resume, and the "Download resume" buttons point
+at it. It is one click from the About page, so anything the site claims about a title or a
+role has to match what the PDF says.
 
 ## Conventions
 
