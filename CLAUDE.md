@@ -194,9 +194,13 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches, case-study bodies, most list notes and one project's start date are
-placeholder, marked with a dotted underline. **Do not invent replacements** — Jason fills
-these in. `PhNote` blocks name what is outstanding.
+App pitches, case-study bodies, two `Started` dates and two homepage facts are placeholder,
+marked with a dotted underline. **Do not invent replacements** — Jason fills these in.
+`PhNote` blocks name what is outstanding.
+
+List entries no longer carry a stub note. `note` is optional, and an entry without one
+renders as name, tags and artwork — so the way to add a note is to write a real one, not
+to reinstate a placeholder.
 
 The About bio, the employment record and the "Beyond the CV" numbers have all been filled
 in and are no longer placeholder. Accomplishment bullets under Experience are not coming
