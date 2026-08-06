@@ -23,3 +23,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# impeccable: generated cache and per-machine consent. design.json is shared.
+.impeccable/hook.cache.json
+.impeccable/config.local.json
