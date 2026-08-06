@@ -133,7 +133,7 @@ Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no Post
   (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-shell` →
   `max-w-shell`);
 - `:root[data-theme='dark']` overriding those same custom properties, so utilities
-  re-derive in dark mode instead of needing a `dark:` twin for every colour;
+  re-derive in dark mode instead of needing a `dark:` twin for every color;
 - `@custom-variant dark` pointed at the same attribute, for the cases that do need one;
 - `@utility` blocks for the handful of things with no utility form — `text-gradient`,
   `placeholder-copy`, and `prose` (Markdown output has no classes to hang utilities on).
@@ -213,7 +213,7 @@ invent replacements** — Jason fills these in. `PhNote` blocks name what is out
   `./artwork/the-matrix.jpg`, with the files alongside the list in `src/content/lists/`.
   A 1 MB source came out at 1 kB (1x) and 3 kB (2x) in the 56px column.
 
-  It deliberately does **not** accept a remote URL. Astro can optimise those too, via
+  It deliberately does **not** accept a remote URL. Astro can optimize those too, via
   `image.remotePatterns`, but then every build fetches them and a dead host or a 404 fails
   the deploy. Download the artwork once instead.
 

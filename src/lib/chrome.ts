@@ -1,5 +1,5 @@
 /**
- * Chrome behaviour that every page gets: the theme toggle, the mobile dock's
+ * Chrome behavior that every page gets: the theme toggle, the mobile dock's
  * scroll collapse, and the reading-progress bar.
  *
  * Vanilla, no framework — the site ships zero JS islands.

@@ -7,7 +7,7 @@ import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
  *
  * The capsule has no padding, so the active tab reaches its inner edge: the
  * first and last tabs take the capsule's own end cap on their outer side via
- * per-position border-radius, and nothing is left uncoloured around the active
+ * per-position border-radius, and nothing is left uncolored around the active
  * item. Chosen deliberately over an Apple-style inset tinted chip.
  *
  * At a 320px viewport five tabs are 59px each — above the 44px target rule.
@@ -59,7 +59,7 @@ const active = NAV_FOR_PAGE[page];
        content, so it has to composite against something that moves. No SVG
        refraction — that needs feDisplacementMap inside backdrop-filter, which
        Safari and Firefox ignore, so it would be invisible on the phones that
-       would recognise it. */
+       would recognize it. */
     backdrop-filter: blur(30px) saturate(210%);
     -webkit-backdrop-filter: blur(30px) saturate(210%);
     border: 1px solid rgb(255 255 255 / 0.62);
