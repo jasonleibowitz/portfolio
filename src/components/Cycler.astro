@@ -18,10 +18,16 @@ interface Props {
 const { words } = Astro.props;
 ---
 
+{/* All four words are in the DOM, so only the first is read aloud. */}
 <span class="cycler" id="cycler"
   >{
     words.map((word, i) => (
-      <span class:list={['text-gradient', i === 0 && 'is-in']}>{word}</span>
+      <span
+        class:list={['text-gradient', i === 0 && 'is-in']}
+        aria-hidden={i === 0 ? undefined : 'true'}
+      >
+        {word}
+      </span>
     ))
   }</span
 >

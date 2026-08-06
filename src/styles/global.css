@@ -17,6 +17,9 @@
 @theme {
   /* Light is the base; :root[data-theme='dark'] below overrides the same
      properties, so every utility re-derives instead of needing a dark: twin. */
+  /* A color name that matches a built-in utility shadows it: `--color-base`
+     makes `text-base` a color, not a font size — and nothing renders a page
+     to catch it. Same for `sm`, `lg`, `xs`. Size with `text-body`/`text-ui`. */
   --color-base: #fcfaf6;
   --color-panel: rgb(255 255 255 / 0.72);
   --color-line: rgb(20 18 30 / 0.09);
@@ -329,7 +332,7 @@
 }
 
 /* Astro renders both Shiki themes and toggles between them; without this the
-   light theme's colours stay painted in dark mode. */
+   light theme's colors stay painted in dark mode. */
 :root[data-theme='dark'] .astro-code,
 :root[data-theme='dark'] .astro-code span {
   color: var(--shiki-dark) !important;

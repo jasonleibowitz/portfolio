@@ -1,20 +1,35 @@
 ---
 import Shell from './ui/Shell.astro';
 import SocialRow from './SocialRow.astro';
-import { NAV } from '../lib/site';
+import Button from './ui/Button.astro';
+import { EMAIL, NAV, RESUME_HREF } from '../lib/site';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="mt-auto border-t border-line py-(--section)">
   <Shell class="grid gap-6">
-    <p class="max-w-[16ch] font-display text-h2 font-bold tracking-[-0.03em]">
-      Let's build <span class="text-gradient">something</span>.
-    </p>
+    <div class="grid gap-4">
+      <p class="max-w-[16ch] font-display text-h2 font-bold tracking-[-0.03em]">
+        Let's build <span class="text-gradient">something</span>.
+      </p>
+
+      <div class="flex flex-wrap gap-2">
+        <Button
+          href={`mailto:${EMAIL}`}
+          size="sm"
+          variant="primary"
+          icon="lucide:mail">Email me</Button
+        >
+        <Button href={RESUME_HREF} size="sm" icon="lucide:file-down"
+          >Download resume</Button
+        >
+      </div>
+    </div>
 
     {
       /*
-      Centred as a block on mobile, spread on wider screens. The nav is five
+      Centered as a block on mobile, spread on wider screens. The nav is five
       short links, so a wrapping row beats a two-column grid — that left an
       orphan cell opposite the fifth item.
     */
