@@ -166,7 +166,7 @@ Real:
 
 - Five published posts, 2014–2023, with images in `public/blog-images/`. One
   (the espresso post) is currently `draft: true`.
-- Two lists — favourite movies, podcasts — in `src/content/lists/`.
+- Two lists — favorite movies, podcasts — in `src/content/lists/`.
 - Three projects in `src/content/projects/`: Winnie the Poo Tracker (TestFlight
   beta, Expo/RN + Supabase), Reel Watch (TestFlight beta, Expo/RN + Django
   Ninja/Supabase/Turborepo), and this site.
