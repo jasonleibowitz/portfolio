@@ -31,7 +31,10 @@ export type Employer = {
 export const CAREER: Employer[] = [
   {
     company: 'Carta',
-    roles: [{ title: 'Senior Software Engineer II', from: '2022-11' }],
+    // Carta's ladder calls this Senior Software Engineer II. The numeral is an
+    // internal rung that means nothing outside the company, so the site uses
+    // the same normalized title the resume headline does.
+    roles: [{ title: 'Senior Software Engineer', from: '2022-11' }],
   },
   {
     company: 'Capsule Pharmacy',
@@ -129,6 +132,19 @@ export function roleDates(roles: Role[], index: number): string | null {
   if (roles.length < 2) return null;
   const { from, to } = roles[index];
   return `· ${range(from, to)}`;
+}
+
+/**
+ * The current role, as the homepage states it: "Title at Company".
+ *
+ * Derived rather than written down, because the two disagreed once already --
+ * the homepage claimed a title the timeline right below it contradicted, and
+ * the resume is one click from both. `CAREER` is most recent first, and so are
+ * an employer's roles, so the current role is the first of the first.
+ */
+export function currentRole(): string {
+  const [{ company, roles }] = CAREER;
+  return `${roles[0].title} at ${company}`;
 }
 
 /** September 2014, when the first job started. */
