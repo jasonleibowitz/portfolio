@@ -194,9 +194,14 @@ Two things that will bite:
 
 ## Placeholder content
 
-Employment dates and titles, app pitches, case-study bodies, the About bio, the "Beyond the
-CV" numbers and most list notes are placeholder, marked with a dotted underline. **Do not
-invent replacements** — Jason fills these in. `PhNote` blocks name what is outstanding.
+App pitches, case-study bodies, most list notes and one project's start date are
+placeholder, marked with a dotted underline. **Do not invent replacements** — Jason fills
+these in. `PhNote` blocks name what is outstanding.
+
+The About bio, the employment record and the "Beyond the CV" numbers have all been filled
+in and are no longer placeholder. Accomplishment bullets under Experience are not coming
+at all — the resume is where a recruiter reads what a role achieved — so a role that
+renders as title and dates alone is finished, not unfinished.
 
 `public/resume.pdf` does not exist yet; the "Download resume" buttons point at it.
 

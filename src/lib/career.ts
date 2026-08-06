@@ -6,9 +6,10 @@
  * cannot disagree with a second copy of themselves. Display strings, employer
  * tenure and role overlap are all computed below.
  *
- * The accomplishment bullets are the one part still outstanding. A role with
- * no `bullets` renders as title and dates alone, and the page marks the gap
- * rather than inventing achievements.
+ * Accomplishment bullets are deliberately absent: the resume is where a
+ * recruiter reads what a role achieved, so the page stays a shape rather than
+ * a second copy of it. `bullets` is kept because the timeline still renders
+ * it, not because a role is waiting for one.
  */
 
 /** `YYYY-MM`. An absent `to` means the role is current. */

@@ -4,9 +4,10 @@ import { CAREER, isConcurrent, roleDates, tenure } from '../lib/career';
 
 /**
  * The career as a spine with a pulse traveling up it. Companies, titles and
- * dates are real; the accomplishment bullets are the part still outstanding,
- * so a role without them simply renders without them. Every date string and
- * the concurrency test come from `lib/career.ts`.
+ * dates are the whole of it on purpose — accomplishments live in the resume,
+ * which is where a recruiter reads them. `bullets` still renders if a role
+ * ever carries any. Every date string and the concurrency test come from
+ * `lib/career.ts`.
  */
 ---
 
