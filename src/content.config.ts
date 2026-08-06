@@ -86,7 +86,7 @@ const projects = defineCollection({
     title: z.string(),
     description: z.string(),
     status: z.enum(['building', 'beta', 'live']),
-    /** The status line as written, e.g. "Beta · near release". */
+    /** The status line as written, e.g. "Beta". */
     status_text: z.string(),
     /** Longer variant for the case-study header; falls back to status_text. */
     status_text_case: z.string().optional(),
@@ -106,6 +106,12 @@ const projects = defineCollection({
       )
       .default([]),
     cta: z.object({ label: z.string(), href: z.string() }).optional(),
+    /**
+     * An iOS build a stranger can ask to join. Adds the "Join the beta" button
+     * to the case study, addressed and pre-written by `testflightRequestHref`.
+     * Not derived from `status: 'beta'` -- a beta web app has nothing to join.
+     */
+    testflight: z.boolean().default(false),
     /** The homepage shows only these, so adding a project never changes it. */
     is_featured: z.boolean().default(false),
     /** For when "newest first" stops being the right sort. */

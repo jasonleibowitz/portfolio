@@ -11,6 +11,7 @@ import Ph from '@components/ui/Ph.astro';
 import PhNote from '@components/ui/PhNote.astro';
 import DeviceFrame from '@components/DeviceFrame.astro';
 import { getPublished } from '../../lib/content';
+import { testflightRequestHref } from '../../lib/site';
 
 export async function getStaticPaths() {
   const projects = await getPublished('projects');
@@ -24,6 +25,16 @@ export async function getStaticPaths() {
 const { project } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
+
+/** The beta invite first, because it is the one that asks for a reply. */
+const ctas = [
+  data.testflight && {
+    label: 'Join the beta',
+    href: testflightRequestHref(data.title),
+    icon: 'lucide:mail',
+  },
+  data.cta && { ...data.cta, icon: undefined },
+].filter((cta) => cta !== false && cta != null);
 ---
 
 <BaseLayout pageTitle={data.title} page="case" description={data.description}>
@@ -79,11 +90,13 @@ const { Content } = await render(project);
         </Panel>
 
         {
-          data.cta && (
+          ctas.length > 0 && (
             <div class="mt-4 flex flex-wrap gap-2">
-              <Button href={data.cta.href} variant="primary">
-                {data.cta.label}
-              </Button>
+              {ctas.map((cta) => (
+                <Button href={cta.href} variant="primary" icon={cta.icon}>
+                  {cta.label}
+                </Button>
+              ))}
             </div>
           )
         }

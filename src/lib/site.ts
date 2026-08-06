@@ -104,3 +104,34 @@ export const EMAIL = 'jason@leibowitz.me';
 
 /** Jason supplies the PDF; it belongs at `public/resume.pdf`. */
 export const RESUME_HREF = '/resume.pdf';
+
+/**
+ * The "Join the beta" link on a TestFlight app's case study.
+ *
+ * A `mailto:` rather than a form because the site is static and has nowhere to
+ * post one. The trade is that the tester types their own details, so the body
+ * ships as a template with the three fields TestFlight actually needs already
+ * labeled -- an empty mail window gets a name and nothing else back.
+ *
+ * The iCloud line carries its own note because it is the one people get wrong:
+ * Apple sends the invite to the address on their Apple ID, so a work address
+ * typed here is an invite that never arrives.
+ */
+export function testflightRequestHref(app: string): string {
+  const subject = `${app} TestFlight Access Request`;
+  const body = [
+    `Hi Jason,`,
+    ``,
+    `I'd like a TestFlight invite for ${app}.`,
+    ``,
+    `First name:`,
+    `Last name:`,
+    `iCloud email:`,
+    `  (the address registered with your Apple ID — TestFlight can only send`,
+    `  the invite there)`,
+    ``,
+    `Thanks!`,
+  ].join('\n');
+
+  return `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
