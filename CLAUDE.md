@@ -221,7 +221,11 @@ invent replacements** — Jason fills these in. `PhNote` blocks name what is out
   The JL monogram is the exception — it is bespoke, and `public/favicon.svg` is a copy of it
   kept in sync by hand.
 - **Component variants** use `tailwind-variants` (`Button`, `Chip`, `Status`, `DeviceFrame`),
-  not modifier classes.
+  not modifier classes. Import `tv` from `src/lib/tv.ts`, never from the package: its
+  class merger reads an unrecognized `text-*` as a text _color_, so `text-ui` cancelled
+  the `text-white` beside it and every primary `Button` rendered ink-on-gradient. That
+  module names the `@theme` tokens for it, and a token added to `global.css` needs its
+  name added there too.
 - UI primitives in `src/components/ui/` spread `...rest`, so `data-*` and ARIA attributes
   pass through to the rendered element.
 - Prettier: single quotes, semicolons, 2-space, es5 trailing commas, `prettier-plugin-astro`.
