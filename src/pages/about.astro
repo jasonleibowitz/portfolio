@@ -9,7 +9,6 @@ import Panel from '@components/ui/Panel.astro';
 import Button from '@components/ui/Button.astro';
 import Chip from '@components/ui/Chip.astro';
 import Ph from '@components/ui/Ph.astro';
-import PhNote from '@components/ui/PhNote.astro';
 import Timeline from '@components/Timeline.astro';
 import { EMAIL, RESUME_HREF } from '../lib/site';
 import { yearsShipping } from '../lib/career';
@@ -125,11 +124,6 @@ const STATS = [
     <Shell>
       <SectionHead title="Experience" />
       <Timeline />
-      <PhNote>
-        Companies, titles and dates are real. What each role actually
-        accomplished is still outstanding — add `bullets` to a role in
-        `src/lib/career.ts`.
-      </PhNote>
     </Shell>
   </Section>
 
