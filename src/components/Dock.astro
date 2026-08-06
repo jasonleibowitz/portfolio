@@ -54,7 +54,7 @@ const active = NAV_FOR_PAGE[page];
     border-radius: 999px;
     padding: 0;
     overflow: hidden;
-    background: color-mix(in srgb, var(--color-base) 28%, transparent);
+    background: color-mix(in srgb, var(--color-canvas) 28%, transparent);
     /* One of only two live blurs on the page: the dock sits over scrolling
        content, so it has to composite against something that moves. No SVG
        refraction — that needs feDisplacementMap inside backdrop-filter, which
@@ -72,7 +72,7 @@ const active = NAV_FOR_PAGE[page];
   }
 
   :root[data-theme='dark'] .dock {
-    background: color-mix(in srgb, var(--color-base) 36%, transparent);
+    background: color-mix(in srgb, var(--color-canvas) 36%, transparent);
     border-color: rgb(255 255 255 / 0.2);
     box-shadow:
       0 16px 44px rgb(0 0 0 / 0.62),

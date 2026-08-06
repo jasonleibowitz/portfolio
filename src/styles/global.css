@@ -17,10 +17,11 @@
 @theme {
   /* Light is the base; :root[data-theme='dark'] below overrides the same
      properties, so every utility re-derives instead of needing a dark: twin. */
-  /* A color name that matches a built-in utility shadows it: `--color-base`
-     makes `text-base` a color, not a font size — and nothing renders a page
-     to catch it. Same for `sm`, `lg`, `xs`. Size with `text-body`/`text-ui`. */
-  --color-base: #fcfaf6;
+  /* Named `canvas` rather than `base`, because a color whose name matches a
+     built-in utility shadows it: `--color-base` made `text-base` a color and
+     not a font size, and nothing renders a page to catch that. `sm`, `lg` and
+     `xs` are the same trap. */
+  --color-canvas: #fcfaf6;
   --color-panel: rgb(255 255 255 / 0.72);
   --color-line: rgb(20 18 30 / 0.09);
   --color-line-strong: rgb(20 18 30 / 0.16);
@@ -128,7 +129,7 @@
 }
 
 :root[data-theme='dark'] {
-  --color-base: #16161f;
+  --color-canvas: #16161f;
   --color-panel: rgb(255 255 255 / 0.07);
   --color-line: rgb(255 255 255 / 0.13);
   --color-line-strong: rgb(255 255 255 / 0.22);
@@ -149,7 +150,7 @@
   }
 
   body {
-    background-color: var(--color-base);
+    background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: var(--text-body);
@@ -405,7 +406,7 @@
   max-width: min(340px, calc(100vw - 32px));
   padding: 0.75rem 1rem;
   border-radius: 14px;
-  background: var(--color-base);
+  background: var(--color-canvas);
   border: 1px solid var(--color-line-strong);
   box-shadow: var(--shadow-lift);
   font-size: var(--text-ui);
