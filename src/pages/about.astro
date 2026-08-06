@@ -12,6 +12,7 @@ import Ph from '@components/ui/Ph.astro';
 import PhNote from '@components/ui/PhNote.astro';
 import Timeline from '@components/Timeline.astro';
 import { EMAIL, RESUME_HREF } from '../lib/site';
+import { yearsShipping } from '../lib/career';
 import aboutPhoto from '@images/json-drinking-coffee.jpg';
 
 const BIO = [
@@ -58,10 +59,11 @@ const STACK = [
 ];
 
 const STATS = [
-  { value: '31', label: 'Countries visited', ph: true },
-  { value: '50+', label: 'Podcasts subscribed', ph: true },
+  { value: '15', label: 'Countries visited', ph: false },
+  { value: '50', label: 'Podcasts subscribed', ph: false },
   { value: '2', label: 'Apps in TestFlight', ph: false },
-  { value: '11', label: 'Years shipping', ph: true },
+  // Derived from the career start rather than typed, so it never goes stale.
+  { value: String(yearsShipping()), label: 'Years shipping', ph: false },
 ];
 ---
 
@@ -112,8 +114,9 @@ const STATS = [
       <SectionHead title="Experience" />
       <Timeline />
       <PhNote>
-        Dates, titles and every bullet are placeholder — the repo only recorded
-        the order of the companies.
+        Companies, titles and dates are real. What each role actually
+        accomplished is still outstanding — add `bullets` to a role in
+        `src/lib/career.ts`.
       </PhNote>
     </Shell>
   </Section>
@@ -169,10 +172,6 @@ const STATS = [
           ))
         }
       </div>
-      <PhNote>
-        Numbers are placeholder — other ideas: cities lived in, marathons,
-        concerts, a "currently reading" slot, a small map.
-      </PhNote>
     </Shell>
   </Section>
 </BaseLayout>

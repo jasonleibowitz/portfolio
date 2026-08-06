@@ -1,65 +1,52 @@
 ---
-import Ph from './ui/Ph.astro';
+import Chip from './ui/Chip.astro';
+import { CAREER, isConcurrent, roleDates, tenure } from '../lib/career';
 
 /**
- * The career as a spine with a pulse travelling up it. Dates, titles and every
- * bullet are placeholder — the repo only gave the order of the companies, so
- * nothing here was invented beyond that.
+ * The career as a spine with a pulse travelling up it. Companies, titles and
+ * dates are real; the accomplishment bullets are the part still outstanding,
+ * so a role without them simply renders without them. Every date string and
+ * the concurrency test come from `lib/career.ts`.
  */
-const ROLES = [
-  {
-    company: 'Carta',
-    when: '2022 — present',
-    title: 'Staff Software Engineer',
-    bullets: [
-      'Bullet one — the thing you owned, and the scale it ran at.',
-      'Bullet two — a number: latency, revenue, users, build time.',
-      'Bullet three — something you led or changed for the team.',
-    ],
-  },
-  {
-    company: 'Capsule Pharmacy',
-    when: '2020 — 2022',
-    title: 'Senior Engineer',
-    bullets: ['Bullet one.', 'Bullet two.'],
-  },
-  {
-    company: 'Invitae',
-    when: '2018 — 2020',
-    title: 'Senior Engineer',
-    bullets: ['Bullet one.', 'Bullet two.'],
-  },
-  {
-    company: 'TodayTix',
-    when: '2016 — 2018',
-    title: 'Engineer',
-    bullets: ['Bullet one.', 'Bullet two.'],
-  },
-];
 ---
 
 <ul class="track relative m-0 list-none p-0 pl-6">
   {
-    ROLES.map((role) => (
+    CAREER.map((employer) => (
       <li class="relative py-6">
-        <Ph class="font-mono text-meta tracking-[0.08em] text-faint">
-          {role.when}
-        </Ph>
+        <span class="font-mono text-meta tracking-[0.08em] text-faint">
+          {tenure(employer)}
+        </span>
 
         <h3 class="my-1 font-display text-h3 font-bold tracking-[-0.025em]">
-          {role.company}{' '}
-          <em class="font-normal not-italic text-muted">
-            — <Ph>{role.title}</Ph>
-          </em>
+          {employer.company}
         </h3>
 
-        <ul class="m-0 grid max-w-[60ch] list-none gap-1.5 p-0">
-          {role.bullets.map((bullet) => (
-            <li class="relative pl-4 text-ui text-muted">
-              <Ph>{bullet}</Ph>
+        <ol class="m-0 grid list-none gap-2 p-0">
+          {employer.roles.map((role, index) => (
+            <li>
+              <p class="m-0 text-ui">
+                <span class="font-medium">{role.title}</span>{' '}
+                <span class="font-mono text-meta whitespace-nowrap text-faint">
+                  {roleDates(employer.roles, index)}
+                </span>
+                {isConcurrent(employer.roles, index) && (
+                  <Chip size="mini" accent="violet" class="ml-1.5 align-middle">
+                    concurrent
+                  </Chip>
+                )}
+              </p>
+
+              {role.bullets && (
+                <ul class="m-0 mt-1.5 grid max-w-[60ch] list-none gap-1.5 p-0">
+                  {role.bullets.map((bullet) => (
+                    <li class="relative pl-4 text-ui text-muted">{bullet}</li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
-        </ul>
+        </ol>
       </li>
     ))
   }
@@ -73,7 +60,7 @@ const ROLES = [
     top: 8px;
     bottom: 8px;
     width: 2px;
-    border-radius: 2px;
+    border-radius: 999px;
     background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
     opacity: 0.45;
   }
@@ -85,7 +72,7 @@ const ROLES = [
     left: 3px;
     width: 4px;
     height: 64px;
-    border-radius: 4px;
+    border-radius: 999px;
     background: linear-gradient(
       to bottom,
       transparent,
@@ -115,7 +102,8 @@ const ROLES = [
     box-shadow: 0 0 0 4px var(--color-glow-a);
   }
 
-  .track > li > ul > li::before {
+  /* Accomplishment bullets, now nested under the role they belong to. */
+  .track > li > ol > li > ul > li::before {
     content: '';
     position: absolute;
     left: 0;
