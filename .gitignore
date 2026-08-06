@@ -44,3 +44,11 @@ pnpm-debug.log*
 .impeccable/live/deferred-svelte-component-accepts.json
 .impeccable/live/*.png
 # impeccable-ignore-end
+
+# Kept outside the managed block above, which would otherwise re-track these.
+# Critiques are timestamped snapshots of a single run — regenerable, and stale
+# the moment the code they describe changes. live/ is per-machine runtime state
+# (a pid, port and auth token, plus session locks). design.json stays tracked:
+# it is the design system itself, not output.
+.impeccable/critique/
+.impeccable/live/
