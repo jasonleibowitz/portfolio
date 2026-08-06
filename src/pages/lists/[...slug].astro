@@ -8,7 +8,6 @@ import Section from '@components/ui/Section.astro';
 import RailLayout from '@components/ui/RailLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
-import PhNote from '@components/ui/PhNote.astro';
 import { getPublished } from '../../lib/content';
 import { allItems, listTags } from '../../lib/lists';
 
@@ -27,14 +26,6 @@ const { Content } = await render(list);
 
 const items = allItems(data);
 const tags = listTags(data);
-
-/**
- * Some entries carry a placeholder note or placeholder tags, some carry none
- * at all. Both are Jason's to fill in, so the note below counts them together
- * rather than claiming a tag is "missing" when a placeholder one is on screen.
- */
-const provisional = items.filter((item) => item.placeholder.length > 0).length;
-const untagged = items.filter((item) => item.tags.length === 0).length;
 
 /**
  * Ranks are assigned here, over the full list, and written into the markup.
@@ -93,17 +84,6 @@ let rank = 0;
           <p class="py-8 text-muted" data-filter-empty hidden>
             Nothing tagged that yet.
           </p>
-
-          {
-            provisional > 0 && (
-              <PhNote>
-                {provisional} of {items.length} entries still carry placeholder
-                copy
-                {untagged > 0 && `, and ${untagged} have no tags yet`}. Artwork
-                falls back to an initials tile until real images land.
-              </PhNote>
-            )
-          }
 
           <div class="prose mt-8 max-w-measure text-ui"><Content /></div>
         </div>
