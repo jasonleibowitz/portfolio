@@ -35,6 +35,11 @@
   --color-cyan: #0e9fb8;
   /* Cyan is only 3.1:1 on the light base, so it can never carry body text.
      It exists to terminate gradients and to mark active state alongside ink. */
+  /* The label color for anything sitting *on* the spectrum. The gradient does
+     not invert between themes, it lifts -- both stops get lighter in dark -- so
+     a label on it takes the ink of the opposite theme rather than following the
+     page. White held here in dark measured 1.74:1 on the cyan end. */
+  --color-on-spectrum: #ffffff;
   --color-glow-a: rgb(91 61 245 / 0.16);
   --color-glow-b: rgb(14 159 184 / 0.16);
   /* The sun half of the theme toggle keeps its warmth in both themes. */
@@ -147,6 +152,8 @@
   --color-faint: #948fa8;
   --color-violet: #a99bff;
   --color-cyan: #5fdff2;
+  /* Both stops just got lighter, so the label on them goes dark. */
+  --color-on-spectrum: #14141d;
   --color-glow-a: rgb(125 95 255 / 0.2);
   --color-glow-b: rgb(70 205 235 / 0.14);
   --shadow-lift: 0 12px 38px rgb(0 0 0 / 0.42);
@@ -199,6 +206,25 @@
   color: transparent;
   padding-block: 0.08em 0.2em;
   margin-block: -0.08em -0.2em;
+}
+
+/* The active-state fill: the one spectrum, plus a label color that survives it
+   in both themes.
+
+   It exists because four surfaces wear this -- the primary Button, the header's
+   active nav pill, the dock's active tab and the pressed tag chip -- and only
+   the Button carried the label rule. The other three held `text-white` in both
+   themes, which in dark put white on a lifted violet-to-sky gradient: 2.22:1 at
+   the head of the word and 1.74:1 at the tail, against the 4.5:1 a 15px label
+   needs. Bundling the fill with its label color is what stops the fifth surface
+   from making the same mistake. */
+@utility spectrum-fill {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-violet),
+    var(--color-cyan)
+  );
+  color: var(--color-on-spectrum);
 }
 
 /* Copy still waiting on Jason. Underlines the text rather than the block: a

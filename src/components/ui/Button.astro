@@ -11,10 +11,7 @@ const button = tv({
   variants: {
     variant: {
       default: 'border border-line bg-panel text-ink',
-      // The gradient carries the ink color of the *opposite* theme, so the
-      // label stays readable against it in both.
-      primary:
-        'border border-transparent bg-linear-100 from-violet to-cyan text-white dark:text-[#14141d]',
+      primary: 'border border-transparent spectrum-fill',
     },
     size: {
       default: 'min-h-[50px] px-[22px] text-ui font-semibold',

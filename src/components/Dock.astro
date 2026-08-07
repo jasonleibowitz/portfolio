@@ -29,9 +29,7 @@ const active = NAV_FOR_PAGE[page];
         aria-current={item.key === active ? 'page' : undefined}
         class:list={[
           'dock-tab',
-          item.key === active
-            ? 'bg-linear-100 from-violet to-cyan text-white'
-            : 'text-faint',
+          item.key === active ? 'spectrum-fill' : 'text-faint',
         ]}
       >
         <Icon name={item.icon} class="size-[19px] shrink-0" />

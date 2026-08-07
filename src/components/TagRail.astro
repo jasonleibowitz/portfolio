@@ -80,12 +80,15 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
     font-weight: 400;
     color: var(--color-faint);
   }
+  /* Same fill and same label rule as the nav pill and the primary button; see
+     `spectrum-fill` in global.css. Written out rather than composed because a
+     scoped `<style>` block cannot apply a utility class. */
   .tag-btn[aria-pressed='true'] {
     background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
     border-color: transparent;
-    color: #fff;
+    color: var(--color-on-spectrum);
   }
   .tag-btn[aria-pressed='true'] b {
-    color: rgb(255 255 255 / 0.75);
+    color: color-mix(in srgb, var(--color-on-spectrum) 75%, transparent);
   }
 </style>
