@@ -72,7 +72,20 @@ const lists = defineCollection({
       /** A list carries `items` (ranked or flat) or `groups`, not both. */
       items: z.array(listItem).default([]),
       groups: z
-        .array(z.object({ name: z.string(), items: z.array(listItem) }))
+        .array(
+          z.object({
+            name: z.string(),
+            /**
+             * Optional. A sentence or two on what the section collects or why
+             * it is a section, rendered under the heading. A group without one
+             * renders as name and count, the same as it always has -- the way
+             * to add a blurb is to write a real one, not to reinstate a stub.
+             */
+            description: z.string().optional(),
+            placeholder,
+            items: z.array(listItem),
+          })
+        )
         .default([]),
       draft: z.boolean().default(false),
       placeholder,

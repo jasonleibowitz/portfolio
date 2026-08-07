@@ -10,6 +10,7 @@ import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
 import GroupNav from '@components/GroupNav.astro';
 import ListFooter from '@components/ListFooter.astro';
+import Ph from '@components/ui/Ph.astro';
 import { getPublished } from '../../lib/content';
 import { allItems, listTags, tagCoverage, groupId } from '../../lib/lists';
 
@@ -117,15 +118,33 @@ const hasBody = Boolean(list.body?.trim());
                   class="mb-12 scroll-mt-24"
                   data-filter-group
                 >
-                  <h2 class="mb-4 flex items-baseline gap-3 border-b border-line pb-2 font-display text-h3 font-bold tracking-[-0.025em]">
-                    {group.name}
-                    <span
-                      class="font-mono text-meta font-normal text-faint"
-                      data-group-count
-                    >
-                      {group.items.length}
-                    </span>
-                  </h2>
+                  {/*
+                    The rule sits under the whole header rather than under the
+                    heading alone, so an optional blurb reads as part of the
+                    section's title block instead of as the first entry in it.
+                    With no blurb this renders exactly as a bare heading did.
+                  */}
+                  <header class="mb-4 border-b border-line pb-2">
+                    <h2 class="flex items-baseline gap-3 font-display text-h3 font-bold tracking-[-0.025em]">
+                      {group.name}
+                      <span
+                        class="font-mono text-meta font-normal text-faint"
+                        data-group-count
+                      >
+                        {group.items.length}
+                      </span>
+                    </h2>
+
+                    {group.description && (
+                      <Ph
+                        as="p"
+                        when={group.placeholder.includes('description')}
+                        class="mt-1.5 max-w-[68ch] text-ui text-muted"
+                      >
+                        {group.description}
+                      </Ph>
+                    )}
+                  </header>
                   <ul class="grid">
                     {group.items.map((item) => (
                       <ListEntry item={item} shape={data.thumb} />
