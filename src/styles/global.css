@@ -27,7 +27,10 @@
   --color-line-strong: rgb(20 18 30 / 0.16);
   --color-ink: #131220;
   --color-muted: #55536a;
-  --color-faint: #85819c;
+  /* 4.9:1 on the canvas. The previous #85819c measured 3.59:1 -- under the 4.5
+     needed for text this size, and this token carries every date, count,
+     eyebrow and caption on the site. Dark mode was already clear at 5.78:1. */
+  --color-faint: #6f6b86;
   --color-violet: #5b3df5;
   --color-cyan: #0e9fb8;
   /* Cyan is only 3.1:1 on the light base, so it can never carry body text.
