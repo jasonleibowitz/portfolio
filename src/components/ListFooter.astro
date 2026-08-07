@@ -1,0 +1,60 @@
+---
+import { Icon } from 'astro-icon/components';
+import Shell from './ui/Shell.astro';
+import Section from './ui/Section.astro';
+
+/**
+ * The end of a list.
+ *
+ * Every route out of an entry is `target="_blank"` to somebody else's site, so
+ * without this a list's last act is to send the reader away with no lateral
+ * move and no way back. Visitors arrive sideways -- a list can be the first
+ * page of the site anyone sees -- so it closes by pointing further in.
+ *
+ * Deliberately navigation only. The site footer directly below already carries
+ * the contact CTA and the resume, and two invitations to get in touch stacked
+ * one on the other read as a page that is trying too hard.
+ */
+interface Props {
+  others: { title: string; href: string; count: number }[];
+}
+
+const { others } = Astro.props;
+---
+
+<Section>
+  <Shell>
+    <nav
+      aria-label="More lists"
+      class="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-line pt-6"
+    >
+      <a
+        href="/lists/"
+        class="inline-flex min-h-11 items-center gap-2 text-ui text-muted no-underline hover:text-violet"
+      >
+        <Icon name="lucide:arrow-left" class="size-3.5" />
+        All lists
+      </a>
+
+      <span class="flex flex-wrap items-center gap-x-6">
+        {
+          others.map((list) => (
+            <a
+              href={list.href}
+              class="group inline-flex min-h-11 items-center gap-2 font-semibold no-underline hover:text-violet"
+            >
+              {list.title}
+              <span class="font-mono text-meta font-normal text-faint">
+                {list.count}
+              </span>
+              <Icon
+                name="lucide:arrow-right"
+                class="size-3.5 opacity-45 transition-transform duration-150 group-hover:translate-x-px"
+              />
+            </a>
+          ))
+        }
+      </span>
+    </nav>
+  </Shell>
+</Section>

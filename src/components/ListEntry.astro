@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 import { tv } from '../lib/tv';
+import { splitYear } from '../lib/lists';
 import Chip from './ui/Chip.astro';
 import Ph from './ui/Ph.astro';
 
@@ -14,11 +15,27 @@ import Ph from './ui/Ph.astro';
  *   poster  56x84  (2:3)  film and book covers
  *
  * The height comes from the aspect ratio rather than a second fixed number, so
- * the two stay in step. The initials fallback takes the same shape, or a list
- * with artwork on only some entries would have rows of two different heights.
+ * the two stay in step.
+ *
+ * 56 and not 40: a 40px box is 2,400 pixels for a whole movie poster, which is
+ * below the size at which a poster resolves into anything -- no title, no
+ * faces. Square art survives small because a wordmark is legible at almost any
+ * size, but sizing the two differently would break the shared column, so both
+ * take the larger width and the page carries the extra saturation.
+ *
+ * An entry with no artwork drops the column entirely rather than standing in a
+ * placeholder: a tile carrying two letters of the title told the reader nothing
+ * the title was not already saying, and it took the row's widest, loudest slot
+ * to do it.
+ */
+/*
+ * `row-span-3` and not `row-span-full`: the rows here are implicit, and
+ * `full` resolves to `1 / -1` against the *explicit* grid, which has one row.
+ * The artwork ends up spanning a single row and every line after the title
+ * wraps inside the artwork column, one character per line.
  */
 const artwork = tv({
-  base: 'row-span-3 w-14 rounded-2xl border border-line',
+  base: 'row-span-3 mt-1 w-14 rounded-xl border border-line object-cover',
   variants: {
     shape: {
       square: 'aspect-square',
@@ -29,6 +46,35 @@ const artwork = tv({
 
 /** Only for the width/height attributes, which reserve space before layout. */
 const ARTWORK_HEIGHT = { square: 56, poster: 84 } as const;
+
+/*
+ * Artwork is re-encoded at a higher quality than the site's default and with a
+ * 3x density on top of 2x.
+ *
+ * Both are because the rendered box is small. Even at 56px there is very
+ * little redundancy for a default-quality encode to throw away, so its
+ * artifacts land on nearly the only pixels there are. The cost is a couple of
+ * kB per image, which is the cheapest sharpness in the project.
+ */
+
+/**
+ * Column tracks, by what the row actually has. Building this from the two
+ * booleans keeps the empty-column case impossible: no artwork means no artwork
+ * track, rather than a 56px gutter of nothing down the list.
+ */
+const columns = tv({
+  base: 'grid items-start gap-x-4 gap-y-1',
+  variants: {
+    rank: { true: '', false: '' },
+    art: { true: '', false: '' },
+  },
+  compoundVariants: [
+    { rank: true, art: true, class: 'grid-cols-[2.75rem_56px_minmax(0,1fr)]' },
+    { rank: true, art: false, class: 'grid-cols-[2.75rem_minmax(0,1fr)]' },
+    { rank: false, art: true, class: 'grid-cols-[56px_minmax(0,1fr)]' },
+    { rank: false, art: false, class: 'grid-cols-[minmax(0,1fr)]' },
+  ],
+});
 
 /** Taken from the schema so the two cannot drift apart. */
 type Item = CollectionEntry<'lists'>['data']['items'][number];
@@ -49,101 +95,133 @@ const { item, rank, shape = 'square' } = Astro.props;
 
 /** An entry with no href is not a link: no arrow, no hover, no pointer. */
 const isLink = Boolean(item.href);
-const Tag = isLink ? 'a' : 'div';
 
-const host = item.href
-  ? new URL(item.href).hostname.replace(/^www\./, '')
-  : 'no link';
+const { title, year } = splitYear(item.name);
 
-const initials = item.name
-  .replace(/[^\p{L}\p{N} ]/gu, '')
-  .split(/\s+/)
-  .filter(Boolean)
-  .slice(0, 2)
-  .map((word) => word[0].toUpperCase())
-  .join('');
+/**
+ * The external-link arrow is tied to the last word so the two wrap together.
+ * Left to itself it broke onto a line of its own -- `The Shawshank Redemption`
+ * at 390px put the arrow alone under the title, reading as a rendering fault
+ * rather than as part of the link.
+ */
+const words = title.split(' ');
+const lead = words.slice(0, -1).join(' ');
+const lastWord = words.at(-1);
 ---
 
-<li data-tags={item.tags.join(' ')} class="[&[hidden]]:hidden">
-  <Tag
-    class:list={[
-      'entry group -mx-3 grid min-h-14 content-center gap-0.5 rounded-2xl p-3 no-underline',
-      isLink
-        ? 'transition-colors duration-150 hover:bg-panel'
-        : 'cursor-default',
-      rank
-        ? 'grid-cols-[26px_56px_minmax(0,1fr)]'
-        : 'grid-cols-[56px_minmax(0,1fr)]',
-    ]}
-    {...isLink
-      ? { href: item.href, target: '_blank', rel: 'noreferrer noopener' }
-      : {}}
+{
+  /*
+  The row is ruled rather than boxed. `-mx-3 px-3` lets the rule and the hover
+  tint carry a little past the text without moving the text, so the column stays
+  aligned to the page gutter -- the previous row hung 12px outside it, which put
+  the rank 8px from the viewport edge on a phone.
+*/
+}
+<li
+  data-tags={item.tags.join(' ')}
+  class:list={[
+    'entry group relative -mx-3 border-b border-line px-3 py-3 last:border-0 [&[hidden]]:hidden',
+    columns({ rank: Boolean(rank), art: Boolean(item.image) }),
+    isLink && 'transition-colors duration-150 hover:bg-panel',
+  ]}
+>
+  {
+    rank && (
+      <span class="row-span-3 font-display text-[2rem] leading-[1.15] font-bold text-faint tabular-nums">
+        {rank}
+      </span>
+    )
+  }
+
+  {
+    item.image && (
+      <Image
+        src={item.image}
+        alt=""
+        width={56}
+        height={ARTWORK_HEIGHT[shape]}
+        fit="cover"
+        densities={[2, 3]}
+        quality={92}
+        loading="lazy"
+        class={artwork({ shape })}
+      />
+    )
+  }
+
+  {
+    /*
+    The year sits at the far end of the title's line rather than in the meta
+    row, so it rules a second aligned column down the page and both ends of
+    every row are anchored. `items-baseline` keeps it on the first line when a
+    long title wraps.
+  */
+  }
+  <span
+    class="flex items-baseline justify-between gap-x-4 font-semibold tracking-[-0.01em]"
   >
     {
-      rank && (
-        <span class="row-span-3 self-center font-mono text-ui text-faint tabular-nums">
-          {rank}
-        </span>
-      )
+      /*
+      The link wraps the title alone and stretches over the row with a
+      pseudo-element. Wrapping the whole row instead made the accessible name
+      the title, the note, the host and every tag run together with no
+      separators -- a four-sentence link label -- while this keeps the name to
+      the title and the full row clickable.
+    */
     }
-
     {
-      item.image ? (
-        <Image
-          src={item.image}
-          alt=""
-          width={56}
-          height={ARTWORK_HEIGHT[shape]}
-          fit="cover"
-          densities={[2]}
-          loading="lazy"
-          class={artwork({ shape, class: 'object-cover' })}
-        />
-      ) : (
-        <span
-          class={artwork({
-            shape,
-            class:
-              'initials grid place-items-center bg-linear-100 from-violet to-cyan font-display text-sm font-bold tracking-[-0.02em] text-white',
-          })}
-          data-initials={initials}
-          aria-hidden="true"
-        />
-      )
-    }
-
-    <span
-      class:list={[
-        'inline-flex items-center gap-[7px] font-semibold tracking-[-0.01em]',
-        isLink ? 'group-hover:text-violet' : 'text-ink',
-      ]}
-    >
-      <Ph when={item.placeholder.includes('name')}>{item.name}</Ph>
-      {
-        isLink && (
-          <Icon
-            name="lucide:arrow-up-right"
-            class="size-3.5 shrink-0 opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:-translate-y-px group-hover:opacity-100"
-          />
-        )
-      }
-    </span>
-
-    {
-      item.note && (
-        <Ph
-          as="p"
-          when={item.placeholder.includes('note')}
-          class="max-w-[68ch] text-ui text-muted"
+      isLink ? (
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noreferrer noopener"
+          class="no-underline after:absolute after:inset-0 group-hover:text-violet"
         >
-          {item.note}
+          <Ph when={item.placeholder.includes('name')}>
+            {lead && `${lead} `}
+            <span class="whitespace-nowrap">
+              {lastWord}
+              <Icon
+                name="lucide:arrow-up-right"
+                class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
+              />
+            </span>
+          </Ph>
+        </a>
+      ) : (
+        <Ph when={item.placeholder.includes('name')} class="text-ink">
+          {title}
         </Ph>
       )
     }
+    {
+      year && (
+        <span class="shrink-0 font-mono text-meta font-normal text-faint tabular-nums">
+          {year}
+        </span>
+      )
+    }
+  </span>
 
-    <span class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <span class="font-mono text-meta text-faint">{host}</span>
-      {item.tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
-    </span>
-  </Tag>
+  {
+    item.note && (
+      <Ph
+        as="p"
+        when={item.placeholder.includes('note')}
+        class="max-w-[68ch] text-ui text-muted"
+      >
+        {item.note}
+      </Ph>
+    )
+  }
+
+  {
+    item.tags.length > 0 && (
+      <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+        {item.tags.map((tag) => (
+          <Chip size="mini">{tag}</Chip>
+        ))}
+      </span>
+    )
+  }
 </li>

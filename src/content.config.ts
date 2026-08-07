@@ -51,7 +51,7 @@ const lists = defineCollection({
       placeholder,
     });
 
-    return z.object({
+    const list = z.object({
       title: z.string(),
       description: z.string().optional(),
       updated: z.coerce.date(),
@@ -76,6 +76,35 @@ const lists = defineCollection({
         .default([]),
       draft: z.boolean().default(false),
       placeholder,
+    });
+
+    /**
+     * `items` and `groups` are parallel optional arrays, which lets frontmatter
+     * describe three shapes the templates cannot render: both filled, neither
+     * filled, and `ranked` set on a grouped list. Each one used to fail late
+     * and quietly -- an empty page, or a rank counter that silently skipped a
+     * group -- so the schema rejects them at build time instead.
+     */
+    return list.superRefine((data, ctx) => {
+      const hasItems = data.items.length > 0;
+      const hasGroups = data.groups.length > 0;
+
+      if (hasItems === hasGroups) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: hasItems
+            ? 'a list carries `items` or `groups`, never both'
+            : 'a list needs either `items` or `groups`',
+        });
+      }
+
+      if (data.ranked && hasGroups) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['ranked'],
+          message: 'a ranked list is one sequence, so it cannot be grouped',
+        });
+      }
     });
   },
 });

@@ -8,88 +8,153 @@ import Section from '@components/ui/Section.astro';
 import RailLayout from '@components/ui/RailLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
+import GroupNav from '@components/GroupNav.astro';
+import ListFooter from '@components/ListFooter.astro';
 import { getPublished } from '../../lib/content';
-import { allItems, listTags } from '../../lib/lists';
+import { allItems, listTags, tagCoverage, groupId } from '../../lib/lists';
 
 export async function getStaticPaths() {
   const lists = await getPublished('lists');
 
   return lists.map((list) => ({
     params: { slug: list.id },
-    props: { list },
+    props: {
+      list,
+      others: lists
+        .filter((other) => other.id !== list.id)
+        .map((other) => ({
+          title: other.data.title,
+          href: `/lists/${other.id}/`,
+          count: allItems(other.data).length,
+        })),
+    },
   }));
 }
 
-const { list } = Astro.props;
+const { list, others } = Astro.props;
 const { data } = list;
 const { Content } = await render(list);
 
 const items = allItems(data);
+
+/**
+ * A tag rail is offered only where it can reach the whole list. Below that, a
+ * filter is a hidden delete: it promises to narrow N entries and silently
+ * cannot see the ones that were never tagged. The grouped list is the case that
+ * fails today -- twelve of nineteen podcasts carry no tags -- and it is also the
+ * list that least needs one, because its groups already are the index.
+ */
 const tags = listTags(data);
+const showRail = data.ranked && tags.length > 0 && tagCoverage(data) === 1;
 
 /**
  * Ranks are assigned here, over the full list, and written into the markup.
  * Filtering only hides rows, so an entry keeps its real position.
  */
 let rank = 0;
+
+/** The body is optional, and an empty `.prose` div still renders its margin. */
+const hasBody = Boolean(list.body?.trim());
 ---
 
 <BaseLayout pageTitle={data.title} page="list" description={data.description}>
-  <PageHead
-    eyebrow={`List · ${data.ranked ? 'ranked' : 'unranked, grouped'}`}
-    title={data.title}
-    lead={data.description}
-  >
+  <PageHead title={data.title} lead={data.description}>
     <div
       class="mt-4 flex flex-wrap gap-x-4 gap-y-2 font-mono text-meta tracking-[0.08em] text-faint uppercase"
     >
       <span>Updated {formatDay(data.updated)}</span>
-      <span data-filter-count>{items.length} entries</span>
-      <span>
-        {data.ranked ? 'Ranked' : `${data.groups.length} groups`}
-      </span>
+      {
+        /*
+        Announced politely because filtering hides rows with no other signal
+        that anything happened; without it a screen-reader user gets silence.
+      */
+      }
+      <span data-filter-count aria-live="polite">{items.length} entries</span>
+      {
+        !data.ranked && (
+          <span>
+            {data.groups.length}{' '}
+            {data.groups.length === 1 ? 'section' : 'sections'}
+          </span>
+        )
+      }
     </div>
   </PageHead>
 
   <Section>
     <Shell>
-      <RailLayout data-filter-root data-unit="entries">
+      <RailLayout data-filter-root data-unit="entries" data-unit-one="entry">
+        {
+          showRail ? (
+            <TagRail tags={tags} total={items.length} />
+          ) : (
+            data.groups.length > 0 && <GroupNav groups={data.groups} />
+          )
+        }
+
         <div>
           {
             data.ranked ? (
-              <ul class="grid gap-2">
+              /*
+                A ranked list is an argument, so the numbers run down the page as
+                its spine and each row is ruled off like a ledger. The reader's
+                question is what is at the top and whether they agree.
+              */
+              <ul class="grid">
                 {data.items.map((item) => (
                   <ListEntry item={item} rank={++rank} shape={data.thumb} />
                 ))}
               </ul>
             ) : (
+              /*
+                A grouped list is a directory. The reader's question is which
+                section they want, so the sections are the structure and the
+                headings are the thing to navigate between.
+              */
               data.groups.map((group) => (
-                <div class="mb-12" data-filter-group>
-                  <h2 class="mb-4 flex items-baseline justify-between gap-4 border-b border-line pb-2 font-display text-h3 font-bold tracking-[-0.025em]">
+                <section
+                  id={groupId(group.name)}
+                  class="mb-12 scroll-mt-24"
+                  data-filter-group
+                >
+                  <h2 class="mb-4 flex items-baseline gap-3 border-b border-line pb-2 font-display text-h3 font-bold tracking-[-0.025em]">
                     {group.name}
-                    <span class="font-mono text-meta font-normal text-faint">
+                    <span
+                      class="font-mono text-meta font-normal text-faint"
+                      data-group-count
+                    >
                       {group.items.length}
                     </span>
                   </h2>
-                  <ul class="grid gap-2">
+                  <ul class="grid">
                     {group.items.map((item) => (
                       <ListEntry item={item} shape={data.thumb} />
                     ))}
                   </ul>
-                </div>
+                </section>
               ))
             )
           }
 
-          <p class="py-8 text-muted" data-filter-empty hidden>
-            Nothing tagged that yet.
-          </p>
+          {
+            showRail && (
+              <p class="py-8 text-muted" data-filter-empty hidden>
+                Nothing tagged that yet.
+              </p>
+            )
+          }
 
-          <div class="prose mt-8 max-w-measure text-ui"><Content /></div>
+          {
+            hasBody && (
+              <div class="prose mt-10 max-w-measure border-t border-line pt-8 text-ui">
+                <Content />
+              </div>
+            )
+          }
         </div>
-
-        {tags.length > 0 && <TagRail tags={tags} total={items.length} />}
       </RailLayout>
     </Shell>
   </Section>
+
+  <ListFooter others={others} />
 </BaseLayout>
