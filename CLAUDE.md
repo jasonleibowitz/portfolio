@@ -213,6 +213,11 @@ role has to match what the PDF says.
 
 ## Conventions
 
+- **Never use an em dash (`—`) in user-facing copy.** It reads as AI-written. Use a
+  comma, a period, or parentheses; use an en dash (`–`) only for a numeric or date
+  range. This covers page copy, headings, meta descriptions, frontmatter
+  `description` and `note` fields, button labels, and any string rendered to the
+  page. Code comments are exempt. Published blog post bodies are left as written.
 - **Path aliases** (`tsconfig.json`): `@components/*`, `@layouts/*`, `@images/*`, `@styles/*`.
   `src/lib/*` is imported relatively.
 - **Images**: `src/images/*` is imported and passed to `<Image>` from `astro:assets`, which
