@@ -85,9 +85,9 @@ function month(value: Month): string {
   return MONTH.format(new Date(Date.UTC(year, index - 1, 1)));
 }
 
-/** "Nov 2022 — present" */
+/** "Nov 2022 – present" */
 export function range(from: Month, to?: Month): string {
-  return `${month(from)} — ${to ? month(to) : 'present'}`;
+  return `${month(from)} – ${to ? month(to) : 'present'}`;
 }
 
 /** An employer's tenure: earliest start to latest end, or to present. */
