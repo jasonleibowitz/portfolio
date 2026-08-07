@@ -15,8 +15,15 @@ const { project, wide = false } = Astro.props;
 const { data } = project;
 ---
 
+{
+  /* Named by the project alone. Without it the accessible name is the whole
+    card read as one run-on -- status, title, description, every stack chip and
+    the arrow -- which is what a screen-reader user hears for each card in a
+    list of them. `ProjectRow` carries the same pair for the same reason. */
+}
 <a
   href={`/projects/${project.id}/`}
+  aria-label={data.title}
   class="group relative flex flex-col overflow-hidden rounded-card border border-line bg-panel p-6 no-underline transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-[3px] hover:border-line-strong hover:shadow-lift"
 >
   {
@@ -64,7 +71,10 @@ const { data } = project;
 
       {
         wide && (
-          <span class="inline-flex min-h-11 items-center text-ui whitespace-nowrap text-muted card:ml-auto group-hover:text-violet">
+          <span
+            class="inline-flex min-h-11 items-center text-ui whitespace-nowrap text-muted card:ml-auto group-hover:text-violet"
+            aria-hidden="true"
+          >
             Read more →
           </span>
         )
