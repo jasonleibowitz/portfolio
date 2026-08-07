@@ -25,21 +25,6 @@ export function listTags(list: List): { tag: string; count: number }[] {
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-/**
- * How much of a list a tag filter can actually reach.
- *
- * A rail that offers to narrow 19 entries while 12 of them carry no tags is a
- * broken promise: every filter is also a hidden delete. The grouped list is the
- * case that fails -- its groups are the real structure and a tag click amputates
- * five of six -- so the template asks this before rendering a rail at all.
- */
-export function tagCoverage(list: List): number {
-  const items = allItems(list);
-  if (!items.length) return 0;
-
-  return items.filter((item) => item.tags.length > 0).length / items.length;
-}
-
 /** `Engineering & tech` -> `engineering-tech`, for a jump-strip anchor. */
 export function groupId(name: string): string {
   return name

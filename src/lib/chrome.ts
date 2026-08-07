@@ -6,7 +6,6 @@
  */
 
 import { initFilters } from './filter';
-import { initGroupNav } from './groupnav';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -106,5 +105,4 @@ export function initChrome() {
   initDock();
   initProgress();
   initFilters();
-  initGroupNav();
 }

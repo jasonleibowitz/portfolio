@@ -8,11 +8,10 @@ import Section from '@components/ui/Section.astro';
 import RailLayout from '@components/ui/RailLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
-import GroupNav from '@components/GroupNav.astro';
 import ListFooter from '@components/ListFooter.astro';
 import Ph from '@components/ui/Ph.astro';
 import { getPublished } from '../../lib/content';
-import { allItems, listTags, tagCoverage, groupId } from '../../lib/lists';
+import { allItems, listTags, groupId } from '../../lib/lists';
 
 export async function getStaticPaths() {
   const lists = await getPublished('lists');
@@ -39,14 +38,13 @@ const { Content } = await render(list);
 const items = allItems(data);
 
 /**
- * A tag rail is offered only where it can reach the whole list. Below that, a
- * filter is a hidden delete: it promises to narrow N entries and silently
- * cannot see the ones that were never tagged. The grouped list is the case that
- * fails today -- twelve of nineteen podcasts carry no tags -- and it is also the
- * list that least needs one, because its groups already are the index.
+ * Every list with tags gets a filter, grouped ones included. The rail used to
+ * be withheld below full tag coverage, on the grounds that a filter which
+ * cannot see the untagged entries is a hidden delete; `All` is always one click
+ * away, so nothing is actually unreachable.
  */
 const tags = listTags(data);
-const showRail = data.ranked && tags.length > 0 && tagCoverage(data) === 1;
+const showRail = tags.length > 0;
 
 /**
  * Ranks are assigned here, over the full list, and written into the markup.
@@ -73,7 +71,10 @@ const hasBody = Boolean(list.body?.trim());
       <span data-filter-count aria-live="polite">{items.length} entries</span>
       {
         !data.ranked && (
-          <span>
+          /* Live for the same reason the entry count is: filtering empties
+            sections, and a masthead still reporting six of them beside one on
+            screen is the stale-count bug one level up. */
+          <span data-filter-sections>
             {data.groups.length}{' '}
             {data.groups.length === 1 ? 'section' : 'sections'}
           </span>
@@ -85,13 +86,7 @@ const hasBody = Boolean(list.body?.trim());
   <Section>
     <Shell>
       <RailLayout data-filter-root data-unit="entries" data-unit-one="entry">
-        {
-          showRail ? (
-            <TagRail tags={tags} total={items.length} />
-          ) : (
-            data.groups.length > 0 && <GroupNav groups={data.groups} />
-          )
-        }
+        {showRail && <TagRail tags={tags} total={items.length} />}
 
         <div>
           {

@@ -27,6 +27,9 @@ export function initFilters() {
   );
   const countEl = document.querySelector<HTMLElement>('[data-filter-count]');
   const emptyEl = document.querySelector<HTMLElement>('[data-filter-empty]');
+  const sectionsEl = document.querySelector<HTMLElement>(
+    '[data-filter-sections]'
+  );
 
   const unit = root.dataset.unit || 'posts';
 
@@ -53,6 +56,11 @@ export function initFilters() {
       const badge = group.querySelector<HTMLElement>('[data-group-count]');
       if (badge) badge.textContent = String(left);
     });
+
+    if (sectionsEl) {
+      const left = groups.filter((group) => !group.hidden).length;
+      sectionsEl.textContent = `${left} ${left === 1 ? 'section' : 'sections'}`;
+    }
 
     if (countEl) {
       countEl.textContent =
