@@ -27,8 +27,10 @@ const tags = await getPublishedTags();
   <Section>
     <Shell>
       <RailLayout data-filter-root data-unit="posts">
+        <TagRail tags={tags} total={posts.length} />
+
         <div>
-          <Eyebrow class="mb-4" data-filter-count>
+          <Eyebrow class="mb-4" data-filter-count aria-live="polite">
             {posts.length} posts
           </Eyebrow>
 
@@ -40,8 +42,6 @@ const tags = await getPublishedTags();
             No posts with that tag yet.
           </p>
         </div>
-
-        <TagRail tags={tags} total={posts.length} />
       </RailLayout>
     </Shell>
   </Section>

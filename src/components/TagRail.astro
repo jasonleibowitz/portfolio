@@ -2,6 +2,11 @@
 /**
  * Sticky filter rail. On mobile it becomes a horizontally scrolling chip row
  * above the list, which is where a filter belongs when the list is below it.
+ *
+ * It is rendered *before* the list in the DOM and moved right by `order` on
+ * desktop. Rendering it after and pulling it up with `order-first` put it first
+ * for a sighted phone user and last for a keyboard one -- every row of the list
+ * had to be tabbed through to reach the control that filters them.
  */
 interface Props {
   tags: { tag: string; count: number }[];
@@ -12,7 +17,7 @@ interface Props {
 const { tags, total, heading = 'Filter by tag' } = Astro.props;
 ---
 
-<aside class="order-first rail:order-none rail:sticky rail:top-[88px]">
+<aside class="rail:order-last rail:sticky rail:top-[88px]">
   <h2
     class="mb-3 font-mono text-meta font-normal tracking-[0.16em] text-faint uppercase"
   >

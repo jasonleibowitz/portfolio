@@ -29,7 +29,10 @@ export function initFilters() {
   const emptyEl = document.querySelector<HTMLElement>('[data-filter-empty]');
 
   const unit = root.dataset.unit || 'posts';
-  const singular = unit.replace(/s$/, '');
+
+  // Stripping a trailing `s` turns "posts" into "post" and "entries" into
+  // "entrie", so the singular is declared alongside the plural instead.
+  const singular = root.dataset.unitOne || unit.replace(/s$/, '');
 
   const apply = (tag: string) => {
     let shown = 0;
@@ -40,9 +43,15 @@ export function initFilters() {
       if (match) shown += 1;
     });
 
-    // A group with nothing left in it shouldn't leave a stray heading.
+    // A group with nothing left in it shouldn't leave a stray heading, and one
+    // that survives has to report what it is actually showing -- a heading that
+    // still reads "News 4" above three rows is worse than no count at all.
     groups.forEach((group) => {
-      group.hidden = !group.querySelector('[data-tags]:not([hidden])');
+      const left = group.querySelectorAll('[data-tags]:not([hidden])').length;
+      group.hidden = left === 0;
+
+      const badge = group.querySelector<HTMLElement>('[data-group-count]');
+      if (badge) badge.textContent = String(left);
     });
 
     if (countEl) {
