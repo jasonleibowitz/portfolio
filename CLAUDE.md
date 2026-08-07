@@ -107,7 +107,7 @@ MDX bodies can import Astro components — `CaptionedImage` is the one in use.
 | `/`                   | Hero → At a glance → featured projects                        |
 | `/about`              | Bio with a floated photo → Experience → Stack → Beyond the CV |
 | `/projects`           | Full-width cards, one per row                                 |
-| `/projects/[slug]`    | Case study with a sticky spec rail                            |
+| `/projects/[slug]`    | Project write-up with a sticky spec rail                      |
 | `/writing`            | One list, sticky tag rail that filters in place               |
 | `/writing/[...slug]`  | Post: 46rem measure, TOC, progress bar, footnote popovers     |
 | `/writing/tags/[tag]` | Tag archive — the filter on the index is not a linkable URL   |
@@ -148,7 +148,7 @@ The spacing ladder itself is Tailwind's default: the design's 4/8/12/16/24/32/40
 steps are exactly `p-1` … `p-16`.
 
 Breakpoints are named after the layout decision they make (`nav:`, `card:`, `rail:`,
-`case:`, `bio:`, `hero:`) rather than `sm:`/`md:`/`lg:`.
+`spec:`, `bio:`, `hero:`) rather than `sm:`/`md:`/`lg:`.
 
 Component-specific CSS that genuinely isn't a utility — the aurora's stacked radial
 gradients, the dock's per-position border radii, the timeline spine — lives in a scoped

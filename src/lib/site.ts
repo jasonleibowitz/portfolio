@@ -2,13 +2,13 @@
 
 /**
  * Drives the active nav state. A page key is not always its nav key: a post
- * highlights Writing, a case study highlights Projects.
+ * highlights Writing, a project page highlights Projects.
  */
 export type PageKey =
   | 'home'
   | 'about'
   | 'projects'
-  | 'case'
+  | 'project'
   | 'writing'
   | 'post'
   | 'lists'
@@ -21,7 +21,7 @@ export const NAV_FOR_PAGE: Record<PageKey, NavKey> = {
   home: 'home',
   about: 'about',
   projects: 'projects',
-  case: 'projects',
+  project: 'projects',
   writing: 'writing',
   post: 'writing',
   lists: 'lists',
@@ -106,7 +106,7 @@ export const EMAIL = 'jason@leibowitz.me';
 export const RESUME_HREF = '/resume.pdf';
 
 /**
- * The "Join the beta" link on a TestFlight app's case study.
+ * The "Join the beta" link on a TestFlight app's project page.
  *
  * A `mailto:` rather than a form because the site is static and has nowhere to
  * post one. The trade is that the tester types their own details, so the body

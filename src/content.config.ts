@@ -142,14 +142,14 @@ const projects = defineCollection({
     status: z.enum(['building', 'beta', 'live']),
     /** The status line as written, e.g. "Beta". */
     status_text: z.string(),
-    /** Longer variant for the case-study header; falls back to status_text. */
-    status_text_case: z.string().optional(),
+    /** Longer variant for the project page header; falls back to status_text. */
+    status_text_long: z.string().optional(),
     /** Only a project that is actively moving gets the pulsing dot. */
     status_pulse: z.boolean().default(false),
     stack: z.array(z.string()),
     /** Screenshots are drawn placeholders: a phone body, or a browser window. */
     frame: z.enum(['phone', 'window']).default('phone'),
-    /** The case study's spec rail, rendered in order. */
+    /** The project page's spec rail, rendered in order. */
     specs: z
       .array(
         z.object({
@@ -162,7 +162,7 @@ const projects = defineCollection({
     cta: z.object({ label: z.string(), href: z.string() }).optional(),
     /**
      * An iOS build a stranger can ask to join. Adds the "Join the beta" button
-     * to the case study, addressed and pre-written by `testflightRequestHref`.
+     * to the project page, addressed and pre-written by `testflightRequestHref`.
      * Not derived from `status: 'beta'` -- a beta web app has nothing to join.
      */
     testflight: z.boolean().default(false),

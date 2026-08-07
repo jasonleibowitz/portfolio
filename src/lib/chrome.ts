@@ -84,10 +84,10 @@ function initDock() {
 
 function initProgress() {
   const fill = document.getElementById('progressFill');
-  // The bar is only displayed on posts and case studies; wiring the scroll
+  // The bar is only displayed on posts and project pages; wiring the scroll
   // listener anywhere else is pure cost.
   const page = document.body.dataset.page;
-  if (!fill || (page !== 'post' && page !== 'case')) return;
+  if (!fill || (page !== 'post' && page !== 'project')) return;
 
   const update = () => {
     const h = document.documentElement.scrollHeight - window.innerHeight;

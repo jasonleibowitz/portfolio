@@ -20,7 +20,7 @@ interface Props {
 const { pageTitle, description, page } = Astro.props;
 const title =
   pageTitle === 'Home' ? 'Jason Leibowitz' : `${pageTitle} · Jason Leibowitz`;
-const showProgress = page === 'post' || page === 'case';
+const showProgress = page === 'post' || page === 'project';
 ---
 
 <html lang="en" data-theme="light">

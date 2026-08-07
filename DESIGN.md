@@ -257,7 +257,7 @@ inside a band is Tailwind's default 4/8/12/16/24/32/40/48/64 scale.
 Breakpoints are named after the layout decision each one makes rather than after
 a device size: `hero` (26rem, headline breaks collapse), `card` (46rem, card
 internals go horizontal), `nav` (50rem, header nav replaces the dock), `rail`
-(52rem, tag rails move beside content), `case` (54rem, the spec rail becomes
+(52rem, tag rails move beside content), `spec` (54rem, the spec rail becomes
 sticky), `bio` (56rem, the About photo floats).
 
 ### Named Rules

@@ -37,10 +37,14 @@ const ctas = [
 ].filter((cta) => cta !== false && cta != null);
 ---
 
-<BaseLayout pageTitle={data.title} page="case" description={data.description}>
+<BaseLayout
+  pageTitle={data.title}
+  page="project"
+  description={data.description}
+>
   <Shell class="py-(--section)">
     <Status pulse={data.status_pulse}>
-      {data.status_text_case ?? data.status_text}
+      {data.status_text_long ?? data.status_text}
     </Status>
     <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
       {data.title}
@@ -56,7 +60,7 @@ const ctas = [
 
   <Section>
     <Shell
-      class="grid gap-8 case:grid-cols-[minmax(0,1fr)_268px] case:items-start case:gap-16 [&>*]:min-w-0"
+      class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-16 [&>*]:min-w-0"
     >
       <div>
         <div class="flex gap-6 overflow-x-auto pt-2 pb-6">
@@ -76,7 +80,7 @@ const ctas = [
         <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
       </div>
 
-      <aside class="case:sticky case:top-[88px]">
+      <aside class="spec:sticky spec:top-[88px]">
         <Panel class="px-6 py-2">
           <dl>
             {
