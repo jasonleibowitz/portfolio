@@ -1,0 +1,149 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { tv } from '../lib/tv';
+import Status from './ui/Status.astro';
+import Chip from './ui/Chip.astro';
+import Ph from './ui/Ph.astro';
+
+/**
+ * One featured project on the homepage, as a ruled row rather than a card.
+ *
+ * No box and no drawn screenshot: a box advertises its own edges, so leftover
+ * space inside it reads as unfilled. `ProjectRow` makes the same argument for
+ * `/projects` but composes against a full-width copy column, which is why it
+ * is not reused here.
+ */
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+type ProjectData = CollectionEntry<'projects'>['data'];
+
+/** One spec value, skipping any still marked as awaiting real copy. */
+function spec(data: ProjectData, label: string): string | undefined {
+  const match = data.specs.find((entry) => entry.label === label);
+  return match && !match.placeholder ? match.value : undefined;
+}
+
+/**
+ * The right-hand ledger, which is what stops a full-width row ending in half a
+ * row of nothing.
+ *
+ * Platform is read from the spec rail so a web project featured later reports
+ * `Web` without anyone editing the homepage. Deliberately shallow: an index
+ * summary states what a thing is, and anything finer belongs in the case study.
+ */
+function ledger(data: ProjectData): string[] {
+  return [spec(data, 'Platform')].filter(
+    (entry): entry is string => entry !== undefined
+  );
+}
+
+/** No icon means no icon track, rather than an empty gutter beside the title. */
+const columns = tv({
+  base: 'grid items-start gap-x-5 feature:gap-x-8',
+  variants: {
+    icon: {
+      true: 'grid-cols-[72px_minmax(0,1fr)] feature:grid-cols-[128px_minmax(0,1fr)]',
+      false: 'grid-cols-[minmax(0,1fr)]',
+    },
+  },
+});
+
+/** An icon still awaiting a final version takes the dotted-violet placeholder mark. */
+const tile = tv({
+  base: 'app-icon w-full object-cover',
+  variants: {
+    provisional: {
+      true: 'border border-dotted border-violet/60',
+      false: 'border border-line',
+    },
+  },
+});
+
+const { project } = Astro.props;
+const { data } = project;
+
+const hasIcon = Boolean(data.icon);
+const iconIsProvisional = data.placeholder.includes('icon');
+---
+
+{/* aria-label: without it the name is the whole row read as one run-on. */}
+<a
+  href={`/projects/${project.id}/`}
+  aria-label={data.title}
+  class:list={[
+    'group min-w-0 border-t border-line py-8 no-underline hover:border-line-strong',
+    columns({ icon: hasIcon }),
+  ]}
+>
+  {
+    /* `widths`/`sizes` rather than `densities`: the tile is two different
+      sizes, and a density list can only describe one. */
+  }
+  {
+    data.icon && (
+      <Image
+        src={data.icon}
+        alt=""
+        width={128}
+        height={128}
+        widths={[72, 128, 144, 256, 384]}
+        sizes="(min-width: 58rem) 128px, 72px"
+        fit="cover"
+        quality={92}
+        class={tile({ provisional: iconIsProvisional })}
+      />
+    )
+  }
+
+  <div
+    class="flex min-w-0 flex-col gap-4 feature:flex-row feature:items-start feature:justify-between feature:gap-10"
+  >
+    <div class="flex min-w-0 flex-1 flex-col gap-3">
+      {/* h3 is the level under the section's h2; h2 is only the size. */}
+      <h3 class="font-display text-h2 font-bold tracking-[-0.035em]">
+        {data.title}<span
+          class="inline-block transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-1 group-hover:text-violet"
+          aria-hidden="true">&nbsp;→</span
+        >
+      </h3>
+
+      <Ph
+        as="p"
+        when={data.placeholder.includes('description')}
+        class="max-w-[46ch] text-body text-muted"
+      >
+        {data.description}
+      </Ph>
+
+      <div class="mt-1 flex flex-wrap gap-1.5">
+        {data.stack.map((tool) => <Chip>{tool}</Chip>)}
+      </div>
+    </div>
+
+    {
+      /* `order-first` while stacked: this is a meta line and belongs above the
+        title, not stranded under the chips. `muted`, not the usual `faint` --
+        faint is budgeted against the bare canvas and drops to ~3.8:1 over the
+        aurora. */
+    }
+    <ul
+      class="order-first flex shrink-0 flex-wrap items-center gap-x-3 font-mono text-meta tracking-[0.16em] text-muted uppercase feature:order-none feature:flex-col feature:items-end feature:gap-y-1 feature:text-right"
+    >
+      <li><Status status={data.status}>{data.status_text}</Status></li>
+      {ledger(data).map((entry) => <li>{entry}</li>)}
+    </ul>
+  </div>
+</a>
+
+<style>
+  /* Apple's icon corner is a superellipse at 22.37% of the side, and that
+     curve is what reads as "app icon" rather than "rounded photo". A
+     percentage keeps one declaration correct at both 72px and 128px. */
+  .app-icon {
+    border-radius: 22.37%;
+    corner-shape: squircle;
+  }
+</style>

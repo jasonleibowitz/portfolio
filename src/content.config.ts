@@ -136,46 +136,68 @@ const lists = defineCollection({
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    status: z.enum(['building', 'beta', 'live']),
-    /** The status line as written, e.g. "Beta". */
-    status_text: z.string(),
-    /** Longer variant for the project page header; falls back to status_text. */
-    status_text_long: z.string().optional(),
-    /** Only a project that is actively moving gets the pulsing dot. */
-    status_pulse: z.boolean().default(false),
-    stack: z.array(z.string()),
-    /** Screenshots are drawn placeholders: a phone body, or a browser window. */
-    frame: z.enum(['phone', 'window']).default('phone'),
-    /** The project page's spec rail, rendered in order. */
-    specs: z
-      .array(
-        z.object({
-          label: z.string(),
-          value: z.string(),
-          placeholder: z.boolean().default(false),
-        })
-      )
-      .default([]),
-    cta: z.object({ label: z.string(), href: z.string() }).optional(),
-    /**
-     * An iOS build a stranger can ask to join. Adds the "Join the beta" button
-     * to the project page, addressed and pre-written by `testflightRequestHref`.
-     * Not derived from `status: 'beta'` -- a beta web app has nothing to join.
-     */
-    testflight: z.boolean().default(false),
-    /** The homepage shows only these, so adding a project never changes it. */
-    is_featured: z.boolean().default(false),
-    /** For when "newest first" stops being the right sort. */
-    order: z.number().optional(),
-    links: z
-      .object({ site: z.string().optional(), repo: z.string().optional() })
-      .optional(),
-    draft: z.boolean().default(false),
-    placeholder,
-  }),
+  // A function of `image()` so an icon path resolves relative to its own entry
+  // and goes through astro:assets, the same way list artwork does.
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      /**
+       * The app's real icon, e.g. './icons/reel-watch.png' with the file
+       * alongside the entry. Optional, and deliberately without a fallback:
+       * a project with no icon renders none rather than a generated tile.
+       *
+       * Every iOS build already ships a 1024px icon, so this is an asset that
+       * exists rather than one that has to be made -- which is the whole
+       * reason it is the artwork this site uses for a project. A screenshot
+       * would have to be captured, is 9:19 in a square slot, and is illegible
+       * at the size a summary can afford to give it.
+       *
+       * Not a remote URL, for the same reason list artwork is not: every build
+       * would refetch it, and a dead host would fail the deploy.
+       */
+      icon: image().optional(),
+      /** Drives the status dot's colour. `testing` is pre-launch and shipping
+       * builds to real users; `development` is everything before that. */
+      status: z.enum(['development', 'testing', 'live']),
+      /** The status line as written, e.g. "In Development". */
+      status_text: z.string(),
+      /** Longer variant for the project page header; falls back to status_text. */
+      status_text_long: z.string().optional(),
+      stack: z.array(z.string()),
+      /** Screenshots are drawn placeholders: a phone body, or a browser window. */
+      frame: z.enum(['phone', 'window']).default('phone'),
+      /**
+       * The project page's spec rail, rendered in order. Rows are free-form:
+       * add `Role` only where it separates what Jason did from what a team
+       * did, which on a solo project it does not.
+       */
+      specs: z
+        .array(
+          z.object({
+            label: z.string(),
+            value: z.string(),
+            placeholder: z.boolean().default(false),
+          })
+        )
+        .default([]),
+      cta: z.object({ label: z.string(), href: z.string() }).optional(),
+      /**
+       * An iOS build a stranger can ask to join. Adds the "Join the beta" button
+       * to the project page, addressed and pre-written by `testflightRequestHref`.
+       * Not derived from `status: 'beta'` -- a beta web app has nothing to join.
+       */
+      testflight: z.boolean().default(false),
+      /** The homepage shows only these, so adding a project never changes it. */
+      is_featured: z.boolean().default(false),
+      /** For when "newest first" stops being the right sort. */
+      order: z.number().optional(),
+      links: z
+        .object({ site: z.string().optional(), repo: z.string().optional() })
+        .optional(),
+      draft: z.boolean().default(false),
+      placeholder,
+    }),
 });
 
 export const collections = { blog, lists, projects };

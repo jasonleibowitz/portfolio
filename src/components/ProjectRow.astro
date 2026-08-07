@@ -15,8 +15,9 @@ import DeviceFrame from './DeviceFrame.astro';
  * without framing the space next to it, and centering the copy against the art
  * splits the remainder evenly rather than pooling it all underneath.
  *
- * The homepage still uses `ProjectCard`, which is two-up and a different
- * composition problem.
+ * The homepage runs the same argument to its conclusion in `ProjectBrief`:
+ * two-up on half a shell leaves no room for art beside the copy, so it drops
+ * the frame entirely and spends the space on the spec facts instead.
  */
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -68,7 +69,7 @@ const isWindow = data.frame === 'window';
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-3">
-      <Status pulse={data.status_pulse}>{data.status_text}</Status>
+      <Status status={data.status}>{data.status_text}</Status>
 
       {
         /* h2: the page's h1 is the masthead, and a row is its first subsection.

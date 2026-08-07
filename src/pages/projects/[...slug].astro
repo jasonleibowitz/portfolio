@@ -43,7 +43,7 @@ const ctas = [
   description={data.description}
 >
   <Shell class="py-(--section)">
-    <Status pulse={data.status_pulse}>
+    <Status status={data.status}>
       {data.status_text_long ?? data.status_text}
     </Status>
     <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
@@ -59,28 +59,32 @@ const ctas = [
   </Shell>
 
   <Section>
+    {
+      /* Three grid children rather than two, so the rail can sit between the
+        screenshots and the write-up once the columns collapse. Stacked, the
+        stats read as a caption to the shots; deferred to the bottom they were
+        below a page of prose nobody had scrolled yet. */
+    }
     <Shell
-      class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-16 [&>*]:min-w-0"
+      class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
     >
-      <div>
-        <div class="flex gap-6 overflow-x-auto pt-2 pb-6">
-          {
-            [0, 1, 2].map((variant) => (
-              <DeviceFrame
-                kind={data.frame}
-                size="shot"
-                variant={variant as 0 | 1 | 2}
-              />
-            ))
-          }
-        </div>
-
-        <div class="prose max-w-measure"><Content /></div>
-
-        <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
+      <div
+        class="flex gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1"
+      >
+        {
+          [0, 1, 2].map((variant) => (
+            <DeviceFrame
+              kind={data.frame}
+              size="shot"
+              variant={variant as 0 | 1 | 2}
+            />
+          ))
+        }
       </div>
 
-      <aside class="spec:sticky spec:top-[88px]">
+      <aside
+        class="spec:sticky spec:top-[88px] spec:col-start-2 spec:row-start-1 spec:row-end-3"
+      >
         <Panel class="px-6 py-2">
           <dl>
             {
@@ -105,6 +109,12 @@ const ctas = [
           )
         }
       </aside>
+
+      <div class="spec:col-start-1 spec:row-start-2">
+        <div class="prose max-w-measure"><Content /></div>
+
+        <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
+      </div>
     </Shell>
   </Section>
 </BaseLayout>

@@ -45,6 +45,14 @@
   /* The sun half of the theme toggle keeps its warmth in both themes. */
   --color-sun: #c2701a;
 
+  /* The one place the system carries hues outside the spectrum. A project's
+     stage is the rare signal where the conventional green/amber/grey reading
+     is worth more than palette purity -- but the dot is only ever redundant
+     with the word beside it, never the sole carrier of meaning. */
+  --color-stage-live: #1e7a4f;
+  --color-stage-testing: #c2701a;
+  --color-stage-development: #6f6b86;
+
   --shadow-lift: 0 10px 34px rgb(24 18 60 / 0.08);
 
   --font-display:
@@ -84,6 +92,12 @@
   --breakpoint-hero: 26rem;
   --breakpoint-card: 46rem;
   --breakpoint-nav: 50rem;
+  /* Where a featured project brief has room for a second column, so its spec
+     ledger moves out from under the copy and right-aligns to the far edge.
+     Deliberately not `card` (46rem) or `spec` (54rem): each of those already
+     names a different decision, and a breakpoint that means two things is a
+     breakpoint that will eventually be moved for the wrong reason. */
+  --breakpoint-feature: 58rem;
   --breakpoint-rail: 52rem;
   --breakpoint-spec: 54rem;
   --breakpoint-bio: 56rem;
@@ -156,6 +170,10 @@
   --color-on-spectrum: #14141d;
   --color-glow-a: rgb(125 95 255 / 0.2);
   --color-glow-b: rgb(70 205 235 / 0.14);
+  /* Lifted off the light values, which go muddy on the raised dark base. */
+  --color-stage-live: #4fd39a;
+  --color-stage-testing: #e0913f;
+  --color-stage-development: #948fa8;
   --shadow-lift: 0 12px 38px rgb(0 0 0 / 0.42);
   color-scheme: dark;
 }
@@ -206,6 +224,25 @@
   color: transparent;
   padding-block: 0.08em 0.2em;
   margin-block: -0.08em -0.2em;
+}
+
+/* The system's one shadow, read at use time so it actually re-derives.
+
+   `--shadow-lift` lives in `@theme` and is overridden under
+   `:root[data-theme='dark']`, which looks like every other token here -- but
+   Tailwind compiles a theme shadow into a *literal*, not a `var()`:
+
+     .shadow-lift { --tw-shadow: 0 10px 34px rgb(24 18 60 / 0.08); ... }
+
+   so the dark override never reached anything wearing the class. Every object
+   in the system -- the portrait, images inside posts, the device frames, and
+   every button on hover -- kept its light shadow in dark mode, where a
+   near-transparent violet cast over a #16161F base is close to nothing at all.
+   Declaring the utility by hand is what makes the token behave the way the
+   rest of the system already does. Verify by reading computed `boxShadow` in
+   dark, not by reading this file. */
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
 }
 
 /* The active-state fill: the one spectrum, plus a label color that survives it
