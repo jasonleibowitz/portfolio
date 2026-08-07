@@ -29,13 +29,15 @@ import Ph from './ui/Ph.astro';
  * to do it.
  */
 /*
- * `row-span-3` and not `row-span-full`: the rows here are implicit, and
- * `full` resolves to `1 / -1` against the *explicit* grid, which has one row.
- * The artwork ends up spanning a single row and every line after the title
- * wraps inside the artwork column, one character per line.
+ * No row span. The artwork used to carry `row-span-3`, which was a count of the
+ * text rows beside it -- title, note, tags -- and so it silently became wrong
+ * the moment a fourth was added: `subtitle` pushed the tags down to row 4,
+ * where column 1 was free, and they rendered under the artwork in a 56px column
+ * one chip per line. The text is wrapped in a single column child instead, so
+ * the row is one grid row however many lines the text has.
  */
 const artwork = tv({
-  base: 'row-span-3 mt-1 w-14 rounded-xl border border-line object-cover',
+  base: 'mt-1 w-14 rounded-xl border border-line object-cover',
   variants: {
     shape: {
       square: 'aspect-square',
@@ -63,7 +65,7 @@ const ARTWORK_HEIGHT = { square: 56, poster: 84 } as const;
  * track, rather than a 56px gutter of nothing down the list.
  */
 const columns = tv({
-  base: 'grid items-start gap-x-4 gap-y-1',
+  base: 'grid items-start gap-x-4',
   variants: {
     rank: { true: '', false: '' },
     art: { true: '', false: '' },
@@ -127,7 +129,7 @@ const lastWord = words.at(-1);
 >
   {
     rank && (
-      <span class="row-span-3 font-display text-[2rem] leading-[1.15] font-bold text-faint tabular-nums">
+      <span class="font-display text-[2rem] leading-[1.15] font-bold text-faint tabular-nums">
         {rank}
       </span>
     )
@@ -151,77 +153,100 @@ const lastWord = words.at(-1);
 
   {
     /*
+    Every line of text is one grid child, so adding another -- a subtitle, and
+    whatever comes after it -- cannot push anything into the artwork's column.
+  */
+  }
+  <div class="flex min-w-0 flex-col gap-1">
+    {
+      /*
     The year sits at the far end of the title's line rather than in the meta
     row, so it rules a second aligned column down the page and both ends of
     every row are anchored. `items-baseline` keeps it on the first line when a
     long title wraps.
   */
-  }
-  <span
-    class="flex items-baseline justify-between gap-x-4 font-semibold tracking-[-0.01em]"
-  >
-    {
-      /*
+    }
+    <span
+      class="flex items-baseline justify-between gap-x-4 font-semibold tracking-[-0.01em]"
+    >
+      {
+        /*
       The link wraps the title alone and stretches over the row with a
       pseudo-element. Wrapping the whole row instead made the accessible name
       the title, the note, the host and every tag run together with no
       separators -- a four-sentence link label -- while this keeps the name to
       the title and the full row clickable.
     */
-    }
-    {
-      isLink ? (
-        <a
-          href={item.href}
-          target="_blank"
-          rel="noreferrer noopener"
-          class="no-underline after:absolute after:inset-0 group-hover:text-violet"
-        >
-          <Ph when={item.placeholder.includes('name')}>
-            {lead && `${lead} `}
-            <span class="whitespace-nowrap">
-              {lastWord}
-              <Icon
-                name="lucide:arrow-up-right"
-                class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
-              />
-            </span>
+      }
+      {
+        isLink ? (
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            class="no-underline after:absolute after:inset-0 group-hover:text-violet"
+          >
+            <Ph when={item.placeholder.includes('name')}>
+              {lead && `${lead} `}
+              <span class="whitespace-nowrap">
+                {lastWord}
+                <Icon
+                  name="lucide:arrow-up-right"
+                  class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
+                />
+              </span>
+            </Ph>
+          </a>
+        ) : (
+          <Ph when={item.placeholder.includes('name')} class="text-ink">
+            {title}
           </Ph>
-        </a>
-      ) : (
-        <Ph when={item.placeholder.includes('name')} class="text-ink">
-          {title}
+        )
+      }
+      {
+        year && (
+          <span class="shrink-0 font-mono text-meta font-normal text-faint tabular-nums">
+            {year}
+          </span>
+        )
+      }
+    </span>
+
+    {
+      /* Above the note, because it identifies the thing while the note is an
+      opinion about it -- and mono, because a list of hosts is a credit rather
+      than a sentence. */
+      item.subtitle && (
+        <Ph
+          as="p"
+          when={item.placeholder.includes('subtitle')}
+          class="font-mono text-meta text-muted"
+        >
+          {item.subtitle}
         </Ph>
       )
     }
+
     {
-      year && (
-        <span class="shrink-0 font-mono text-meta font-normal text-faint tabular-nums">
-          {year}
+      item.note && (
+        <Ph
+          as="p"
+          when={item.placeholder.includes('note')}
+          class="max-w-[68ch] text-note text-muted"
+        >
+          {item.note}
+        </Ph>
+      )
+    }
+
+    {
+      item.tags.length > 0 && (
+        <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {item.tags.map((tag) => (
+            <Chip size="mini">{tag}</Chip>
+          ))}
         </span>
       )
     }
-  </span>
-
-  {
-    item.note && (
-      <Ph
-        as="p"
-        when={item.placeholder.includes('note')}
-        class="max-w-[68ch] text-note text-muted"
-      >
-        {item.note}
-      </Ph>
-    )
-  }
-
-  {
-    item.tags.length > 0 && (
-      <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        {item.tags.map((tag) => (
-          <Chip size="mini">{tag}</Chip>
-        ))}
-      </span>
-    )
-  }
+  </div>
 </li>

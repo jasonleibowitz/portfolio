@@ -46,6 +46,18 @@ const lists = defineCollection({
        * someone else's server being up.
        */
       image: image().optional(),
+      /**
+       * A short credit under the name, saying whatever identifies this kind of
+       * thing: a podcast's hosts, a coffee shop's neighborhood, a book's
+       * author. Deliberately not named `hosts` -- the lists are not all media
+       * of one type, and the field earns its place by being whatever the list
+       * is about.
+       *
+       * It is a credit rather than a sentence, which is why it sets in mono
+       * beside the year and `note` stays prose. Keep it to a few words: three
+       * hosts, not a paragraph about them.
+       */
+      subtitle: z.string().optional(),
       note: z.string().optional(),
       tags: z.array(z.string()).default([]),
       placeholder,
