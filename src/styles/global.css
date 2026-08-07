@@ -60,6 +60,12 @@
   --text-read: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
   --text-body: 1.0625rem;
   --text-ui: 0.9375rem;
+  /* Annotation prose: a list entry's note, and anything else that explains a
+     thing it sits under. The ramp had nothing between UI text and Meta, so a
+     note set at UI size sat 2px under its own title and read as a second
+     title rather than as a remark about one. Meta is 12px and monospace-
+     adjacent -- fine for a date, too small for two sentences. */
+  --text-note: 0.8125rem;
   --text-meta: 0.75rem;
 
   --container-shell: 70rem;

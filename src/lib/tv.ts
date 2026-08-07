@@ -16,7 +16,18 @@ export const tv = createTV({
   twMergeConfig: {
     extend: {
       theme: {
-        text: ['mega', 'h1', 'h2', 'h3', 'lead', 'read', 'body', 'ui', 'meta'],
+        text: [
+          'mega',
+          'h1',
+          'h2',
+          'h3',
+          'lead',
+          'read',
+          'body',
+          'ui',
+          'note',
+          'meta',
+        ],
         shadow: ['lift'],
         radius: ['card'],
         container: ['shell', 'measure', 'bio'],

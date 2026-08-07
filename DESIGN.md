@@ -219,6 +219,7 @@ keeps a 76px headline from feeling loose.
 - **Reading** (400, `clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem)`, 1.72): Long-form prose only, set on a 46rem measure (~78 characters).
 - **Body** (400, `1.0625rem`, 1.62): Default UI text.
 - **UI** (400, `0.9375rem`): Dense interface text — rows, role lines, list items.
+- **Note** (400, `0.8125rem`): Annotation prose — a list entry's note, and anything else that explains the thing it sits under. It exists because a remark set at UI size sits 2px under its own title and reads as a second title; Label is 12px and belongs to data, not sentences.
 - **Label** (400, `0.75rem`, `0.16em`, uppercase): Eyebrows, dates, metadata, stat captions, status text. Always monospace.
 
 ### Named Rules
