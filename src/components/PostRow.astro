@@ -20,14 +20,22 @@ const { title, pubDate, description, tags } = post.data;
     class="group -mx-3 grid gap-2 rounded-xl px-3 no-underline transition-colors duration-150 hover:bg-panel"
     class:list={[compact ? 'py-4' : 'py-6']}
   >
-    <span
+    {
+      /* A heading, not a styled span: this is the only content on the archive,
+        so a reader navigating by heading had nothing to move between. Level 2
+        because the rows sit directly under the page title -- `PostRow` is not
+        used inside a section that owns its own heading. */
+    }
+    <h2
       class:list={[
         'leading-tight tracking-[-0.025em] group-hover:text-violet',
         compact
           ? 'text-body font-semibold tracking-[-0.01em]'
           : 'font-display text-h3 font-bold',
-      ]}>{title}</span
+      ]}
     >
+      {title}
+    </h2>
 
     {
       description && (
