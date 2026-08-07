@@ -17,9 +17,21 @@ const { data } = project;
 
 <a
   href={`/projects/${project.id}/`}
-  class="group relative flex flex-col gap-4 overflow-hidden rounded-card border border-line bg-panel p-6 no-underline transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-[3px] hover:border-line-strong hover:shadow-lift"
+  class="group relative flex flex-col overflow-hidden rounded-card border border-line bg-panel p-6 no-underline transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-[3px] hover:border-line-strong hover:shadow-lift"
 >
-  <div class="flex flex-wrap items-start gap-6">
+  {
+    /* `border-color` is deliberately absent from the transition above. A
+      transition on a property whose value comes from a custom property freezes
+      at the old value when the theme swaps the token, so the card kept its
+      light border in dark mode — 1.00:1, invisible. The hover step is a
+      0.09→0.16 alpha change that does not need to animate anyway.
+
+      `items-center` splits the leftover height either side of the copy instead
+      of pooling it all underneath a frame twice the copy's height, and
+      `justify-center` only bites on a line with free space — which is the line
+      the frame sits on alone once the card is too narrow to hold both. */
+  }
+  <div class="flex flex-wrap items-center justify-center gap-6">
     <DeviceFrame kind={data.frame} size={wide ? 'wide' : 'default'} />
 
     {
@@ -46,7 +58,7 @@ const { data } = project;
         {data.description}
       </Ph>
 
-      <div class="mt-auto flex flex-wrap gap-1.5">
+      <div class="flex flex-wrap gap-1.5">
         {data.stack.map((tool) => <Chip>{tool}</Chip>)}
       </div>
 
