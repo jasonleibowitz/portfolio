@@ -66,6 +66,10 @@ const active = NAV_FOR_PAGE[page];
       0 2px 6px rgb(24 18 60 / 0.1),
       inset 0 1px 0 rgb(255 255 255 / 0.95),
       inset 0 -14px 24px -14px rgb(24 18 60 / 0.42);
+    /* Animating width is deliberate: `scaleX` would squash the labels and turn
+       the 999px end caps into ellipses. If it ever stutters on a real phone,
+       drop the narrowing and keep the height collapse -- the cost is the 30px
+       backdrop blur resampling at a new size, not the reflow. */
     transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -78,16 +82,27 @@ const active = NAV_FOR_PAGE[page];
       inset 0 -14px 24px -14px rgb(0 0 0 / 0.6);
   }
 
+  /* One radius, three shapes read from it. As six literals it was five copies
+     each of 18px and 14px -- which is how the collapsed state drifted to 15px.
+     Registered because an unregistered custom property is discrete, so the
+     radius would snap rather than ease. Global, hence the `--dock-` prefix. */
+  @property --dock-tab-radius {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 18px;
+  }
+
   /* One block per selector: a second `.dock-tab { transition: … }` elsewhere
      silently replaced this one during the mockup and the collapse stopped
      animating. */
   .dock-tab {
+    --dock-tab-radius: 18px;
     position: relative;
     z-index: 1;
     flex: 1 1 0;
     min-width: 0;
     height: 56px;
-    border-radius: 18px;
+    border-radius: var(--dock-tab-radius);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,17 +119,17 @@ const active = NAV_FOR_PAGE[page];
     transition:
       transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
       height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      --dock-tab-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
       gap 0.3s ease;
   }
   .dock-tab:active {
     transform: scale(0.93);
   }
   .dock-tab:first-child {
-    border-radius: 999px 18px 18px 999px;
+    border-radius: 999px var(--dock-tab-radius) var(--dock-tab-radius) 999px;
   }
   .dock-tab:last-child {
-    border-radius: 18px 999px 999px 18px;
+    border-radius: var(--dock-tab-radius) 999px 999px var(--dock-tab-radius);
   }
 
   .dock-tab span {
@@ -140,15 +155,9 @@ const active = NAV_FOR_PAGE[page];
     width: min(300px, calc(100vw - 24px));
   }
   .dock.is-min .dock-tab {
+    --dock-tab-radius: 14px;
     height: 46px;
-    border-radius: 14px;
     gap: 0;
-  }
-  .dock.is-min .dock-tab:first-child {
-    border-radius: 999px 14px 14px 999px;
-  }
-  .dock.is-min .dock-tab:last-child {
-    border-radius: 14px 999px 999px 14px;
   }
   .dock.is-min .dock-tab span {
     max-height: 0;
