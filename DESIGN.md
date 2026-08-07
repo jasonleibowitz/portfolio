@@ -8,7 +8,7 @@ colors:
   line-strong: 'rgb(20 18 30 / 0.16)'
   ink: '#131220'
   muted: '#55536a'
-  faint: '#85819c'
+  faint: '#6f6b86'
   ultraviolet: '#5b3df5'
   aurora-teal: '#0e9fb8'
   glow-a: 'rgb(91 61 245 / 0.16)'
@@ -175,7 +175,7 @@ that appears only where something is active.
 - **Lifted Slate** (`#16161F` in dark): The dark base, deliberately lifted off near-black. An earlier revision sat at `#0B0B12` and read as murkier than its contrast ratio suggested, because the surface was so close to black. Body text measures 15.6:1 here.
 - **Ink** (`#131220`): Primary text. Near-black with a violet cast rather than neutral gray, so it belongs to the same family as the accent.
 - **Muted** (`#55536A`): Secondary text — lead paragraphs, body copy in supporting positions, chip labels.
-- **Faint** (`#85819C`): Metadata, eyebrows, dates, captions, inactive dock tabs.
+- **Faint** (`#6F6B86`): Metadata, eyebrows, dates, captions, inactive dock tabs. 4.9:1 on the canvas; the earlier `#85819C` measured 3.59:1, under the 4.5 this token's text sizes need.
 - **Line** (`rgb(20 18 30 / 0.09)`) and **Line Strong** (`rgb(20 18 30 / 0.16)`): The hairline vocabulary. These do the work that borders and shadows do in other systems.
 - **Panel** (`rgb(255 255 255 / 0.72)`): The translucent surface fill every card, tile, and container uses.
 - **Glow A / Glow B** (`rgb(91 61 245 / 0.16)`, `rgb(14 159 184 / 0.16)`): The aurora's two hues at low alpha. They exist only inside the background gradient.
