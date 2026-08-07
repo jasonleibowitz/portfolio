@@ -84,11 +84,11 @@ const active = NAV_FOR_PAGE[page];
 
   /* One radius, three shapes read from it. As six literals it was five copies
      each of 18px and 14px -- which is how the collapsed state drifted to 15px.
-     Registered because an unregistered custom property is discrete, so the
-     radius would snap rather than ease. Global, hence the `--dock-` prefix. */
+     Registered so the variable itself interpolates rather than a transition
+     chasing a var substitution. Not inherited: only the tabs read it. */
   @property --dock-tab-radius {
     syntax: '<length>';
-    inherits: true;
+    inherits: false;
     initial-value: 18px;
   }
 
