@@ -18,8 +18,9 @@
  * Sources, by list `thumb` shape:
  *
  *   square  Apple's public iTunes Search API (no key). Podcast and album art.
- *   poster  TMDB (needs a free key in TMDB_API_KEY). Apple's movie storefront
- *           search returns nothing as of 2026, so it cannot be used here.
+ *   poster  TMDB. Apple's movie storefront search returns nothing as of 2026,
+ *           so it cannot be used here. Needs a free token in TMDB_API_KEY,
+ *           read from `.env` automatically -- see `.env.example`.
  *
  * Artwork is downloaded at 600px and re-encoded to 512px webp. Nothing in
  * src/ ships as-is -- astro:assets re-encodes at build time for the size it
@@ -37,6 +38,15 @@ const run = promisify(execFile);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LISTS = join(ROOT, 'src/content/lists');
 const EDGE = 512;
+
+// Node reads .env natively from 20.6, so the token does not have to be exported
+// by hand or a dependency added to parse it. Missing is fine -- only poster
+// lists need one, and an already-exported variable still wins.
+try {
+  process.loadEnvFile(join(ROOT, '.env'));
+} catch {
+  /* no .env, or this Node cannot read one; findPoster reports the real error */
+}
 
 const [, , listName, ...flags] = process.argv;
 const write = flags.includes('--write');
