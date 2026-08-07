@@ -42,20 +42,25 @@ const showProgress = page === 'post' || page === 'project';
       /*
       Blocking on purpose. Every page of a static site is a fresh document, so
       deferring this flashes white on each navigation.
+
+      Storage is read only for an override; with none, the device decides --
+      including when storage throws.
     */
     }
     <script is:inline>
       (function () {
+        let saved = null;
         try {
-          const saved = localStorage.getItem('theme');
-          document.documentElement.dataset.theme =
-            saved ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches
-              ? 'dark'
-              : 'light');
+          saved = localStorage.getItem('theme');
         } catch {
-          document.documentElement.dataset.theme = 'light';
+          /* private mode, or storage blocked */
         }
+        document.documentElement.dataset.theme =
+          saved === 'dark' || saved === 'light'
+            ? saved
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
       })();
     </script>
   </head>

@@ -9,6 +9,24 @@ import { initFilters } from './filter';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
+const systemTheme = () => (darkMedia.matches ? 'dark' : 'light');
+
+function savedTheme(): string | null {
+  try {
+    return localStorage.getItem('theme');
+  } catch {
+    return null;
+  }
+}
+
+/** Keeps an open page in step with the device until the visitor overrides it. */
+function initThemeSync() {
+  darkMedia.addEventListener('change', () => {
+    if (!savedTheme()) document.documentElement.dataset.theme = systemTheme();
+  });
+}
+
 function initThemeToggle() {
   const btn = document.getElementById('themeBtn');
   if (!btn) return;
@@ -19,7 +37,9 @@ function initThemeToggle() {
     const apply = () => {
       el.dataset.theme = next;
       try {
-        localStorage.setItem('theme', next);
+        // Only remember a choice that differs from the device.
+        if (next === systemTheme()) localStorage.removeItem('theme');
+        else localStorage.setItem('theme', next);
       } catch {
         /* private mode; the theme still applies for this page */
       }
@@ -101,6 +121,7 @@ function initProgress() {
 }
 
 export function initChrome() {
+  initThemeSync();
   initThemeToggle();
   initDock();
   initProgress();
