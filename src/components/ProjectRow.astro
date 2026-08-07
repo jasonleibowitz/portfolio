@@ -70,9 +70,13 @@ const isWindow = data.frame === 'window';
     <div class="flex min-w-0 flex-1 flex-col gap-3">
       <Status pulse={data.status_pulse}>{data.status_text}</Status>
 
-      <h3 class="font-display text-h2 font-bold tracking-[-0.035em]">
+      {
+        /* h2: the page's h1 is the masthead, and a row is its first subsection.
+        An h3 here left the heading outline with a hole in it. */
+      }
+      <h2 class="font-display text-h2 font-bold tracking-[-0.035em]">
         {data.title}
-      </h3>
+      </h2>
 
       <Ph
         as="p"
