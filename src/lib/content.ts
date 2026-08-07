@@ -47,7 +47,22 @@ export async function getPublished<C extends PublishableCollection>(
 }
 
 /**
- * Tags across published posts with their counts, most-used first. The Writing
+ * Tag rails read as an index, so they sort by name rather than by popularity:
+ * a reader looking for one tag scans for where it should be, and a
+ * frequency-ordered rail has no such place. `numeric` keeps decade tags in
+ * order, so `100s` would follow `90s` instead of leading the list.
+ *
+ * Shared with `listTags` so the two rails cannot drift apart.
+ */
+export function byTagName(a: { tag: string }, b: { tag: string }): number {
+  return a.tag.localeCompare(b.tag, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+}
+
+/**
+ * Tags across published posts with their counts, alphabetical. The Writing
  * rail shows the count beside each tag, so counting here keeps the routes from
  * each rolling their own.
  */
@@ -65,5 +80,5 @@ export async function getPublishedTags(): Promise<
 
   return [...counts.entries()]
     .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    .sort(byTagName);
 }

@@ -1,4 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
+import { byTagName } from './content';
 
 type List = CollectionEntry<'lists'>['data'];
 type Item = List['items'][number];
@@ -10,7 +11,7 @@ export function allItems(list: List): Item[] {
     : list.items;
 }
 
-/** Tags across a list with their counts, most-used first. */
+/** Tags across a list with their counts, alphabetical. */
 export function listTags(list: List): { tag: string; count: number }[] {
   const counts = new Map<string, number>();
 
@@ -22,7 +23,7 @@ export function listTags(list: List): { tag: string; count: number }[] {
 
   return [...counts.entries()]
     .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    .sort(byTagName);
 }
 
 /** `Engineering & tech` -> `engineering-tech`, for a jump-strip anchor. */
