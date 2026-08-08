@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import ProjectRow from '@components/ProjectRow.astro';
 import { getPublished } from '../../lib/content';
 
@@ -21,14 +20,12 @@ const projects = await getPublished('projects');
   />
 
   <Section>
-    <Shell>
-      {
-        /* Hairline-separated rows rather than cards, alternating which side
-          the art sits on. Each row draws its own top rule and the footer draws
-          the page's closing one, so a bottom rule here would land a second
-          hairline barely a section's padding above the footer's. */
-      }
-      {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
-    </Shell>
+    {
+      /* Hairline-separated rows rather than cards, alternating which side
+        the art sits on. Each row draws its own top rule and the footer draws
+        the page's closing one, so a bottom rule here would land a second
+        hairline barely a section's padding above the footer's. */
+    }
+    {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
   </Section>
 </BaseLayout>

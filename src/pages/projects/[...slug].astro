@@ -1,8 +1,7 @@
 ---
 import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import Panel from '@components/ui/Panel.astro';
 import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
@@ -42,7 +41,7 @@ const ctas = [
   page="project"
   description={data.description}
 >
-  <Shell class="py-(--section)">
+  <Section flush={false}>
     <Status status={data.status}>
       {data.status_text_long ?? data.status_text}
     </Status>
@@ -56,7 +55,7 @@ const ctas = [
     >
       {data.description}
     </Ph>
-  </Shell>
+  </Section>
 
   <Section>
     {
@@ -65,7 +64,7 @@ const ctas = [
         stats read as a caption to the shots; deferred to the bottom they were
         below a page of prose nobody had scrolled yet. */
     }
-    <Shell
+    <div
       class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
     >
       <div
@@ -115,6 +114,6 @@ const ctas = [
 
         <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
       </div>
-    </Shell>
+    </div>
   </Section>
 </BaseLayout>

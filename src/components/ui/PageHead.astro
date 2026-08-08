@@ -1,5 +1,5 @@
 ---
-import Shell from './Shell.astro';
+import Section from '../layout/Section.astro';
 import Eyebrow from './Eyebrow.astro';
 
 /** The masthead every page but the homepage opens with. */
@@ -12,7 +12,7 @@ interface Props {
 const { eyebrow, title, lead } = Astro.props;
 ---
 
-<Shell class="py-(--section)">
+<Section flush={false}>
   {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
   <slot name="eyebrow" />
   <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
@@ -20,4 +20,4 @@ const { eyebrow, title, lead } = Astro.props;
   </h1>
   {lead && <p class="max-w-[56ch] text-lead text-muted">{lead}</p>}
   <slot />
-</Shell>
+</Section>

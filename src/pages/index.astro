@@ -2,8 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Hero from '@components/Hero.astro';
 import ProjectBrief from '@components/ProjectBrief.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import SectionHead from '@components/ui/SectionHead.astro';
 import Panel from '@components/ui/Panel.astro';
 import Fact from '@components/ui/Fact.astro';
@@ -23,40 +22,36 @@ const featured = (await getPublished('projects')).filter(
   <Hero />
 
   <Section>
-    <Shell>
-      <SectionHead
-        title="At a glance"
-        more={{ label: 'About me', href: '/about/' }}
-      />
-      <Panel class="px-6 py-2">
-        <dl>
-          <Fact label="Now">{currentRole()}</Fact>
-          <Fact label="Focus">
-            Product engineering across web and mobile, design systems, developer
-            experience
-          </Fact>
-          <Fact label="Before">
-            Capsule Pharmacy · Invitae · TodayTix · Reserve · TigerSpike
-          </Fact>
-          <Fact label="Studied">
-            New York University · Hebrew University · General Assembly
-          </Fact>
-          <Fact label="Based">New York City · Eastern Time</Fact>
-          <Fact label="Outside work">
-            Coffee, English football, pickleball, dad jokes
-          </Fact>
-        </dl>
-      </Panel>
-    </Shell>
+    <SectionHead
+      title="At a glance"
+      more={{ label: 'About me', href: '/about/' }}
+    />
+    <Panel class="px-6 py-2">
+      <dl>
+        <Fact label="Now">{currentRole()}</Fact>
+        <Fact label="Focus">
+          Product engineering across web and mobile, design systems, developer
+          experience
+        </Fact>
+        <Fact label="Before">
+          Capsule Pharmacy · Invitae · TodayTix · Reserve · TigerSpike
+        </Fact>
+        <Fact label="Studied">
+          New York University · Hebrew University · General Assembly
+        </Fact>
+        <Fact label="Based">New York City · Eastern Time</Fact>
+        <Fact label="Outside work">
+          Coffee, English football, pickleball, dad jokes
+        </Fact>
+      </dl>
+    </Panel>
   </Section>
 
   <Section>
-    <Shell>
-      <SectionHead
-        title="What I'm building"
-        more={{ label: 'All projects', href: '/projects/' }}
-      />
-      {featured.map((project) => <ProjectBrief project={project} />)}
-    </Shell>
+    <SectionHead
+      title="What I'm building"
+      more={{ label: 'All projects', href: '/projects/' }}
+    />
+    {featured.map((project) => <ProjectBrief project={project} />)}
   </Section>
 </BaseLayout>

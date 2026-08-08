@@ -1,5 +1,5 @@
 ---
-import Shell from './ui/Shell.astro';
+import Section from './layout/Section.astro';
 import Eyebrow from './ui/Eyebrow.astro';
 import Button from './ui/Button.astro';
 import RotatingWords from './RotatingWords.astro';
@@ -9,67 +9,65 @@ import { EMAIL, RESUME_HREF } from '../lib/site';
 import { yearsShipping } from '../lib/career';
 ---
 
-<section class="py-(--section)">
-  <Shell>
-    <div
-      class="nav:grid nav:grid-cols-[minmax(0,1fr)_auto] nav:items-center nav:gap-16"
-    >
-      <div>
-        <Eyebrow>Full-stack engineer · New York</Eyebrow>
+<Section flush={false}>
+  <div
+    class="nav:grid nav:grid-cols-[minmax(0,1fr)_auto] nav:items-center nav:gap-16"
+  >
+    <div>
+      <Eyebrow>Full-stack engineer · New York</Eyebrow>
 
-        {
-          /*
+      {
+        /*
           The line breaks are explicit. Word length changes at runtime, so an
           emergent break recomposes the headline every 2.8s — display type at
           76px shouldn't wrap wherever the browser happens to land. Below 26rem
           the lines fall back to inline so a long first line can still wrap
           rather than overflow. `text-wrap: balance` does not solve this.
         */
-        }
-        <h1
-          class="mt-4 mb-6 font-display text-mega leading-[0.96] font-bold tracking-[-0.042em]"
-        >
-          <span class="inline hero:block">I build things</span>{
-            /*
+      }
+      <h1
+        class="mt-4 mb-6 font-display text-mega leading-[0.96] font-bold tracking-[-0.042em]"
+      >
+        <span class="inline hero:block">I build things</span>{
+          /*
             Explicit: the compiler strips the whitespace between these two
             spans, and below 26rem they are inline, where that newline is the
             only thing separating "things" from "that".
           */
-          }{' '}<span class="inline hero:block"
-            >that <span class="whitespace-nowrap"
-              ><RotatingWords
-                words={['ship', 'last', 'delight', 'scale']}
-              /><span class="text-gradient">.</span></span
+        }{' '}<span class="inline hero:block"
+          >that <span class="whitespace-nowrap"
+            ><RotatingWords words={['ship', 'last', 'delight', 'scale']} /><span
+              class="text-gradient">.</span
             ></span
-          >
-        </h1>
+          ></span
+        >
+      </h1>
 
-        <p class="max-w-[48ch] text-lead text-muted">
-          {yearsShipping()} years of products people use every day - Carta, Capsule,
-          Invitae, TodayTix, Reserve, and more. Right now I'm shipping two mobile
-          apps of my own. I also{' '}
-          <a
-            href="/writing/"
-            class="font-medium text-violet no-underline shadow-[inset_0_-1px_0_color-mix(in_srgb,var(--color-violet)_45%,transparent)]"
-            >write about the things I take apart</a
-          >.
-        </p>
-      </div>
-
-      <div class="mt-12 flex flex-col items-center gap-6 nav:mt-0">
-        <OrbitAvatar />
-        <SocialRow variant="avatar" swap class="justify-center" />
-      </div>
+      <p class="max-w-[48ch] text-lead text-muted">
+        {yearsShipping()} years of products people use every day - Carta, Capsule,
+        Invitae, TodayTix, Reserve, and more. Right now I'm shipping two mobile apps
+        of my own. I also{' '}
+        <a
+          href="/writing/"
+          class="font-medium text-violet no-underline shadow-[inset_0_-1px_0_color-mix(in_srgb,var(--color-violet)_45%,transparent)]"
+          >write about the things I take apart</a
+        >.
+      </p>
     </div>
 
-    {
-      /* Sits below the whole grid, so it centres on the page not the text column. */
-    }
-    <div class="mt-10 flex flex-wrap justify-center gap-2">
-      <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
-        Download resume
-      </Button>
-      <Button href={`mailto:${EMAIL}`} icon="lucide:mail">Email me</Button>
+    <div class="mt-12 flex flex-col items-center gap-6 nav:mt-0">
+      <OrbitAvatar />
+      <SocialRow variant="avatar" swap class="justify-center" />
     </div>
-  </Shell>
-</section>
+  </div>
+
+  {
+    /* Sits below the whole grid, so it centres on the page not the text column. */
+  }
+  <div class="mt-10 flex flex-wrap justify-center gap-2">
+    <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
+      Download resume
+    </Button>
+    <Button href={`mailto:${EMAIL}`} icon="lucide:mail">Email me</Button>
+  </div>
+</Section>

@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import ListRow from '@components/ListRow.astro';
 import { getPublished } from '../../lib/content';
 
@@ -21,24 +20,22 @@ const lists = await getPublished('lists');
   />
 
   <Section>
-    <Shell>
-      {
-        /* Hairline-separated rows rather than cards, matching /projects and
-          /writing. Each row draws its own top rule and the footer draws the
-          page's closing one, so a bottom rule here would land a second hairline
-          barely a section's padding above the footer's. */
-      }
-      {lists.map((list) => <ListRow list={list} />)}
+    {
+      /* Hairline-separated rows rather than cards, matching /projects and
+        /writing. Each row draws its own top rule and the footer draws the
+        page's closing one, so a bottom rule here would land a second hairline
+        barely a section's padding above the footer's. */
+    }
+    {lists.map((list) => <ListRow list={list} />)}
 
-      {
-        /* Every list can be a draft at once, which renders a headline, a lead
-          and then nothing at all. Reachable today with two entries. */
-        lists.length === 0 && (
-          <p class="border-t border-line py-10 text-body text-muted">
-            No lists are published right now. They will be back.
-          </p>
-        )
-      }
-    </Shell>
+    {
+      /* Every list can be a draft at once, which renders a headline, a lead
+        and then nothing at all. Reachable today with two entries. */
+      lists.length === 0 && (
+        <p class="border-t border-line py-10 text-body text-muted">
+          No lists are published right now. They will be back.
+        </p>
+      )
+    }
   </Section>
 </BaseLayout>

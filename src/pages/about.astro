@@ -2,8 +2,7 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import SectionHead from '@components/ui/SectionHead.astro';
 import Panel from '@components/ui/Panel.astro';
 import Button from '@components/ui/Button.astro';
@@ -80,99 +79,91 @@ const STATS = [
   <PageHead eyebrow="About" title="The longer version" />
 
   <Section>
-    <Shell>
-      {
-        /*
-        The bio wraps around its photo. A float is the right tool: the text
-        reflows around it rather than sitting in a rigid column. Below 56rem it
-        unfloats and goes full width, which is what killed the old page.
-      */
-      }
-      <div class="bio max-w-bio text-read leading-[1.72]">
-        <figure class="mb-8 bio:float-right bio:ml-12 bio:w-[360px]">
-          <Image
-            src={aboutPhoto}
-            alt="Jason in front of a painted brick wall"
-            width={720}
-            densities={[1, 2]}
-            class="aspect-4/5 w-full rounded-card object-cover shadow-lift"
-          />
-          <figcaption class="text-center mt-2 font-mono text-meta text-faint">
-            Drinking coffee, what else
-          </figcaption>
-        </figure>
+    {
+      /*
+      The bio wraps around its photo. A float is the right tool: the text
+      reflows around it rather than sitting in a rigid column. Below 56rem it
+      unfloats and goes full width, which is what killed the old page.
+    */
+    }
+    <div class="bio max-w-bio text-read leading-[1.72]">
+      <figure class="mb-8 bio:float-right bio:ml-12 bio:w-[360px]">
+        <Image
+          src={aboutPhoto}
+          alt="Jason in front of a painted brick wall"
+          width={720}
+          densities={[1, 2]}
+          class="aspect-4/5 w-full rounded-card object-cover shadow-lift"
+        />
+        <figcaption class="text-center mt-2 font-mono text-meta text-faint">
+          Drinking coffee, what else
+        </figcaption>
+      </figure>
 
-        {BIO.map((paragraph) => <p class="mb-6 block">{paragraph}</p>)}
-      </div>
+      {BIO.map((paragraph) => <p class="mb-6 block">{paragraph}</p>)}
+    </div>
 
-      <div class="mt-8 flex max-w-bio flex-wrap justify-center gap-2">
-        <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
-          Download resume
-        </Button>
-        <Button href={`mailto:${EMAIL}`} icon="lucide:mail">Email me</Button>
-      </div>
-    </Shell>
+    <div class="mt-8 flex max-w-bio flex-wrap justify-center gap-2">
+      <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
+        Download resume
+      </Button>
+      <Button href={`mailto:${EMAIL}`} icon="lucide:mail">Email me</Button>
+    </div>
   </Section>
 
   <Section id="experience">
-    <Shell>
-      <SectionHead title="Experience" />
-      <Timeline />
-    </Shell>
+    <SectionHead title="Experience" />
+    <Timeline />
   </Section>
 
   <Section>
-    <Shell>
-      <SectionHead title="Stack" />
+    <SectionHead title="Stack" />
+    {
+      /*
+      One line per category rather than one long row: scannable by someone
+      hunting for a specific technology.
+    */
+    }
+    <dl class="grid gap-4">
       {
-        /*
-        One line per category rather than one long row: scannable by someone
-        hunting for a specific technology.
-      */
+        STACK.map((group) => (
+          <div class="grid gap-2 card:grid-cols-[132px_minmax(0,1fr)] card:items-baseline card:gap-4">
+            <dt class="font-mono text-meta tracking-[0.12em] text-faint uppercase">
+              {group.label}
+            </dt>
+            <dd class="m-0 flex flex-wrap gap-1.5">
+              {group.items.map((item) => (
+                <Chip accent={group.accent ? 'violet' : 'none'}>{item}</Chip>
+              ))}
+            </dd>
+          </div>
+        ))
       }
-      <dl class="grid gap-4">
-        {
-          STACK.map((group) => (
-            <div class="grid gap-2 card:grid-cols-[132px_minmax(0,1fr)] card:items-baseline card:gap-4">
-              <dt class="font-mono text-meta tracking-[0.12em] text-faint uppercase">
-                {group.label}
-              </dt>
-              <dd class="m-0 flex flex-wrap gap-1.5">
-                {group.items.map((item) => (
-                  <Chip accent={group.accent ? 'violet' : 'none'}>{item}</Chip>
-                ))}
-              </dd>
-            </div>
-          ))
-        }
-      </dl>
-    </Shell>
+    </dl>
   </Section>
 
   <Section>
-    <Shell>
-      <SectionHead title="Beyond the CV" />
-      <div
-        class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(142px,1fr))]"
-      >
-        {
-          STATS.map((stat) => (
-            <Panel class="p-6">
-              <Ph
-                as="b"
-                when={stat.ph}
-                class="text-gradient block font-display text-[2rem] leading-none font-bold tracking-[-0.04em]"
-              >
-                {stat.value}
-              </Ph>
-              <span class="mt-2 block font-mono text-meta tracking-[0.1em] text-faint uppercase">
-                {stat.label}
-              </span>
-            </Panel>
-          ))
-        }
-      </div>
-    </Shell>
+    <SectionHead title="Beyond the CV" />
+    <div
+      class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(142px,1fr))]"
+    >
+      {
+        STATS.map((stat) => (
+          <Panel class="p-6">
+            <Ph
+              as="b"
+              when={stat.ph}
+              class="text-gradient block font-display text-[2rem] leading-none font-bold tracking-[-0.04em]"
+            >
+              {stat.value}
+            </Ph>
+            <span class="mt-2 block font-mono text-meta tracking-[0.1em] text-faint uppercase">
+              {stat.label}
+            </span>
+          </Panel>
+        ))
+      }
+    </div>
   </Section>
 </BaseLayout>
 

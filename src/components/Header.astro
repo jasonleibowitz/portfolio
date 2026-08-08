@@ -1,7 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import Monogram from './Monogram.astro';
-import Shell from './ui/Shell.astro';
+import Container from './layout/Container.astro';
 import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
 
 interface Props {
@@ -17,7 +17,7 @@ const active = NAV_FOR_PAGE[page];
 <header
   class="sticky top-0 z-30 py-3 backdrop-blur-md [background:color-mix(in_srgb,var(--color-canvas)_78%,transparent)]"
 >
-  <Shell class="flex min-h-12 items-center gap-4">
+  <Container class="flex min-h-12 items-center gap-4">
     <a
       href="/"
       class="inline-flex min-h-11 items-center gap-2.5 font-display text-body font-bold tracking-[-0.02em] whitespace-nowrap text-ink no-underline"
@@ -59,7 +59,7 @@ const active = NAV_FOR_PAGE[page];
         <Icon name="lucide:moon" class="ticon moon" />
       </span>
     </button>
-  </Shell>
+  </Container>
 
   {
     progress && (

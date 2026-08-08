@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
-import Shell from '@components/ui/Shell.astro';
-import Section from '@components/ui/Section.astro';
+import Section from '@components/layout/Section.astro';
 import Eyebrow from '@components/ui/Eyebrow.astro';
 import PostRow from '@components/PostRow.astro';
 import { getPublished, getPublishedTags } from '../../../lib/content';
@@ -36,24 +35,22 @@ const { posts } = Astro.props;
 >
   <PageHead eyebrow="Archive" title={`Tagged “${tag}”`} />
 
-  <Section>
-    <Shell class="max-w-measure">
-      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
-        <Eyebrow>
-          {posts.length}
-          {posts.length === 1 ? 'post' : 'posts'}
-        </Eyebrow>
-        <a
-          href="/writing/"
-          class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"
-        >
-          ← All writing
-        </a>
-      </div>
+  <Section class="max-w-measure">
+    <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+      <Eyebrow>
+        {posts.length}
+        {posts.length === 1 ? 'post' : 'posts'}
+      </Eyebrow>
+      <a
+        href="/writing/"
+        class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"
+      >
+        ← All writing
+      </a>
+    </div>
 
-      <ul>
-        {posts.map((post) => <PostRow post={post} />)}
-      </ul>
-    </Shell>
+    <ul>
+      {posts.map((post) => <PostRow post={post} />)}
+    </ul>
   </Section>
 </BaseLayout>

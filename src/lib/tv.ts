@@ -30,7 +30,7 @@ export const tv = createTV({
         ],
         shadow: ['lift'],
         radius: ['card'],
-        container: ['shell', 'measure', 'bio'],
+        container: ['page', 'measure', 'bio'],
       },
     },
   },
