@@ -1,4 +1,6 @@
 ---
+import { tv } from '../../lib/tv';
+
 /**
  * Centers content and caps how wide it gets. Width only, no vertical space.
  *
@@ -11,11 +13,13 @@ interface Props {
 }
 
 const { as: Tag = 'div', class: className, ...rest } = Astro.props;
+
+/* `tv` rather than `class:list`, so a caller passing `max-w-measure` replaces
+   the default width instead of both landing on the element and the winner
+   being decided by which rule Tailwind happens to emit last. */
+const container = tv({ base: 'mx-auto w-full max-w-page px-(--gutter)' });
 ---
 
-<Tag
-  class:list={['mx-auto w-full max-w-page px-(--gutter)', className]}
-  {...rest}
->
+<Tag class={container({ class: className })} {...rest}>
   <slot />
 </Tag>

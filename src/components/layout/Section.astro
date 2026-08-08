@@ -1,5 +1,6 @@
 ---
 import Container from './Container.astro';
+import { tv } from '../../lib/tv';
 
 /**
  * One band of a page: centered, width-capped, with space below it. Wrap every
@@ -22,12 +23,14 @@ const {
   class: className,
   ...rest
 } = Astro.props;
+
+/* Merged rather than concatenated, so a caller passing `pb-10` replaces this
+   padding instead of both landing on the element. */
+const section = tv({
+  variants: { flush: { true: 'pb-(--section)', false: 'py-(--section)' } },
+});
 ---
 
-<Container
-  as={Tag}
-  class:list={[flush ? 'pb-(--section)' : 'py-(--section)', className]}
-  {...rest}
->
+<Container as={Tag} class={section({ flush, class: className })} {...rest}>
   <slot />
 </Container>
