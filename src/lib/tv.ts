@@ -31,6 +31,7 @@ export const tv = createTV({
         ],
         tracking: ['headline', 'title', 'subtitle', 'data', 'label'],
         leading: ['numeral', 'reading'],
+        ease: ['orbit'],
         shadow: ['lift'],
         radius: ['card'],
         container: ['page', 'measure', 'bio'],

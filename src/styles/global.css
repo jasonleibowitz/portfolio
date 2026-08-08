@@ -98,6 +98,10 @@
   --leading-numeral: 1.15;
   --leading-reading: 1.72;
 
+  /* The system's one easing curve. Written out ten times across the tab bar,
+     the rotating headline and the avatar swap before it had a name. */
+  --ease-orbit: cubic-bezier(0.2, 0.8, 0.2, 1);
+
   --container-page: 70rem;
   --container-measure: 46rem;
   --container-bio: 52rem;
@@ -292,6 +296,17 @@
   text-decoration: underline dotted var(--color-violet);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
+}
+
+/* One radius, three shapes read from it, interpolating during the tab bar's
+   collapse. Registered because an unregistered custom property cannot be
+   transitioned, and registration is an at-rule with no utility form. Lives
+   here beside Tailwind's own registrations rather than in the component,
+   which is then free of a style block entirely. */
+@property --tab-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 18px;
 }
 
 /* The initials fallback for a list entry with no artwork. */

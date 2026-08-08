@@ -130,13 +130,14 @@ Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no Post
 `src/styles/global.css` is the whole design system:
 
 - an `@theme` block defining every design token, so they generate real utilities
-  (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-shell` →
-  `max-w-shell`);
+  (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-page` →
+  `max-w-page`);
 - `:root[data-theme='dark']` overriding those same custom properties, so utilities
   re-derive in dark mode instead of needing a `dark:` twin for every color;
 - `@custom-variant dark` pointed at the same attribute, for the cases that do need one;
-- `@utility` blocks for the handful of things with no utility form — `text-gradient`,
-  `placeholder-copy`, and `prose` (Markdown output has no classes to hang utilities on).
+- `@utility` blocks for the handful of things with no utility form: `text-gradient`,
+  `spectrum-fill`, `aurora-field`, `placeholder-copy`, `initials`, and `markdown`
+  (rendered Markdown has no classes to hang utilities on).
 
 **Do not add keys to the `--spacing` namespace.** Defining `--spacing-foo` in `@theme`
 drops Tailwind's own `--spacing` base, and every numeric `p-*`/`gap-*`/`size-*` utility
@@ -150,9 +151,33 @@ steps are exactly `p-1` … `p-16`.
 Breakpoints are named after the layout decision they make (`nav:`, `card:`, `rail:`,
 `spec:`, `bio:`, `hero:`) rather than `sm:`/`md:`/`lg:`.
 
-Component-specific CSS that genuinely isn't a utility — the aurora's stacked radial
-gradients, the dock's per-position border radii, the timeline spine — lives in a scoped
-`<style>` block in the component that owns it, not in a global file.
+### Tailwind is the styling system
+
+Utilities are how things get styled. Between arbitrary values (`[corner-shape:squircle]`),
+arbitrary variants (`data-[active]:opacity-100`), pseudo-element variants (`after:content-['']`),
+and child/descendant variants (`*:`, `**:`), Tailwind reaches essentially everything —
+including pseudo-elements and JS-driven state.
+
+**A `<style>` block is for CSS that isn't a style at all.** In practice that means an
+`@property` registration or a `@keyframes` definition, and both of those belong in
+`global.css` rather than in a component. If you are reaching for `<style>` to _style_
+something, the answer is a utility, an `@utility`, or a component. Every component that
+had a style block has since been converted; there are none left, and a new one needs a
+reason that fits the sentence above.
+
+**Express runtime state as a `data-*` attribute, never a toggled class.** `data-*`
+variants work out of the box, and a class attribute that means both "what this looks
+like" and "what state it is in" is what forces styling into CSS to reach it. Prefer a
+built-in variant (`aria-pressed:`, `data-open:`) over brackets; check before hand-writing
+one.
+
+**Name anything that repeats.** A literal appearing twice becomes an `@theme` token; a
+bundle of declarations appearing twice becomes an `@utility` or a `tailwind-variants`
+component. One use may stay an arbitrary value. This threshold is what the type scale and
+`--ease-orbit` came from: the easing curve was written out ten times before it had a name.
+
+A token added to `@theme` needs its name added to `src/lib/tv.ts` too, or the class merger
+reads it as a color and cancels the one beside it.
 
 Gradient utilities use the v4 names (`bg-linear-100 from-violet to-cyan`, not
 `bg-gradient-to-r`).
@@ -195,8 +220,9 @@ Two things that will bite:
 ## Placeholder content
 
 App pitches, case-study bodies, two `Started` dates and two homepage facts are placeholder,
-marked with a dotted underline. **Do not invent replacements** — Jason fills these in.
-`PhNote` blocks name what is outstanding.
+marked with a dotted underline by `Ph`. **Do not invent replacements** — Jason fills these
+in. The project page carries a note saying its copy is placeholder; `PhNote` was deleted,
+so that note is now written inline.
 
 List entries no longer carry a stub note. `note` is optional, and an entry without one
 renders as name, tags and artwork — so the way to add a note is to write a real one, not

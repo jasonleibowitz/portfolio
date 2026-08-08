@@ -25,12 +25,12 @@ const { words } = Astro.props;
      floats above the rest of the headline. */
 }
 <span
-  class="rotating-words relative inline-block align-baseline whitespace-nowrap transition-[width] duration-[420ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] before:inline-block before:w-0 before:content-['\200b']"
+  class="rotating-words relative inline-block align-baseline whitespace-nowrap transition-[width] duration-[420ms] ease-orbit before:inline-block before:w-0 before:content-['\200b']"
   id="rotating-words"
   >{
     words.map((word, i) => (
       <span
-        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,transform,filter] duration-[420ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
+        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,transform,filter] duration-[420ms] ease-orbit translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
         data-state={i === 0 ? 'in' : undefined}
         aria-hidden={i === 0 ? undefined : 'true'}
       >
