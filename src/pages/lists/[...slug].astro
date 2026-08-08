@@ -4,6 +4,9 @@ import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
+import Typography from '@components/ui/Typography.astro';
+import Heading2 from '@components/markdown/Heading2.astro';
+import Heading3 from '@components/markdown/Heading3.astro';
 import SidebarLayout from '@components/layout/SidebarLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
@@ -51,14 +54,16 @@ const showRail = tags.length > 0;
  */
 let rank = 0;
 
-/** The body is optional, and an empty `.prose` div still renders its margin. */
+/** The body is optional, and an empty `.markdown` div still renders its margin. */
 const hasBody = Boolean(list.body?.trim());
 ---
 
 <BaseLayout pageTitle={data.title} page="list" description={data.description}>
   <PageHead title={data.title} lead={data.description}>
-    <div
-      class="mt-4 flex flex-wrap gap-x-4 gap-y-2 font-mono text-meta tracking-[0.08em] text-faint uppercase"
+    <Typography
+      variant="caption"
+      as="div"
+      class="mt-4 flex flex-wrap gap-x-4 gap-y-2"
     >
       <span>Updated {formatDay(data.updated)}</span>
       {
@@ -79,7 +84,7 @@ const hasBody = Boolean(list.body?.trim());
           </span>
         )
       }
-    </div>
+    </Typography>
   </PageHead>
 
   <Section>
@@ -118,21 +123,23 @@ const hasBody = Boolean(list.body?.trim());
                   With no blurb this renders exactly as a bare heading did.
                 */}
                 <header class="mb-4 border-b border-line pb-2">
-                  <h2 class="flex items-baseline gap-3 font-display text-h3 font-bold tracking-[-0.025em]">
+                  <Typography
+                    variant="heading3"
+                    as="h2"
+                    class="flex items-baseline gap-3"
+                  >
                     {group.name}
-                    <span
-                      class="font-mono text-meta font-normal text-faint"
-                      data-group-count
-                    >
+                    <Typography variant="data" data-group-count>
                       {group.items.length}
-                    </span>
-                  </h2>
+                    </Typography>
+                  </Typography>
 
                   {group.description && (
                     <Ph
                       as="p"
                       when={group.placeholder.includes('description')}
-                      class="mt-1.5 max-w-[68ch] text-ui text-muted"
+                      variant="compact"
+                      class="mt-1.5 max-w-[68ch] text-muted"
                     >
                       {group.description}
                     </Ph>
@@ -158,9 +165,13 @@ const hasBody = Boolean(list.body?.trim());
 
         {
           hasBody && (
-            <div class="prose mt-10 max-w-measure border-t border-line pt-8 text-ui">
-              <Content />
-            </div>
+            <Typography
+              variant="body"
+              as="div"
+              class="markdown mt-10 max-w-measure border-t border-line pt-8"
+            >
+              <Content components={{ h2: Heading2, h3: Heading3 }} />
+            </Typography>
           )
         }
       </div>

@@ -12,6 +12,7 @@ import Timeline from '@components/Timeline.astro';
 import { EMAIL, RESUME_HREF } from '../lib/site';
 import { yearsShipping } from '../lib/career';
 import aboutPhoto from '@images/json-drinking-coffee.jpg';
+import Typography from '@components/ui/Typography.astro';
 
 const BIO = [
   "I grew up in Virginia Beach and moved to New York to attend NYU - I've called the city home ever since. Over the past decade, I've had the opportunity to build products across consumer, healthcare, and fintech, working on everything from Broadway ticket lotteries to real-time pharmacy delivery tracking and financial software used by thousands of businesses.",
@@ -86,7 +87,7 @@ const STATS = [
       unfloats and goes full width, which is what killed the old page.
     */
     }
-    <div class="bio max-w-bio text-read leading-[1.72]">
+    <Typography variant="longform" class="bio max-w-bio leading-[1.72]">
       <figure class="mb-8 bio:float-right bio:ml-12 bio:w-[360px]">
         <Image
           src={aboutPhoto}
@@ -95,13 +96,13 @@ const STATS = [
           densities={[1, 2]}
           class="aspect-4/5 w-full rounded-card object-cover shadow-lift"
         />
-        <figcaption class="text-center mt-2 font-mono text-meta text-faint">
+        <Typography variant="data" as="figcaption" class="text-center mt-2">
           Drinking coffee, what else
-        </figcaption>
+        </Typography>
       </figure>
 
       {BIO.map((paragraph) => <p class="mb-6 block">{paragraph}</p>)}
-    </div>
+    </Typography>
 
     <div class="mt-8 flex max-w-bio flex-wrap justify-center gap-2">
       <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
@@ -128,9 +129,9 @@ const STATS = [
       {
         STACK.map((group) => (
           <div class="grid gap-2 card:grid-cols-[132px_minmax(0,1fr)] card:items-baseline card:gap-4">
-            <dt class="font-mono text-meta tracking-[0.12em] text-faint uppercase">
+            <Typography variant="caption" as="dt">
               {group.label}
-            </dt>
+            </Typography>
             <dd class="m-0 flex flex-wrap gap-1.5">
               {group.items.map((item) => (
                 <Chip accent={group.accent ? 'violet' : 'none'}>{item}</Chip>
@@ -157,9 +158,9 @@ const STATS = [
             >
               {stat.value}
             </Ph>
-            <span class="mt-2 block font-mono text-meta tracking-[0.1em] text-faint uppercase">
+            <Typography variant="caption" as="span" class="mt-2 block">
               {stat.label}
-            </span>
+            </Typography>
           </Panel>
         ))
       }

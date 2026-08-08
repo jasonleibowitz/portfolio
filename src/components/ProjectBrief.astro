@@ -5,6 +5,7 @@ import { tv } from '../lib/tv';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
 import Ph from './ui/Ph.astro';
+import Typography from './ui/Typography.astro';
 
 /**
  * One featured project on the homepage, as a ruled row rather than a card.
@@ -102,18 +103,18 @@ const iconIsProvisional = data.placeholder.includes('icon');
     class="flex min-w-0 flex-col gap-4 feature:flex-row feature:items-start feature:justify-between feature:gap-10"
   >
     <div class="flex min-w-0 flex-1 flex-col gap-3">
-      {/* h3 is the level under the section's h2; h2 is only the size. */}
-      <h3 class="font-display text-h2 font-bold tracking-[-0.035em]">
+      <Typography variant="heading3">
         {data.title}<span
           class="inline-block transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-1 group-hover:text-violet"
           aria-hidden="true">&nbsp;→</span
         >
-      </h3>
+      </Typography>
 
       <Ph
         as="p"
         when={data.placeholder.includes('description')}
-        class="max-w-[46ch] text-body text-muted"
+        variant="body"
+        class="max-w-[46ch] text-muted"
       >
         {data.description}
       </Ph>
@@ -129,12 +130,14 @@ const iconIsProvisional = data.placeholder.includes('icon');
         faint is budgeted against the bare canvas and drops to ~3.8:1 over the
         aurora. */
     }
-    <ul
-      class="order-first flex shrink-0 flex-wrap items-center gap-x-3 font-mono text-meta tracking-[0.16em] text-muted uppercase feature:order-none feature:flex-col feature:items-end feature:gap-y-1 feature:text-right"
+    <Typography
+      variant="caption"
+      as="ul"
+      class="order-first flex shrink-0 flex-wrap items-center gap-x-3 text-muted feature:order-none feature:flex-col feature:items-end feature:gap-y-1 feature:text-right"
     >
       <li><Status status={data.status}>{data.status_text}</Status></li>
       {ledger(data).map((entry) => <li>{entry}</li>)}
-    </ul>
+    </Typography>
   </div>
 </a>
 

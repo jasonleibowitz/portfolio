@@ -1,6 +1,6 @@
 ---
 import Section from '../layout/Section.astro';
-import Eyebrow from './Eyebrow.astro';
+import Typography from './Typography.astro';
 
 /** The masthead every page but the homepage opens with. */
 interface Props {
@@ -13,11 +13,17 @@ const { eyebrow, title, lead } = Astro.props;
 ---
 
 <Section flush={false}>
-  {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+  {eyebrow && <Typography variant="caption">{eyebrow}</Typography>}
   <slot name="eyebrow" />
-  <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
+  <Typography variant="heading1" class="my-3">
     {title}
-  </h1>
-  {lead && <p class="max-w-[56ch] text-lead text-muted">{lead}</p>}
+  </Typography>
+  {
+    lead && (
+      <Typography variant="intro" class="max-w-[56ch] text-muted">
+        {lead}
+      </Typography>
+    )
+  }
   <slot />
 </Section>

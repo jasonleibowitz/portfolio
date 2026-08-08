@@ -8,9 +8,10 @@ import { createTV } from 'tailwind-variants';
  * Button rendered ink-on-gradient instead. Naming the tokens here is what
  * stops a size from eating a color.
  *
- * This mirrors the `--text-*`, `--shadow-*`, `--radius-*` and `--container-*`
- * namespaces in `src/styles/global.css`. A token added there needs its name
- * added here too; nothing renders a page to catch the omission.
+ * This mirrors the `--text-*`, `--tracking-*`, `--leading-*`, `--shadow-*`,
+ * `--radius-*` and `--container-*` namespaces in `src/styles/global.css`. A
+ * token added there needs its name added here too; nothing renders a page to
+ * catch the omission.
  */
 export const tv = createTV({
   twMergeConfig: {
@@ -28,6 +29,8 @@ export const tv = createTV({
           'note',
           'meta',
         ],
+        tracking: ['headline', 'title', 'subtitle', 'data', 'label'],
+        leading: ['numeral', 'reading'],
         shadow: ['lift'],
         radius: ['card'],
         container: ['page', 'measure', 'bio'],

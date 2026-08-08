@@ -1,4 +1,5 @@
 ---
+import Typography from './ui/Typography.astro';
 /**
  * Sticky filter rail. On mobile it becomes a horizontally scrolling chip row
  * above the list, which is where a filter belongs when the list is below it.
@@ -18,11 +19,9 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
 ---
 
 <aside class="rail:order-last rail:sticky rail:top-[88px]">
-  <h2
-    class="mb-3 font-mono text-meta font-normal tracking-[0.16em] text-faint uppercase"
-  >
+  <Typography variant="caption" as="h2" class="mb-3">
     {heading}
-  </h2>
+  </Typography>
 
   {
     /*

@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import { formatDay } from '../lib/dates';
 import { allItems, splitYear } from '../lib/lists';
+import Typography from './ui/Typography.astro';
 
 /**
  * One list on `/lists`, as a hairline-ruled editorial row.
@@ -120,18 +121,20 @@ const shape = data.ranked
     class="flex flex-col gap-4 card:flex-row card:items-start card:justify-between card:gap-10"
   >
     <div class="flex min-w-0 flex-1 flex-col gap-3">
-      <h2 class="font-display text-h2 font-bold tracking-[-0.035em]">
+      <Typography variant="heading2">
         {data.title}
         {/* The row is the link, so the arrow is a visual affordance only. */}
         <span
           class="inline-block transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-1 group-hover:text-violet"
           aria-hidden="true">&nbsp;→</span
         >
-      </h2>
+      </Typography>
 
       {
         data.description && (
-          <p class="max-w-[46ch] text-body text-muted">{data.description}</p>
+          <Typography variant="body" class="max-w-[46ch] text-muted">
+            {data.description}
+          </Typography>
         )
       }
 

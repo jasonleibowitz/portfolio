@@ -4,6 +4,7 @@ import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
 import ListRow from '@components/ListRow.astro';
 import { getPublished } from '../../lib/content';
+import Typography from '@components/ui/Typography.astro';
 
 const lists = await getPublished('lists');
 ---
@@ -32,9 +33,12 @@ const lists = await getPublished('lists');
       /* Every list can be a draft at once, which renders a headline, a lead
         and then nothing at all. Reachable today with two entries. */
       lists.length === 0 && (
-        <p class="border-t border-line py-10 text-body text-muted">
+        <Typography
+          variant="body"
+          class="border-t border-line py-10 text-muted"
+        >
           No lists are published right now. They will be back.
-        </p>
+        </Typography>
       )
     }
   </Section>

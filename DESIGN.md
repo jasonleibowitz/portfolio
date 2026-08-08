@@ -21,36 +21,58 @@ typography:
     fontWeight: 700
     lineHeight: 0.96
     letterSpacing: '-0.042em'
-  headline:
+  heading1:
     fontFamily: "'Space Grotesk Variable', 'Space Grotesk', 'Avenir Next', system-ui, sans-serif"
     fontSize: 'clamp(2rem, 1.45rem + 2.4vw, 3.25rem)'
     fontWeight: 700
-    lineHeight: 1.05
-    letterSpacing: '-0.035em'
-  title:
+    letterSpacing: '-0.04em'
+  heading2:
     fontFamily: "'Space Grotesk Variable', 'Space Grotesk', 'Avenir Next', system-ui, sans-serif"
     fontSize: 'clamp(1.375rem, 1.15rem + 1vw, 2rem)'
     fontWeight: 700
-    lineHeight: 1.2
     letterSpacing: '-0.03em'
+  heading3:
+    fontFamily: "'Space Grotesk Variable', 'Space Grotesk', 'Avenir Next', system-ui, sans-serif"
+    fontSize: 'clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem)'
+    fontWeight: 700
+    letterSpacing: '-0.025em'
+  intro:
+    fontFamily: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: 'clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem)'
+    fontWeight: 400
+    letterSpacing: 'normal'
+  longform:
+    fontFamily: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: 'clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem)'
+    fontWeight: 400
+    lineHeight: 1.72
+    letterSpacing: 'normal'
   body:
     fontFamily: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
     fontSize: '1.0625rem'
     fontWeight: 400
     lineHeight: 1.62
     letterSpacing: 'normal'
-  reading:
+  compact:
     fontFamily: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: 'clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem)'
+    fontSize: '0.9375rem'
     fontWeight: 400
-    lineHeight: 1.72
     letterSpacing: 'normal'
-  label:
+  footnote:
+    fontFamily: "'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: '0.8125rem'
+    fontWeight: 400
+    letterSpacing: 'normal'
+  caption:
     fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
     fontSize: '0.75rem'
     fontWeight: 400
-    lineHeight: 1.5
     letterSpacing: '0.16em'
+  data:
+    fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+    fontSize: '0.75rem'
+    fontWeight: 400
+    letterSpacing: '0.06em'
 rounded:
   sm: '6px'
   md: '14px'
@@ -73,7 +95,7 @@ components:
     rounded: '{rounded.full}'
     padding: '0 22px'
     height: '50px'
-    typography: '{typography.label}'
+    typography: '{typography.caption}'
   button-primary-hover:
     backgroundColor: '{colors.ultraviolet}'
     textColor: '#ffffff'
@@ -211,16 +233,21 @@ keeps a 76px headline from feeling loose.
 
 ### Hierarchy
 
-- **Display** (700, `clamp(2.625rem, 1.4rem + 5.4vw, 4.75rem)`, 0.96): The homepage headline only. Line breaks are explicit, never emergent.
-- **Headline** (700, `clamp(2rem, 1.45rem + 2.4vw, 3.25rem)`): Page titles.
-- **Title** (700, `clamp(1.375rem, 1.15rem + 1vw, 2rem)`): Section headings and rendered `##` in prose.
-- **Subtitle** (700, `clamp(1.125rem, 1.03rem + 0.42vw, 1.375rem)`): Card titles, employer names, rendered `###`.
-- **Lead** (400, `clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem)`): The paragraph under a headline. Capped near 48ch.
-- **Reading** (400, `clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem)`, 1.72): Long-form prose only, set on a 46rem measure (~78 characters).
-- **Body** (400, `1.0625rem`, 1.62): Default UI text.
-- **UI** (400, `0.9375rem`): Dense interface text — rows, role lines, list items.
-- **Note** (400, `0.8125rem`): Annotation prose — a list entry's note, and anything else that explains the thing it sits under. It exists because a remark set at UI size sits 2px under its own title and reads as a second title; Label is 12px and belongs to data, not sentences.
-- **Label** (400, `0.75rem`, `0.16em`, uppercase): Eyebrows, dates, metadata, stat captions, status text. Always monospace.
+Every role below is a variant of the `Typography` component, and the component
+is the only way text gets styled. The names here and the variant names are the
+same string on purpose: if they ever disagree, that is a bug you can see.
+
+- **Display** (700, `clamp(2.625rem, 1.4rem + 5.4vw, 4.75rem)`, 0.96): The homepage headline only. Line breaks are explicit, never emergent. Deliberately **not** a `Typography` variant, because a shared component exists to make a style easy to reuse and this one must not be. It lives inline in `Hero.astro`.
+- **heading1** (700, `clamp(2rem, 1.45rem + 2.4vw, 3.25rem)`): Page titles. Renders an `h1`.
+- **heading2** (700, `clamp(1.375rem, 1.15rem + 1vw, 2rem)`): Section headings, card titles, and `##` in markdown. Renders an `h2`.
+- **heading3** (700, `clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem)`): Employer names, homepage project titles, and `###` in markdown. Renders an `h3`. Sized to clear Longform at every width: both used to run 18-22px, so a `###` in a post was the same size as the paragraph under it.
+- **intro** (400, `clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem)`): The paragraph under a page title. Capped near 48ch and always muted.
+- **longform** (400, `clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem)`, 1.72): Text read for minutes, set on a 46rem measure (~78 characters). Blog posts, project write-ups, the About bio.
+- **body** (400, `1.0625rem`, 1.62): Default text. Card descriptions, and the trailing note on a list.
+- **compact** (400, `0.9375rem`): Dense interface text: rows, role lines, list items, nav and footer links.
+- **footnote** (400, `0.8125rem`): Annotation prose. A list entry's note, and anything else that explains the thing it sits under. It exists because a remark set at Compact size sits 2px under its own title and reads as a second title, while Caption is 12px and belongs to data rather than sentences.
+- **caption** (400, `0.75rem`, `0.16em`, uppercase, mono): Section captions, stat labels, status text. The line that names the thing beneath it.
+- **data** (400, `0.75rem`, `0.06em`, mono): Dates, tenures, counts, ranks. The same size and family as Caption but not uppercased, because these are values being read rather than labels being scanned. Splitting the two is deliberate: uppercasing "Jan 2019" is a real change, not a styling detail.
 
 ### Named Rules
 
@@ -238,7 +265,7 @@ homepage headline contains a word that changes at runtime, so an emergent break
 would recompose the type every few seconds; the breaks are hard-coded and
 collapse to inline only below 26rem. `text-wrap: balance` does not solve this.
 
-**The Fluid Scale Rule.** Every size above UI text is a `clamp()` fluid from
+**The Fluid Scale Rule.** Every size above Compact is a `clamp()` fluid from
 320px up. There is no viewport where type is sized for a different screen than
 the one it is on, and there are no size breakpoints.
 

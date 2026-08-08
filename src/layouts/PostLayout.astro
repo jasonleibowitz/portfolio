@@ -4,7 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { formatDay, isoDay } from '../lib/dates';
 import BaseLayout from './BaseLayout.astro';
 import Section from '@components/layout/Section.astro';
-import Eyebrow from '@components/ui/Eyebrow.astro';
+import Typography from '@components/ui/Typography.astro';
 import Toc from '@components/Toc.astro';
 import { readingMinutes, wordCount } from '../lib/reading';
 
@@ -25,34 +25,36 @@ const words = wordCount(post.body);
   <Section as="article" flush={false}>
     {/* One centered column at a 46rem measure — 40rem read too narrow. */}
     <header class="mx-auto max-w-measure">
-      <Eyebrow>Writing</Eyebrow>
-      <h1
-        class="mt-3 mb-4 font-display text-h1 leading-[1.04] font-bold tracking-[-0.04em]"
-      >
+      <Typography variant="caption">Writing</Typography>
+      <Typography variant="heading1" class="mt-3 mb-4 leading-[1.04]">
         {title}
-      </h1>
+      </Typography>
 
       {/* Promoted from small print at the bottom to chips under the title. */}
       <div class="mb-4 flex flex-wrap gap-2">
         {
           tags.map((tag) => (
-            <a
+            <Typography
+              variant="data"
+              as="a"
+              class="inline-flex min-h-11 items-center rounded-full border border-line bg-panel px-3.5 text-muted no-underline before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
               href={`/writing/tags/${tag}/`}
-              class="inline-flex min-h-11 items-center rounded-full border border-line bg-panel px-3.5 font-mono text-meta tracking-[0.06em] text-muted no-underline before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
             >
               {tag}
-            </a>
+            </Typography>
           ))
         }
       </div>
 
-      <div
-        class="flex flex-wrap gap-4 border-b border-line pb-6 font-mono text-meta tracking-[0.08em] text-faint uppercase"
+      <Typography
+        variant="caption"
+        as="div"
+        class="flex flex-wrap gap-4 border-b border-line pb-6"
       >
         <time datetime={isoDay(pubDate)}>{formatDay(pubDate)}</time>
         <span>{minutes} min read</span>
         <span>{words.toLocaleString('en-US')} words</span>
-      </div>
+      </Typography>
     </header>
 
     <div class="mx-auto max-w-measure">
@@ -71,10 +73,12 @@ const words = wordCount(post.body);
         )
       }
 
-      <div class="prose"><slot /></div>
+      <Typography variant="longform" class="markdown"><slot /></Typography>
 
-      <div
-        class="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-ui text-muted"
+      <Typography
+        variant="compact"
+        as="div"
+        class="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-muted"
       >
         <span>Filed under {tags.join(' · ')}</span>
         {
@@ -90,7 +94,7 @@ const words = wordCount(post.body);
             </span>
           )
         }
-      </div>
+      </Typography>
     </div>
   </Section>
 </BaseLayout>

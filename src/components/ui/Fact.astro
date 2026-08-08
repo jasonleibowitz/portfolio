@@ -1,5 +1,6 @@
 ---
 import Ph from './Ph.astro';
+import Typography from './Typography.astro';
 
 /**
  * One label/value row in a facts panel.
@@ -30,13 +31,14 @@ const { label, ph = false, narrow = false } = Astro.props;
       : 'grid-cols-[minmax(0,1fr)] gap-0.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:items-baseline sm:gap-4',
   ]}
 >
-  <dt class="font-mono text-meta tracking-[0.12em] text-faint uppercase">
+  <Typography variant="caption" as="dt">
     {label}
-  </dt>
+  </Typography>
   <Ph
     as="dd"
     when={ph}
-    class="m-0 text-ui [&_a]:font-medium [&_a]:text-violet [&_a]:no-underline"
+    variant="compact"
+    class="m-0 [&_a]:font-medium [&_a]:text-violet [&_a]:no-underline"
   >
     <slot />
   </Ph>

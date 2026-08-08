@@ -1,0 +1,17 @@
+---
+import Typography from '../ui/Typography.astro';
+
+/**
+ * A `##` in rendered markdown. Identical to a section heading anywhere else,
+ * which is the point: mapping it here is what stops the two drifting apart.
+ * The margins and scroll offset are the markdown-only part.
+ */
+---
+
+<Typography
+  variant="heading2"
+  class="mt-12 mb-4 scroll-mt-[88px]"
+  {...Astro.props}
+>
+  <slot />
+</Typography>

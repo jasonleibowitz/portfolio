@@ -1,10 +1,19 @@
 ---
+import Typography from './Typography.astro';
+import type { TypographyVariant } from './Typography.astro';
+
 /**
  * Marks copy that is still waiting on Jason. The gap stays visible on the page
  * rather than being described in a document, and nothing gets invented to fill
  * it in the meantime.
+ *
+ * TODO: delete this once no `placeholder` frontmatter remains.
+ *
+ * Pass `variant` when the copy sets its own type; omit it where the copy
+ * inherits from whatever it sits inside.
  */
 interface Props {
+  variant?: TypographyVariant;
   as?: 'span' | 'p' | 'dd' | 'li' | 'figcaption' | 'b' | 'time';
   /** Pass through a frontmatter flag; false renders the copy unmarked. */
   when?: boolean;
@@ -12,13 +21,26 @@ interface Props {
 }
 
 const {
+  variant,
   as: Tag = 'span',
   when = true,
   class: className,
   ...rest
-} = Astro.props;
+} = Astro.props as Props;
+
+const marked = [when && 'placeholder-copy', className]
+  .filter(Boolean)
+  .join(' ');
 ---
 
-<Tag class:list={[when && 'placeholder-copy', className]} {...rest}
-  ><slot /></Tag
->
+{
+  variant ? (
+    <Typography variant={variant} as={Tag} class={marked} {...rest}>
+      <slot />
+    </Typography>
+  ) : (
+    <Tag class={marked} {...rest}>
+      <slot />
+    </Tag>
+  )
+}

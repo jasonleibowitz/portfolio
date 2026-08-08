@@ -2,6 +2,7 @@
 import Container from './layout/Container.astro';
 import SocialRow from './SocialRow.astro';
 import Button from './ui/Button.astro';
+import Typography from './ui/Typography.astro';
 import { EMAIL, NAV, RESUME_HREF } from '../lib/site';
 
 const year = new Date().getFullYear();
@@ -10,9 +11,10 @@ const year = new Date().getFullYear();
 <footer class="mt-auto border-t border-line py-(--section)">
   <Container class="grid gap-6">
     <div class="grid gap-4">
-      <p class="max-w-[16ch] font-display text-h2 font-bold tracking-[-0.03em]">
+      {/* The footer's heading, so the landmark is reachable by heading nav. */}
+      <Typography variant="heading2" class="max-w-[16ch]">
         Let's build <span class="text-gradient">something</span>.
-      </p>
+      </Typography>
 
       <div class="flex flex-wrap gap-2">
         <Button
@@ -40,12 +42,14 @@ const year = new Date().getFullYear();
       <div class="flex flex-wrap justify-center gap-x-6 sm:justify-start">
         {
           NAV.map((item) => (
-            <a
+            <Typography
+              variant="compact"
+              as="a"
+              class="inline-flex min-h-11 items-center text-muted no-underline hover:text-violet"
               href={item.href}
-              class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"
             >
               {item.label}
-            </a>
+            </Typography>
           ))
         }
       </div>
@@ -53,11 +57,13 @@ const year = new Date().getFullYear();
       {/* Complete, rather than an arbitrary two of four. */}
       <SocialRow class="justify-center sm:-ml-2.5 sm:justify-start" />
 
-      <p
-        class="text-center font-mono text-meta tracking-[0.06em] whitespace-nowrap text-faint sm:text-right"
+      <Typography
+        variant="data"
+        as="p"
+        class="text-center whitespace-nowrap sm:text-right"
       >
         © {year} · Made with ❤️ in NYC
-      </p>
+      </Typography>
     </div>
   </Container>
 </footer>

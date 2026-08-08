@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import Monogram from './Monogram.astro';
 import Container from './layout/Container.astro';
+import Typography from './ui/Typography.astro';
 import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
 
 interface Props {
@@ -32,18 +33,20 @@ const active = NAV_FOR_PAGE[page];
     >
       {
         NAV.map((item) => (
-          <a
+          <Typography
+            variant="compact"
+            as="a"
             href={item.href}
             aria-current={item.key === active ? 'page' : undefined}
             class:list={[
-              'inline-flex min-h-10 items-center rounded-full px-4 text-ui no-underline',
+              'inline-flex min-h-10 items-center rounded-full px-4 no-underline',
               item.key === active
                 ? 'spectrum-fill'
                 : 'text-muted hover:text-ink',
             ]}
           >
             {item.label}
-          </a>
+          </Typography>
         ))
       }
     </nav>

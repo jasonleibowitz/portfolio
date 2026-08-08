@@ -4,6 +4,7 @@ import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
 import Ph from './ui/Ph.astro';
 import DeviceFrame from './DeviceFrame.astro';
+import Typography from './ui/Typography.astro';
 
 /**
  * One project on `/projects`, as a full-width editorial row.
@@ -75,14 +76,15 @@ const isWindow = data.frame === 'window';
         /* h2: the page's h1 is the masthead, and a row is its first subsection.
         An h3 here left the heading outline with a hole in it. */
       }
-      <h2 class="font-display text-h2 font-bold tracking-[-0.035em]">
+      <Typography variant="heading2">
         {data.title}
-      </h2>
+      </Typography>
 
       <Ph
         as="p"
         when={data.placeholder.includes('description')}
-        class="max-w-[46ch] text-body text-muted"
+        variant="body"
+        class="max-w-[46ch] text-muted"
       >
         {data.description}
       </Ph>
@@ -95,12 +97,14 @@ const isWindow = data.frame === 'window';
         /* The whole row is the link, so this is a visual affordance only —
           announcing it would append it to every project's accessible name. */
       }
-      <span
-        class="mt-2 inline-flex min-h-11 items-center text-ui text-muted group-hover:text-violet"
+      <Typography
+        variant="compact"
+        as="span"
+        class="mt-2 inline-flex min-h-11 items-center text-muted group-hover:text-violet"
         aria-hidden="true"
       >
         Read more&nbsp;→
-      </span>
+      </Typography>
     </div>
   </div>
 </a>

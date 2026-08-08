@@ -68,7 +68,10 @@
   --text-mega: clamp(2.625rem, 1.4rem + 5.4vw, 4.75rem);
   --text-h1: clamp(2rem, 1.45rem + 2.4vw, 3.25rem);
   --text-h2: clamp(1.375rem, 1.15rem + 1vw, 2rem);
-  --text-h3: clamp(1.125rem, 1.03rem + 0.42vw, 1.375rem);
+  /* Has to clear `--text-read` at every width. Both used to run 18->22px, so a
+     `###` in a post rendered the same size as the paragraph under it and only
+     weight told them apart. */
+  --text-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
   --text-lead: clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem);
   --text-read: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
   --text-body: 1.0625rem;
@@ -80,6 +83,20 @@
      adjacent -- fine for a date, too small for two sentences. */
   --text-note: 0.8125rem;
   --text-meta: 0.75rem;
+
+  /* Owned by the `Typography` variant that uses them, and named for it. Type
+     sets tighter as it grows; the two positive steps are the monospace roles,
+     where letters need air to read as data. The homepage headline is not here
+     on purpose: it is the one place display type is allowed, so its values
+     stay inline in `Hero.astro` rather than becoming reusable tokens. */
+  --tracking-headline: -0.04em;
+  --tracking-title: -0.03em;
+  --tracking-subtitle: -0.025em;
+  --tracking-data: 0.06em;
+  --tracking-label: 0.16em;
+
+  --leading-numeral: 1.15;
+  --leading-reading: 1.72;
 
   --container-page: 70rem;
   --container-measure: 46rem;
@@ -285,11 +302,10 @@
 }
 
 /* Rendered Markdown. The elements come out of MDX without classes, so this is
-   the one place a descendant-selector block genuinely beats utilities. */
-@utility prose {
-  font-size: var(--text-read);
-  line-height: 1.72;
-
+   the one place a descendant-selector block genuinely beats utilities.
+   Deliberately sets no text size: the `Typography` variant wrapping this picks
+   that, which is why a post reads at `longform` and a list note at `body`. */
+@utility markdown {
   & p,
   & ul,
   & ol,
@@ -297,23 +313,17 @@
     margin: 0 0 1.5rem;
   }
 
-  & h2 {
+  /* `h2` and `h3` are not here: they render through `Typography` via the
+     `components` map on `<Content />`, so a heading in a post is the same
+     object as a heading anywhere else. `h4` exists only in markdown, so it
+     stays. There is no size below `h3` that clears reading text, so weight
+     and family do the work rather than another step on the ramp. */
+  & h4 {
     font-family: var(--font-display);
-    font-size: var(--text-h2);
     font-weight: 700;
-    letter-spacing: -0.03em;
-    margin: 3rem 0 1rem;
-  }
-
-  & h3 {
-    font-family: var(--font-display);
-    font-size: var(--text-h3);
-    font-weight: 700;
-    margin: 2rem 0 0.75rem;
-  }
-
-  /* Cleared for the sticky header, so a TOC jump doesn't land under it. */
-  & :is(h2, h3, h4) {
+    margin: 2rem 0 0.5rem;
+    /* Cleared for the sticky header, so a TOC jump doesn't land under it.
+       `h2` and `h3` carry the same offset from their own components. */
     scroll-margin-top: 88px;
   }
 

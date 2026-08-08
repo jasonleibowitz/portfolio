@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { formatDay } from '../lib/dates';
 import Chip from './ui/Chip.astro';
 import { readingMinutes } from '../lib/reading';
+import Typography from './ui/Typography.astro';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -39,12 +40,15 @@ const { title, pubDate, description, tags } = post.data;
 
     {
       description && (
-        <p class="max-w-[62ch] text-ui text-muted">{description}</p>
+        <Typography variant="compact" class="max-w-[62ch] text-muted">
+          {description}
+        </Typography>
       )
     }
 
-    <span
-      class="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-meta tracking-[0.06em] text-faint"
+    <Typography
+      variant="data"
+      class="flex flex-wrap items-center gap-x-3 gap-y-2"
     >
       <span>{formatDay(pubDate)}</span>
       <span class="opacity-50">·</span>
@@ -52,6 +56,6 @@ const { title, pubDate, description, tags } = post.data;
       <span class="flex flex-wrap gap-1.5">
         {tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
       </span>
-    </span>
+    </Typography>
   </a>
 </li>

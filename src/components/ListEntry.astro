@@ -6,6 +6,7 @@ import { tv } from '../lib/tv';
 import { splitYear } from '../lib/lists';
 import Chip from './ui/Chip.astro';
 import Ph from './ui/Ph.astro';
+import Typography from './ui/Typography.astro';
 
 /**
  * Artwork is 56px wide in both shapes, so the column lines up across every
@@ -205,9 +206,9 @@ const lastWord = words.at(-1);
       }
       {
         year && (
-          <span class="shrink-0 font-mono text-meta font-normal text-faint tabular-nums">
+          <Typography variant="data" class="shrink-0 tabular-nums">
             {year}
-          </span>
+          </Typography>
         )
       }
     </span>
@@ -220,7 +221,8 @@ const lastWord = words.at(-1);
         <Ph
           as="p"
           when={item.placeholder.includes('subtitle')}
-          class="font-mono text-meta text-muted"
+          variant="data"
+          class="text-muted"
         >
           {item.subtitle}
         </Ph>
@@ -232,7 +234,8 @@ const lastWord = words.at(-1);
         <Ph
           as="p"
           when={item.placeholder.includes('note')}
-          class="max-w-[68ch] text-note text-muted"
+          variant="footnote"
+          class="max-w-[68ch] text-muted"
         >
           {item.note}
         </Ph>

@@ -2,6 +2,9 @@
 import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Section from '@components/layout/Section.astro';
+import Typography from '@components/ui/Typography.astro';
+import Heading2 from '@components/markdown/Heading2.astro';
+import Heading3 from '@components/markdown/Heading3.astro';
 import Panel from '@components/ui/Panel.astro';
 import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
@@ -45,13 +48,14 @@ const ctas = [
     <Status status={data.status}>
       {data.status_text_long ?? data.status_text}
     </Status>
-    <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
+    <Typography variant="heading1" class="my-3">
       {data.title}
-    </h1>
+    </Typography>
     <Ph
       as="p"
       when={data.placeholder.includes('description')}
-      class="max-w-[56ch] text-lead text-muted"
+      variant="intro"
+      class="max-w-[56ch] text-muted"
     >
       {data.description}
     </Ph>
@@ -110,7 +114,9 @@ const ctas = [
       </aside>
 
       <div class="spec:col-start-1 spec:row-start-2">
-        <div class="prose max-w-measure"><Content /></div>
+        <Typography variant="longform" class="markdown max-w-measure">
+          <Content components={{ h2: Heading2, h3: Heading3 }} />
+        </Typography>
 
         <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
       </div>
