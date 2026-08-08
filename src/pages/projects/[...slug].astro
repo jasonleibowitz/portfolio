@@ -6,7 +6,7 @@ import Typography from '@components/ui/Typography.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
 import Anchor from '@components/markdown/Anchor.astro';
-import Panel from '@components/ui/Panel.astro';
+import FactBox from '@components/ui/FactBox.astro';
 import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
 import Button from '@components/ui/Button.astro';
@@ -88,17 +88,15 @@ const ctas = [
       <aside
         class="spec:sticky spec:top-[88px] spec:col-start-2 spec:row-start-1 spec:row-end-3"
       >
-        <Panel class="px-6 py-2">
-          <dl>
-            {
-              data.specs.map((spec) => (
-                <Fact label={spec.label} ph={spec.placeholder} narrow>
-                  {spec.value}
-                </Fact>
-              ))
-            }
-          </dl>
-        </Panel>
+        <FactBox>
+          {
+            data.specs.map((spec) => (
+              <Fact label={spec.label} ph={spec.placeholder} narrow>
+                {spec.value}
+              </Fact>
+            ))
+          }
+        </FactBox>
 
         {
           ctas.length > 0 && (

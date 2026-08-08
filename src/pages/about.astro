@@ -3,7 +3,6 @@ import { Image } from 'astro:assets';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
-import SectionHead from '@components/ui/SectionHead.astro';
 import Panel from '@components/ui/Panel.astro';
 import Button from '@components/ui/Button.astro';
 import Chip from '@components/ui/Chip.astro';
@@ -112,13 +111,11 @@ const STATS = [
     </div>
   </Section>
 
-  <Section id="experience">
-    <SectionHead title="Experience" />
+  <Section id="experience" title="Experience">
     <Timeline />
   </Section>
 
-  <Section>
-    <SectionHead title="Stack" />
+  <Section title="Stack">
     {
       /*
       One line per category rather than one long row: scannable by someone
@@ -143,8 +140,7 @@ const STATS = [
     </dl>
   </Section>
 
-  <Section>
-    <SectionHead title="Beyond the CV" />
+  <Section title="Beyond the CV">
     <div
       class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(142px,1fr))]"
     >

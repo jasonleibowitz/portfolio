@@ -1,5 +1,7 @@
 ---
 import Container from './Container.astro';
+import Typography from '@components/ui/Typography.astro';
+import Link from '@components/ui/Link.astro';
 import { tv } from '@lib/tv';
 
 /**
@@ -8,17 +10,24 @@ import { tv } from '@lib/tv';
  *
  * `Container` plus vertical space, on a single element.
  *
+ * Pass `title` for a section heading, and `more` for a link out to the fuller
+ * version of what the section samples. A band with no heading omits both.
+ *
  * `flush` (default) omits the space above, since the band before already paid
  * it. The first band on a page wants `flush={false}`.
  */
 interface Props {
   as?: 'div' | 'section' | 'article';
+  title?: string;
+  more?: { label: string; href: string };
   flush?: boolean;
   class?: string;
 }
 
 const {
   as: Tag = 'section',
+  title,
+  more,
   flush = true,
   class: className,
   ...rest
@@ -32,5 +41,21 @@ const section = tv({
 ---
 
 <Container as={Tag} class={section({ flush, class: className })} {...rest}>
+  {
+    title && (
+      <div class="mb-6 flex items-baseline justify-between gap-4">
+        <Typography variant="heading2">{title}</Typography>
+        {more && (
+          <Link
+            variant="compact"
+            class="text-muted hover:text-violet whitespace-nowrap"
+            href={more.href}
+          >
+            {more.label} →
+          </Link>
+        )}
+      </div>
+    )
+  }
   <slot />
 </Container>
