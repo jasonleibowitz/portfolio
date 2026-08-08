@@ -3,8 +3,8 @@
  *
  * Real data, supplied by Jason. Dates are `YYYY-MM` and are the only thing
  * written down, because they sort as plain strings, format on demand, and
- * cannot disagree with a second copy of themselves. Display strings, employer
- * tenure and role overlap are all computed below.
+ * cannot disagree with a second copy of themselves. Display strings and
+ * employer tenure are computed below.
  *
  * Accomplishment bullets are deliberately absent: the resume is where a
  * recruiter reads what a role achieved, so the page stays a shape rather than
@@ -39,9 +39,8 @@ export const CAREER: Employer[] = [
   {
     company: 'Capsule Pharmacy',
     roles: [
-      // Not a promotion out of the IC role -- both ran at once, which is why
-      // these dates overlap and the timeline says so rather than looking
-      // like a typo.
+      // Not a promotion out of the IC role -- both ran at once, so these
+      // dates overlap on purpose.
       { title: 'Technical Lead', from: '2021-07', to: '2022-11' },
       { title: 'Senior Software Engineer', from: '2019-12', to: '2022-11' },
     ],
@@ -105,18 +104,6 @@ export function tenure({ roles }: Employer): string {
     undefined
   );
   return range(from, to);
-}
-
-/**
- * Whether a role ran alongside the one after it rather than replacing it.
- * Without this the Capsule dates read as a mistake instead of as someone
- * taking on lead scope while keeping the IC work.
- */
-export function isConcurrent(roles: Role[], index: number): boolean {
-  const previous = roles[index + 1];
-  if (!previous) return false;
-  // No end date means the earlier role never stopped, so it must overlap.
-  return !previous.to || previous.to > roles[index].from;
 }
 
 /**

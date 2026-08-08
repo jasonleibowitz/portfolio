@@ -1,14 +1,12 @@
 ---
-import Chip from './ui/Chip.astro';
-import { CAREER, isConcurrent, roleDates, tenure } from '@lib/career';
+import { CAREER, roleDates, tenure } from '@lib/career';
 import Typography from './ui/Typography.astro';
 
 /**
  * The career as a spine with a pulse traveling up it. Companies, titles and
  * dates are the whole of it on purpose — accomplishments live in the resume,
  * which is where a recruiter reads them. `bullets` still renders if a role
- * ever carries any. Every date string and the concurrency test come from
- * `lib/career.ts`.
+ * ever carries any. Every date string comes from `lib/career.ts`.
  */
 ---
 
@@ -32,11 +30,6 @@ import Typography from './ui/Typography.astro';
                 <Typography variant="data" class="whitespace-nowrap">
                   {roleDates(employer.roles, index)}
                 </Typography>
-                {isConcurrent(employer.roles, index) && (
-                  <Chip size="mini" accent="violet" class="ml-1.5 align-middle">
-                    concurrent
-                  </Chip>
-                )}
               </Typography>
 
               {role.bullets && (
