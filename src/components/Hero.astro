@@ -19,11 +19,9 @@ import { yearsShipping } from '@lib/career';
 
       {
         /*
-          The line breaks are explicit. Word length changes at runtime, so an
-          emergent break recomposes the headline every 2.8s — display type at
-          76px shouldn't wrap wherever the browser happens to land. Below 26rem
-          the lines fall back to inline so a long first line can still wrap
-          rather than overflow. `text-wrap: balance` does not solve this.
+          The breaks are hard-coded because one word swaps out every few
+          seconds. Left to the browser, the headline would rewrap every time it
+          changed. Below 26rem the lines run inline so a long one can still wrap.
         */
       }
       <h1
@@ -31,9 +29,8 @@ import { yearsShipping } from '@lib/career';
       >
         <span class="inline hero:block">I build things</span>{
           /*
-            Explicit: the compiler strips the whitespace between these two
-            spans, and below 26rem they are inline, where that newline is the
-            only thing separating "things" from "that".
+            Keeps the space between "things" and "that" when the lines run
+            inline.
           */
         }{' '}<span class="inline hero:block"
           >that <span class="whitespace-nowrap"
