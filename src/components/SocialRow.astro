@@ -28,17 +28,10 @@ const items: Social[] = variant === 'full' ? SOCIALS : AVATAR_SOCIALS;
         {...(social.key === 'rss'
           ? {}
           : { target: '_blank', rel: 'noreferrer noopener' })}
-        class="social inline-flex size-11 items-center justify-center rounded-full text-faint no-underline transition-[color,background] duration-150 hover:bg-panel hover:text-ink"
+        class="inline-flex size-11 items-center justify-center rounded-full text-faint no-underline transition-[color,background] duration-150 hover:bg-panel hover:text-ink aria-[current=true]:bg-violet/12 aria-[current=true]:text-violet"
       >
         <Icon name={social.icon} class="size-5 shrink-0" />
       </a>
     ))
   }
 </div>
-
-<style>
-  .social[aria-current='true'] {
-    color: var(--color-violet);
-    background: color-mix(in srgb, var(--color-violet) 12%, transparent);
-  }
-</style>
