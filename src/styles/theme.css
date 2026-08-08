@@ -1,0 +1,201 @@
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens. These generate utilities -- `--color-ink` gives `text-ink`,
+   `bg-ink`, `border-ink`; `--text-h1` gives `text-h1`. Nothing below should be
+   referenced as `var(--…)` from markup.
+
+   The spacing ladder is deliberately absent: the design's 4/8/12/16/24/32/40/
+   48/64px steps are exactly Tailwind's default scale, so `p-6` is 24px already.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Light is the base; :root[data-theme='dark'] below overrides the same
+     properties, so every utility re-derives instead of needing a dark: twin. */
+  /* Named `canvas` rather than `base`, because a color whose name matches a
+     built-in utility shadows it: `--color-base` made `text-base` a color and
+     not a font size, and nothing renders a page to catch that. `sm`, `lg` and
+     `xs` are the same trap. */
+  --color-canvas: #fcfaf6;
+  --color-panel: rgb(255 255 255 / 0.72);
+  --color-line: rgb(20 18 30 / 0.09);
+  --color-line-strong: rgb(20 18 30 / 0.16);
+  --color-ink: #131220;
+  --color-muted: #55536a;
+  /* 4.9:1 on the canvas. The previous #85819c measured 3.59:1 -- under the 4.5
+     needed for text this size, and this token carries every date, count,
+     eyebrow and caption on the site. Dark mode was already clear at 5.78:1. */
+  --color-faint: #6f6b86;
+  --color-violet: #5b3df5;
+  --color-cyan: #0e9fb8;
+  /* Cyan is only 3.1:1 on the light base, so it can never carry body text.
+     It exists to terminate gradients and to mark active state alongside ink. */
+  /* The label color for anything sitting *on* the spectrum. The gradient does
+     not invert between themes, it lifts -- both stops get lighter in dark -- so
+     a label on it takes the ink of the opposite theme rather than following the
+     page. White held here in dark measured 1.74:1 on the cyan end. */
+  --color-on-spectrum: #ffffff;
+  --color-glow-a: rgb(91 61 245 / 0.16);
+  --color-glow-b: rgb(14 159 184 / 0.16);
+  /* The sun half of the theme toggle keeps its warmth in both themes. */
+  --color-sun: #c2701a;
+
+  /* The one place the system carries hues outside the spectrum. A project's
+     stage is the rare signal where the conventional green/amber/grey reading
+     is worth more than palette purity -- but the dot is only ever redundant
+     with the word beside it, never the sole carrier of meaning. */
+  --color-stage-live: #1e7a4f;
+  --color-stage-testing: #c2701a;
+  --color-stage-development: #6f6b86;
+
+  --shadow-lift: 0 10px 34px rgb(24 18 60 / 0.08);
+
+  --font-display:
+    'Space Grotesk Variable', 'Space Grotesk', 'Avenir Next', system-ui,
+    -apple-system, 'Helvetica Neue', sans-serif;
+  --font-sans:
+    'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Fluid from 320px up, so there is no step where type is wrong for the
+     viewport it is in. */
+  --text-mega: clamp(2.625rem, 1.4rem + 5.4vw, 4.75rem);
+  --text-h1: clamp(2rem, 1.45rem + 2.4vw, 3.25rem);
+  --text-h2: clamp(1.375rem, 1.15rem + 1vw, 2rem);
+  /* Has to clear `--text-read` at every width. Both used to run 18->22px, so a
+     `###` in a post rendered the same size as the paragraph under it and only
+     weight told them apart. */
+  --text-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+  --text-lead: clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem);
+  --text-read: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+  --text-body: 1.0625rem;
+  --text-ui: 0.9375rem;
+  /* Annotation prose: a list entry's note, and anything else that explains a
+     thing it sits under. The ramp had nothing between UI text and Meta, so a
+     note set at UI size sat 2px under its own title and read as a second
+     title rather than as a remark about one. Meta is 12px and monospace-
+     adjacent -- fine for a date, too small for two sentences. */
+  --text-note: 0.8125rem;
+  --text-meta: 0.75rem;
+
+  /* Owned by the `Typography` variant that uses them, and named for it. Type
+     sets tighter as it grows; the two positive steps are the monospace roles,
+     where letters need air to read as data. The homepage headline is not here
+     on purpose: it is the one place display type is allowed, so its values
+     stay inline in `Hero.astro` rather than becoming reusable tokens. */
+  --tracking-headline: -0.04em;
+  --tracking-title: -0.03em;
+  --tracking-subtitle: -0.025em;
+  --tracking-data: 0.06em;
+  --tracking-label: 0.16em;
+
+  --leading-numeral: 1.15;
+  --leading-reading: 1.72;
+
+  /* The system's one easing curve. Written out ten times across the tab bar,
+     the rotating headline and the avatar swap before it had a name. */
+  --ease-orbit: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --container-page: 70rem;
+  --container-measure: 46rem;
+  --container-bio: 52rem;
+
+  /* The whole radius scale. `initial` clears Tailwind's seven defaults first,
+     so `rounded-lg` and `rounded-xl` stop existing rather than silently
+     resolving to an 8px or 12px step nobody documented. `rounded-full` is not
+     in this namespace and survives. */
+  --radius-*: initial;
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-card: 18px;
+
+  /* Semantic breakpoints: each one is a specific layout decision, so naming
+     them after the decision beats counting sm/md/lg. */
+  --breakpoint-hero: 26rem;
+  --breakpoint-card: 46rem;
+  --breakpoint-nav: 50rem;
+  /* Where a featured project brief has room for a second column, so its spec
+     ledger moves out from under the copy and right-aligns to the far edge.
+     Deliberately not `card` (46rem) or `spec` (54rem): each of those already
+     names a different decision, and a breakpoint that means two things is a
+     breakpoint that will eventually be moved for the wrong reason. */
+  --breakpoint-feature: 58rem;
+  --breakpoint-rail: 52rem;
+  --breakpoint-spec: 54rem;
+  --breakpoint-bio: 56rem;
+
+  --animate-drift: drift 34s ease-in-out infinite alternate;
+  --animate-orbit: orbit 26s linear infinite;
+  --animate-status: status 2.6s ease-in-out infinite;
+  --animate-travel: travel 6.5s ease-in-out infinite;
+
+  @keyframes drift {
+    from {
+      transform: translate3d(-2%, -1%, 0) scale(1);
+    }
+    to {
+      transform: translate3d(3%, 2%, 0) scale(1.08);
+    }
+  }
+  @keyframes orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes status {
+    50% {
+      opacity: 0.35;
+      transform: scale(0.85);
+    }
+  }
+  /* Travels upward, so the career reads as progression. */
+  @keyframes travel {
+    0% {
+      top: calc(100% - 64px);
+      opacity: 0;
+    }
+    12%,
+    88% {
+      opacity: 0.9;
+    }
+    100% {
+      top: 0;
+      opacity: 0;
+    }
+  }
+}
+
+/* Lifted off near-black: the first dark revision sat at #0B0B12 and read as
+   murkier than its contrast ratio suggested, because the surface was so close
+   to black. Body text is 15.6:1 here. */
+/* Deliberately outside the --spacing namespace: adding a key to it drops
+   Tailwind's own `--spacing` base, and every numeric padding, margin and gap
+   utility silently stops resolving. Used as `py-(--section)`, `px-(--gutter)`. */
+:root {
+  /* One vertical rhythm, used by every band. Mixing this with per-block
+     padding is what made the gaps drift in the first revision. */
+  --section: clamp(44px, 24px + 2.6vw, 72px);
+  --gutter: clamp(20px, 12px + 2vw, 36px);
+}
+
+:root[data-theme='dark'] {
+  --color-canvas: #16161f;
+  --color-panel: rgb(255 255 255 / 0.07);
+  --color-line: rgb(255 255 255 / 0.13);
+  --color-line-strong: rgb(255 255 255 / 0.22);
+  --color-ink: #f4f2fb;
+  --color-muted: #c2becf;
+  --color-faint: #948fa8;
+  --color-violet: #a99bff;
+  --color-cyan: #5fdff2;
+  /* Both stops just got lighter, so the label on them goes dark. */
+  --color-on-spectrum: #14141d;
+  --color-glow-a: rgb(125 95 255 / 0.2);
+  --color-glow-b: rgb(70 205 235 / 0.14);
+  /* Lifted off the light values, which go muddy on the raised dark base. */
+  --color-stage-live: #4fd39a;
+  --color-stage-testing: #e0913f;
+  --color-stage-development: #948fa8;
+  --shadow-lift: 0 12px 38px rgb(0 0 0 / 0.42);
+  color-scheme: dark;
+}

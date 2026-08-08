@@ -9,7 +9,7 @@ import { createTV } from 'tailwind-variants';
  * stops a size from eating a color.
  *
  * This mirrors the `--text-*`, `--tracking-*`, `--leading-*`, `--shadow-*`,
- * `--radius-*` and `--container-*` namespaces in `src/styles/global.css`. A
+ * `--radius-*` and `--container-*` namespaces in `src/styles/theme.css`. A
  * token added there needs its name added here too; nothing renders a page to
  * catch the omission.
  */

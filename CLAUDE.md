@@ -127,17 +127,31 @@ targets against real routes at build time, so a broken redirect fails the build.
 Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no PostCSS config —
 `@tailwindcss/vite` handles the pipeline from `astro.config.mjs`.
 
-`src/styles/global.css` is the whole design system:
+`src/styles/` is the whole design system. `global.css` is the entry point and holds
+nothing but imports; Tailwind bundles the rest itself, so the split is only about where
+a thing is easiest to find:
 
-- an `@theme` block defining every design token, so they generate real utilities
-  (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-page` →
-  `max-w-page`);
-- `:root[data-theme='dark']` overriding those same custom properties, so utilities
-  re-derive in dark mode instead of needing a `dark:` twin for every color;
-- `@custom-variant dark` pointed at the same attribute, for the cases that do need one;
-- `@utility` blocks for the handful of things with no utility form: `text-gradient`,
-  `spectrum-fill`, `aurora-field`, `placeholder-copy`, `initials`, and `markdown`
-  (rendered Markdown has no classes to hang utilities on).
+| File              | What's in it                                                           |
+| ----------------- | ---------------------------------------------------------------------- |
+| `theme.css`       | `@theme` tokens, the `dark` variant, `:root` dark overrides, keyframes |
+| `base.css`        | `@layer base`, the rules that apply before any class does              |
+| `utilities.css`   | the `@utility` blocks, and the one `@property` registration            |
+| `content.css`     | rendered Markdown, Shiki code blocks, remark's footnotes               |
+| `transitions.css` | the circular sweep between themes                                      |
+
+Two things to know about how the tokens work:
+
+- an `@theme` token generates a real utility (`--color-ink` → `text-ink`/`bg-ink`,
+  `--text-h1` → `text-h1`, `--container-page` → `max-w-page`), so nothing below should be
+  reached for as `var(--…)` from markup;
+- `:root[data-theme='dark']` overrides those same custom properties, so every utility
+  re-derives in dark mode instead of needing a `dark:` twin for each color. `@custom-variant
+dark` points at the same attribute for the cases that do need one.
+
+The `@utility` blocks are `text-gradient`, `spectrum-fill`, `aurora-field`,
+`placeholder-copy`, `initials` and `markdown`. A utility has to live in a
+Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when
+only one component does.
 
 **Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial`
 drops Tailwind's seven default radii so only the design's four exist, which is
@@ -165,8 +179,8 @@ and child/descendant variants (`*:`, `**:`), Tailwind reaches essentially everyt
 including pseudo-elements and JS-driven state.
 
 **A `<style>` block is for CSS that isn't a style at all.** In practice that means an
-`@property` registration or a `@keyframes` definition, and both of those belong in
-`global.css` rather than in a component. If you are reaching for `<style>` to _style_
+`@property` registration or a `@keyframes` definition, which live in `utilities.css`
+and `theme.css` rather than in a component. If you are reaching for `<style>` to _style_
 something, the answer is a utility, an `@utility`, or a component. Every component that
 had a style block has since been converted; there are none left, and a new one needs a
 reason that fits the sentence above.
@@ -275,7 +289,7 @@ role has to match what the PDF says.
   not modifier classes. Import `tv` from `src/lib/tv.ts`, never from the package: its
   class merger reads an unrecognized `text-*` as a text _color_, so `text-ui` cancelled
   the `text-white` beside it and every primary `Button` rendered ink-on-gradient. That
-  module names the `@theme` tokens for it, and a token added to `global.css` needs its
+  module names the `@theme` tokens for it, and a token added to `theme.css` needs its
   name added there too.
 - UI primitives in `src/components/ui/` spread `...rest`, so `data-*` and ARIA attributes
   pass through to the rendered element.

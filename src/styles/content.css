@@ -1,0 +1,214 @@
+@utility markdown {
+  & p,
+  & ul,
+  & ol,
+  & blockquote {
+    margin: 0 0 1.5rem;
+  }
+
+  /* `h2` and `h3` are not here: they render through `Typography` via the
+     `components` map on `<Content />`, so a heading in a post is the same
+     object as a heading anywhere else. `h4` exists only in markdown, so it
+     stays. There is no size below `h3` that clears reading text, so weight
+     and family do the work rather than another step on the ramp. */
+  & h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin: 2rem 0 0.5rem;
+    /* Cleared for the sticky header, so a TOC jump doesn't land under it.
+       `h2` and `h3` carry the same offset from their own components. */
+    scroll-margin-top: 88px;
+  }
+
+  & :is(ul, ol) {
+    padding-left: 1.15em;
+  }
+  & ul {
+    list-style: disc;
+  }
+  & ol {
+    list-style: decimal;
+  }
+  & li {
+    margin-bottom: 0.5rem;
+  }
+
+  /* No `& a` rule: markdown links render through `Link` via the `components`
+     map, so they are the same object as a link in any other sentence. */
+
+  & :is(p, li) code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 1px 6px;
+  }
+
+  & pre {
+    margin: 2rem 0;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-card);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.75;
+    border: 1px solid var(--color-line);
+  }
+
+  & blockquote {
+    border-left: 2px solid var(--color-line-strong);
+    padding-left: 1rem;
+    color: var(--color-muted);
+  }
+
+  & figure {
+    margin: 3rem 0;
+  }
+  & figure img {
+    width: 100%;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lift);
+  }
+  & figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    color: var(--color-faint);
+    margin-top: 0.75rem;
+    line-height: 1.5;
+  }
+
+  & hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin: 3rem 0;
+  }
+
+  /* Embeds arrive from MDX carrying hardcoded width/height attributes. The one
+     YouTube embed on the site is 560x315, which pinned the page to 580px and
+     overflowed a 320px viewport by 260px. Every embed here is a video, so the
+     ratio is safe to fix. */
+  & iframe {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    border: 0;
+    border-radius: var(--radius-card);
+    margin: 2rem 0;
+  }
+
+  /* A wide table is the other thing that silently widens a page. */
+  & table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+/* Astro renders both Shiki themes and toggles between them; without this the
+   light theme's colors stay painted in dark mode. */
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* GFM footnotes. The references themselves are upgraded into popover buttons
+   at runtime (see lib/footnotes.ts); this styles the list they come from. */
+.footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-ui);
+  color: var(--color-muted);
+}
+.footnotes h2 {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+  font-weight: 400;
+  margin: 0 0 0.75rem;
+}
+.footnotes ol {
+  padding-left: 1.2em;
+  list-style: decimal;
+}
+.footnotes li {
+  margin-bottom: 0.75rem;
+}
+.footnotes a[data-footnote-backref] {
+  color: var(--color-violet);
+  text-decoration: none;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.footnotes a[data-footnote-backref]:hover {
+  background: var(--color-panel);
+}
+
+/* The reference itself, once upgraded from an anchor to a popover trigger. */
+.fn-btn {
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  vertical-align: super;
+  line-height: 0;
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--color-violet);
+}
+.fn-btn:hover,
+.fn-btn[aria-expanded='true'] {
+  color: var(--color-cyan);
+}
+
+#fnpop {
+  position: absolute;
+  z-index: 50;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-line-strong);
+  box-shadow: var(--shadow-lift);
+  font-size: var(--text-ui);
+  line-height: 1.5;
+  color: var(--color-ink);
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+#fnpop[data-open] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+#fnpop .fn-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--color-violet);
+  display: block;
+  margin-bottom: 4px;
+}
+#fnpop p {
+  margin: 0;
+}
+
+/* Theme change sweeps out as a circle from the toggle; the animation itself is
+   driven from JS, which needs both snapshots stacked and un-animated. */
