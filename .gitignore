@@ -23,3 +23,38 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Local design exploration: hand-built mockup rounds, direction notes, and the
+# measurement logs that go with them. Not written by any tool. The durable
+# record of the design is DESIGN.md at the root plus .impeccable/design.json,
+# both tracked, so a mockup is scaffolding once the build it describes ships.
+design/
+
+# impeccable-ignore-start
+# Ephemeral output, runtime state, and per-dev overrides.
+# Shared artifacts stay tracked: config.json, live/config.json,
+# design.json, critique/*.md.
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/hook.pending.json
+.impeccable/*.png
+.impeccable/live/server.json
+.impeccable/live/sessions/
+.impeccable/live/previews/
+.impeccable/live/annotations/
+.impeccable/live/cache/
+.impeccable/live/manual-edit-apply-transaction.json
+.impeccable/live/manual-edit-events.jsonl
+.impeccable/live/manual-edit-evidence/
+.impeccable/live/pending-manual-edits.json
+.impeccable/live/deferred-svelte-component-accepts.json
+.impeccable/live/*.png
+# impeccable-ignore-end
+
+# Kept outside the managed block above, which would otherwise re-track these.
+# Critiques are timestamped snapshots of a single run — regenerable, and stale
+# the moment the code they describe changes. live/ is per-machine runtime state
+# (a pid, port and auth token, plus session locks). design.json stays tracked:
+# it is the design system itself, not output.
+.impeccable/critique/
+.impeccable/live/

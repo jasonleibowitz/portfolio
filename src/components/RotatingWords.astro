@@ -1,0 +1,111 @@
+---
+/**
+ * The word in the headline that rotates through a short list.
+ *
+ * Two things here are less obvious than they look:
+ *
+ * 1. Every child is absolutely positioned, which leaves the inline-block with
+ *    no in-flow line box — the browser then aligns it by its bottom edge and
+ *    the word floats above the rest of the line. The zero-width strut in
+ *    ::before restores a real baseline.
+ * 2. The container animates its own width, measured once up front, so the full
+ *    stop that follows doesn't jump as the word changes length.
+ */
+interface Props {
+  words: string[];
+}
+
+const { words } = Astro.props;
+---
+
+{/* All four words are in the DOM, so only the first is read aloud. */}
+<span class="rotating-words" id="rotating-words"
+  >{
+    words.map((word, i) => (
+      <span
+        class:list={['text-gradient', i === 0 && 'is-in']}
+        aria-hidden={i === 0 ? undefined : 'true'}
+      >
+        {word}
+      </span>
+    ))
+  }</span
+>
+
+<style>
+  .rotating-words {
+    position: relative;
+    display: inline-block;
+    vertical-align: baseline;
+    white-space: nowrap;
+    transition: width 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .rotating-words::before {
+    content: '\200b';
+    display: inline-block;
+    width: 0;
+  }
+  .rotating-words span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateY(0.24em);
+    filter: blur(6px);
+    transition:
+      opacity 0.42s ease,
+      transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1),
+      filter 0.42s ease;
+  }
+  .rotating-words span.is-in {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .rotating-words span.is-out {
+    opacity: 0;
+    transform: translateY(-0.24em);
+    filter: blur(6px);
+  }
+</style>
+
+<script>
+  const rotator = document.getElementById('rotating-words');
+
+  if (rotator) {
+    const words = Array.from(rotator.children) as HTMLElement[];
+
+    // Measure off-screen, once, so the container has a width to animate to.
+    const widths = words.map((word) => {
+      word.style.position = 'static';
+      word.style.opacity = '0';
+      const width = word.getBoundingClientRect().width;
+      word.style.position = '';
+      word.style.opacity = '';
+      return width;
+    });
+
+    rotator.style.width = `${widths[0]}px`;
+
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    if (!reduced && words.length > 1) {
+      let i = 0;
+      setInterval(() => {
+        const previous = words[i];
+        i = (i + 1) % words.length;
+        const next = words[i];
+
+        previous.classList.remove('is-in');
+        previous.classList.add('is-out');
+        next.classList.remove('is-out');
+        next.classList.add('is-in');
+        rotator.style.width = `${widths[i]}px`;
+
+        setTimeout(() => previous.classList.remove('is-out'), 500);
+      }, 2800);
+    }
+  }
+</script>

@@ -1,0 +1,252 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import { tv } from '../lib/tv';
+import { splitYear } from '../lib/lists';
+import Chip from './ui/Chip.astro';
+import Ph from './ui/Ph.astro';
+
+/**
+ * Artwork is 56px wide in both shapes, so the column lines up across every
+ * list and only the row height changes:
+ *
+ *   square  56x56  (1:1)  podcast and album art, the default
+ *   poster  56x84  (2:3)  film and book covers
+ *
+ * The height comes from the aspect ratio rather than a second fixed number, so
+ * the two stay in step.
+ *
+ * 56 and not 40: a 40px box is 2,400 pixels for a whole movie poster, which is
+ * below the size at which a poster resolves into anything -- no title, no
+ * faces. Square art survives small because a wordmark is legible at almost any
+ * size, but sizing the two differently would break the shared column, so both
+ * take the larger width and the page carries the extra saturation.
+ *
+ * An entry with no artwork drops the column entirely rather than standing in a
+ * placeholder: a tile carrying two letters of the title told the reader nothing
+ * the title was not already saying, and it took the row's widest, loudest slot
+ * to do it.
+ */
+/*
+ * No row span. The artwork used to carry `row-span-3`, which was a count of the
+ * text rows beside it -- title, note, tags -- and so it silently became wrong
+ * the moment a fourth was added: `subtitle` pushed the tags down to row 4,
+ * where column 1 was free, and they rendered under the artwork in a 56px column
+ * one chip per line. The text is wrapped in a single column child instead, so
+ * the row is one grid row however many lines the text has.
+ */
+const artwork = tv({
+  base: 'mt-1 w-14 rounded-xl border border-line object-cover',
+  variants: {
+    shape: {
+      square: 'aspect-square',
+      poster: 'aspect-[2/3]',
+    },
+  },
+});
+
+/** Only for the width/height attributes, which reserve space before layout. */
+const ARTWORK_HEIGHT = { square: 56, poster: 84 } as const;
+
+/*
+ * Artwork is re-encoded at a higher quality than the site's default and with a
+ * 3x density on top of 2x.
+ *
+ * Both are because the rendered box is small. Even at 56px there is very
+ * little redundancy for a default-quality encode to throw away, so its
+ * artifacts land on nearly the only pixels there are. The cost is a couple of
+ * kB per image, which is the cheapest sharpness in the project.
+ */
+
+/**
+ * Column tracks, by what the row actually has. Building this from the two
+ * booleans keeps the empty-column case impossible: no artwork means no artwork
+ * track, rather than a 56px gutter of nothing down the list.
+ */
+const columns = tv({
+  base: 'grid items-start gap-x-4',
+  variants: {
+    rank: { true: '', false: '' },
+    art: { true: '', false: '' },
+  },
+  compoundVariants: [
+    { rank: true, art: true, class: 'grid-cols-[2.75rem_56px_minmax(0,1fr)]' },
+    { rank: true, art: false, class: 'grid-cols-[2.75rem_minmax(0,1fr)]' },
+    { rank: false, art: true, class: 'grid-cols-[56px_minmax(0,1fr)]' },
+    { rank: false, art: false, class: 'grid-cols-[minmax(0,1fr)]' },
+  ],
+});
+
+/** Taken from the schema so the two cannot drift apart. */
+type Item = CollectionEntry<'lists'>['data']['items'][number];
+
+interface Props {
+  item: Item;
+  /**
+   * The entry's position in the full list, written into the markup. Filtering
+   * hides rows, so a rank derived from <ol> numbering or a CSS counter would
+   * renumber from one as soon as a row above it disappeared.
+   */
+  rank?: number;
+  /** Set once per list, not per entry -- see the `thumb` field on the schema. */
+  shape?: 'square' | 'poster';
+}
+
+const { item, rank, shape = 'square' } = Astro.props;
+
+/** An entry with no href is not a link: no arrow, no hover, no pointer. */
+const isLink = Boolean(item.href);
+
+const { title, year } = splitYear(item.name);
+
+/**
+ * The external-link arrow is tied to the last word so the two wrap together.
+ * Left to itself it broke onto a line of its own -- `The Shawshank Redemption`
+ * at 390px put the arrow alone under the title, reading as a rendering fault
+ * rather than as part of the link.
+ */
+const words = title.split(' ');
+const lead = words.slice(0, -1).join(' ');
+const lastWord = words.at(-1);
+---
+
+{
+  /*
+  The row is ruled rather than boxed. `-mx-3 px-3` lets the rule and the hover
+  tint carry a little past the text without moving the text, so the column stays
+  aligned to the page gutter -- the previous row hung 12px outside it, which put
+  the rank 8px from the viewport edge on a phone.
+*/
+}
+<li
+  data-tags={item.tags.join(' ')}
+  class:list={[
+    'entry group relative -mx-3 border-b border-line px-3 py-3 last:border-0 [&[hidden]]:hidden',
+    columns({ rank: Boolean(rank), art: Boolean(item.image) }),
+    isLink && 'transition-colors duration-150 hover:bg-panel',
+  ]}
+>
+  {
+    rank && (
+      <span class="font-display text-[2rem] leading-[1.15] font-bold text-faint tabular-nums">
+        {rank}
+      </span>
+    )
+  }
+
+  {
+    item.image && (
+      <Image
+        src={item.image}
+        alt=""
+        width={56}
+        height={ARTWORK_HEIGHT[shape]}
+        fit="cover"
+        densities={[2, 3]}
+        quality={92}
+        loading="lazy"
+        class={artwork({ shape })}
+      />
+    )
+  }
+
+  {
+    /*
+    Every line of text is one grid child, so adding another -- a subtitle, and
+    whatever comes after it -- cannot push anything into the artwork's column.
+  */
+  }
+  <div class="flex min-w-0 flex-col gap-1">
+    {
+      /*
+    The year sits at the far end of the title's line rather than in the meta
+    row, so it rules a second aligned column down the page and both ends of
+    every row are anchored. `items-baseline` keeps it on the first line when a
+    long title wraps.
+  */
+    }
+    <span
+      class="flex items-baseline justify-between gap-x-4 font-semibold tracking-[-0.01em]"
+    >
+      {
+        /*
+      The link wraps the title alone and stretches over the row with a
+      pseudo-element. Wrapping the whole row instead made the accessible name
+      the title, the note, the host and every tag run together with no
+      separators -- a four-sentence link label -- while this keeps the name to
+      the title and the full row clickable.
+    */
+      }
+      {
+        isLink ? (
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            class="no-underline after:absolute after:inset-0 group-hover:text-violet"
+          >
+            <Ph when={item.placeholder.includes('name')}>
+              {lead && `${lead} `}
+              <span class="whitespace-nowrap">
+                {lastWord}
+                <Icon
+                  name="lucide:arrow-up-right"
+                  class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
+                />
+              </span>
+            </Ph>
+          </a>
+        ) : (
+          <Ph when={item.placeholder.includes('name')} class="text-ink">
+            {title}
+          </Ph>
+        )
+      }
+      {
+        year && (
+          <span class="shrink-0 font-mono text-meta font-normal text-faint tabular-nums">
+            {year}
+          </span>
+        )
+      }
+    </span>
+
+    {
+      /* Above the note, because it identifies the thing while the note is an
+      opinion about it -- and mono, because a list of hosts is a credit rather
+      than a sentence. */
+      item.subtitle && (
+        <Ph
+          as="p"
+          when={item.placeholder.includes('subtitle')}
+          class="font-mono text-meta text-muted"
+        >
+          {item.subtitle}
+        </Ph>
+      )
+    }
+
+    {
+      item.note && (
+        <Ph
+          as="p"
+          when={item.placeholder.includes('note')}
+          class="max-w-[68ch] text-note text-muted"
+        >
+          {item.note}
+        </Ph>
+      )
+    }
+
+    {
+      item.tags.length > 0 && (
+        <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {item.tags.map((tag) => (
+            <Chip size="mini">{tag}</Chip>
+          ))}
+        </span>
+      )
+    }
+  </div>
+</li>

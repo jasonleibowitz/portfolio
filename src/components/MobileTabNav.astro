@@ -1,0 +1,172 @@
+---
+import { Icon } from 'astro-icon/components';
+import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
+
+/**
+ * Floating glass capsule, five tabs, collapsing to icons on scroll down.
+ *
+ * The capsule has no padding, so the active tab reaches its inner edge: the
+ * first and last tabs take the capsule's own end cap on their outer side via
+ * per-position border-radius, and nothing is left uncolored around the active
+ * item. Chosen deliberately over an Apple-style inset tinted chip.
+ *
+ * At a 320px viewport five tabs are 59px each, above the 44px target rule.
+ * Labels ellipsis rather than widen the bar.
+ */
+interface Props {
+  page: PageKey;
+}
+
+const { page } = Astro.props;
+const active = NAV_FOR_PAGE[page];
+---
+
+<nav class="mobile-tab-nav" aria-label="Primary">
+  {
+    NAV.map((item) => (
+      <a
+        href={item.href}
+        aria-current={item.key === active ? 'page' : undefined}
+        class:list={[
+          'tab',
+          item.key === active ? 'spectrum-fill' : 'text-faint',
+        ]}
+      >
+        <Icon name={item.icon} class="size-[19px] shrink-0" />
+        <span>{item.label}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .mobile-tab-nav {
+    position: fixed;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: min(420px, calc(100vw - 24px));
+    display: flex;
+    z-index: 40;
+    isolation: isolate;
+    border-radius: 999px;
+    padding: 0;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-canvas) 28%, transparent);
+    /* One of only two live blurs on the page: the bar sits over scrolling
+       content, so it has to composite against something that moves. No SVG
+       refraction — that needs feDisplacementMap inside backdrop-filter, which
+       Safari and Firefox ignore, so it would be invisible on the phones that
+       would recognize it. */
+    backdrop-filter: blur(30px) saturate(210%);
+    -webkit-backdrop-filter: blur(30px) saturate(210%);
+    border: 1px solid rgb(255 255 255 / 0.62);
+    box-shadow:
+      0 14px 40px rgb(24 18 60 / 0.22),
+      0 2px 6px rgb(24 18 60 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.95),
+      inset 0 -14px 24px -14px rgb(24 18 60 / 0.42);
+    /* Animating width is deliberate: `scaleX` would squash the labels and turn
+       the 999px end caps into ellipses. If it ever stutters on a real phone,
+       drop the narrowing and keep the height collapse -- the cost is the 30px
+       backdrop blur resampling at a new size, not the reflow. */
+    transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  :root[data-theme='dark'] .mobile-tab-nav {
+    background: color-mix(in srgb, var(--color-canvas) 36%, transparent);
+    border-color: rgb(255 255 255 / 0.2);
+    box-shadow:
+      0 16px 44px rgb(0 0 0 / 0.62),
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      inset 0 -14px 24px -14px rgb(0 0 0 / 0.6);
+  }
+
+  /* One radius, three shapes read from it. As six literals it was five copies
+     each of 18px and 14px -- which is how the collapsed state drifted to 15px.
+     Registered so the variable itself interpolates rather than a transition
+     chasing a var substitution. Not inherited: only the tabs read it. */
+  @property --tab-radius {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 18px;
+  }
+
+  /* One block per selector: a second `.tab { transition: … }` elsewhere
+     silently replaced this one during the mockup and the collapse stopped
+     animating. */
+  .tab {
+    --tab-radius: 18px;
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 56px;
+    border-radius: var(--tab-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    /* The Label step. This was a literal 10px, which was both off the type ramp
+       and under the 11px floor for functional text. At 12px the widest label,
+       "Projects", measures 46px inside a 55px tab at a 320px viewport, so
+       nothing has to ellipsis to buy the legibility. */
+    font-size: var(--text-meta);
+    padding-inline: 2px;
+    overflow: hidden;
+    transition:
+      transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+      height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      --tab-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      gap 0.3s ease;
+  }
+  .tab:active {
+    transform: scale(0.93);
+  }
+  .tab:first-child {
+    border-radius: 999px var(--tab-radius) var(--tab-radius) 999px;
+  }
+  .tab:last-child {
+    border-radius: var(--tab-radius) 999px 999px var(--tab-radius);
+  }
+
+  .tab span {
+    max-width: 100%;
+    /* The box has to hold the line, or `overflow: hidden` crops it. The body
+       line-height of 1.62 put a 19px line inside a 14px box and cut the
+       descenders off "Projects" and "Writing"; it was clipping at the old 10px
+       too. Both values move together -- `max-height` is what the collapse
+       animates to zero, so it cannot simply be dropped. */
+    line-height: 15px;
+    max-height: 15px;
+    opacity: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition:
+      max-height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.18s ease;
+  }
+
+  /* Collapsed: icons only, added by the scroll handler in lib/chrome.ts. */
+  .mobile-tab-nav.is-min {
+    width: min(300px, calc(100vw - 24px));
+  }
+  .mobile-tab-nav.is-min .tab {
+    --tab-radius: 14px;
+    height: 46px;
+    gap: 0;
+  }
+  .mobile-tab-nav.is-min .tab span {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  @media (min-width: 50rem) {
+    .mobile-tab-nav {
+      display: none;
+    }
+  }
+</style>

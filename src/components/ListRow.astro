@@ -1,0 +1,160 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { formatDay } from '../lib/dates';
+import { allItems, splitYear } from '../lib/lists';
+
+/**
+ * One list on `/lists`, as a hairline-ruled editorial row.
+ *
+ * There is deliberately no card here, for the same reason `/projects` dropped
+ * its own: the site bounds things with a rule and a translucent fill, and a
+ * bordered box that is also entirely clickable is neither a surface nor a
+ * control. The index's real problem was different from the projects index's,
+ * though. A project row has one tall object to compose against; a list has
+ * none. What it has is contents, and the old card described them -- "10
+ * entries", "Ranked" -- instead of showing any.
+ *
+ * So the artwork leads, as a band across the top of the row rather than a
+ * column beside the copy. A column would have to reserve its width from every
+ * row, and artwork here is optional twice over: `image` is optional per entry,
+ * and a whole list may have none. As a column that produces either a ragged
+ * left edge down the page or an empty reserved slot; as a band it simply is
+ * not rendered, and the type below it never moves.
+ */
+interface Props {
+  list: CollectionEntry<'lists'>;
+}
+
+const { list } = Astro.props;
+const { data } = list;
+
+const items = allItems(data);
+
+/*
+ * The first few entries that actually have artwork, not the artwork of the
+ * first few entries -- a list where only entries 3, 7 and 12 carry an image
+ * should still show three covers rather than none.
+ */
+const COVER_LIMIT = 6;
+const covers = items.filter((item) => item.image).slice(0, COVER_LIMIT);
+
+/*
+ * The cap is what keeps the band from being the one element that fails the
+ * zero-overflow rule on the narrowest phone: six covers at the mobile size of
+ * 56px, overlapped to 34px of exposed width, measure 226px against the 280px
+ * available inside the gutters at 320px.
+ *
+ * Covers grow to 88px from `card:` up. The first pass sized them 56px
+ * everywhere -- the width that works on a phone -- and six of them fanned into
+ * 226px of a 1048px row read as a smear rather than as six recognizable
+ * covers, which is the entire point of showing them.
+ */
+
+/**
+ * Three entry names, which is the one thing on this page that answers "is this
+ * person's taste worth a click". Derived from committed frontmatter -- the
+ * year is split off so the line reads as titles rather than as data.
+ */
+const preview = items
+  .slice(0, 3)
+  .map((item) => splitYear(item.name).title)
+  .join(' · ');
+
+/** `1 entry` / `10 entries`, given both forms rather than a suffix rule. */
+const plural = (n: number, one: string, many: string) =>
+  `${n} ${n === 1 ? one : many}`;
+
+/*
+ * A grouped list reports its sections, not the word "grouped". `ranked` and
+ * `groups` are schema flags; how many sections there are is something a reader
+ * can actually decide on, and it is the same fact stated usefully.
+ */
+const shape = data.ranked
+  ? 'Ranked'
+  : data.groups.length
+    ? plural(data.groups.length, 'section', 'sections')
+    : null;
+---
+
+<a
+  href={`/lists/${list.id}/`}
+  aria-label={data.title}
+  class="group block border-t border-line py-8 no-underline card:py-10"
+>
+  {
+    /*
+      Leftmost cover on top, so the fan reads as looking along a shelf rather
+      than as a hand of cards being dealt. The ring is the canvas color rather
+      than a hairline: at 22px of overlap, two similarly-lit posters need a
+      real separation and 1px is not one.
+    */
+  }
+  {
+    covers.length > 0 && (
+      <div class="mb-5 flex card:mb-6" aria-hidden="true">
+        {covers.map((item, i) => (
+          <Image
+            src={item.image!}
+            alt=""
+            width={88}
+            height={data.thumb === 'poster' ? 132 : 88}
+            fit="cover"
+            densities={[2, 3]}
+            quality={92}
+            loading="lazy"
+            style={`z-index: ${covers.length - i}`}
+            class:list={[
+              'relative w-14 shrink-0 rounded-xl border border-line object-cover ring-[3px] ring-canvas card:w-22',
+              data.thumb === 'poster' ? 'aspect-[2/3]' : 'aspect-square',
+              i > 0 && '-ml-[22px] card:-ml-8',
+              'transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:-translate-y-1',
+            ]}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  <div
+    class="flex flex-col gap-4 card:flex-row card:items-start card:justify-between card:gap-10"
+  >
+    <div class="flex min-w-0 flex-1 flex-col gap-3">
+      <h2 class="font-display text-h2 font-bold tracking-[-0.035em]">
+        {data.title}
+        {/* The row is the link, so the arrow is a visual affordance only. */}
+        <span
+          class="inline-block transition-transform duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:translate-x-1 group-hover:text-violet"
+          aria-hidden="true">&nbsp;→</span
+        >
+      </h2>
+
+      {
+        data.description && (
+          <p class="max-w-[46ch] text-body text-muted">{data.description}</p>
+        )
+      }
+
+      {
+        preview && (
+          <p class="font-mono text-note text-faint">
+            {preview}
+            {items.length > 3 && ' …'}
+          </p>
+        )
+      }
+    </div>
+
+    {
+      /* Mono because every one of these is a value rather than a sentence.
+        Stacked and right-aligned once there is a second column to align to. */
+    }
+    <ul
+      class="flex shrink-0 flex-wrap gap-x-3 font-mono text-body tracking-[0.16em] text-faint uppercase card:flex-col card:gap-y-1 card:text-right"
+    >
+      <li>{plural(items.length, 'entry', 'entries')}</li>
+      {shape && <li>{shape}</li>}
+      <li>Updated {formatDay(data.updated)}</li>
+    </ul>
+  </div>
+</a>

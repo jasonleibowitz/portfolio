@@ -1,0 +1,119 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/layout/Section.astro';
+import Panel from '@components/ui/Panel.astro';
+import Fact from '@components/ui/Fact.astro';
+import Status from '@components/ui/Status.astro';
+import Button from '@components/ui/Button.astro';
+import Ph from '@components/ui/Ph.astro';
+import PhNote from '@components/ui/PhNote.astro';
+import DeviceFrame from '@components/DeviceFrame.astro';
+import { getPublished } from '../../lib/content';
+import { testflightRequestHref } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const projects = await getPublished('projects');
+
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+
+/** The beta invite first, because it is the one that asks for a reply. */
+const ctas = [
+  data.testflight && {
+    label: 'Join the beta',
+    href: testflightRequestHref(data.title),
+    icon: 'lucide:mail',
+  },
+  data.cta && { ...data.cta, icon: undefined },
+].filter((cta) => cta !== false && cta != null);
+---
+
+<BaseLayout
+  pageTitle={data.title}
+  page="project"
+  description={data.description}
+>
+  <Section flush={false}>
+    <Status status={data.status}>
+      {data.status_text_long ?? data.status_text}
+    </Status>
+    <h1 class="my-3 font-display text-h1 font-bold tracking-[-0.04em]">
+      {data.title}
+    </h1>
+    <Ph
+      as="p"
+      when={data.placeholder.includes('description')}
+      class="max-w-[56ch] text-lead text-muted"
+    >
+      {data.description}
+    </Ph>
+  </Section>
+
+  <Section>
+    {
+      /* Three grid children rather than two, so the rail can sit between the
+        screenshots and the write-up once the columns collapse. Stacked, the
+        stats read as a caption to the shots; deferred to the bottom they were
+        below a page of prose nobody had scrolled yet. */
+    }
+    <div
+      class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
+    >
+      <div
+        class="flex gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1"
+      >
+        {
+          [0, 1, 2].map((variant) => (
+            <DeviceFrame
+              kind={data.frame}
+              size="shot"
+              variant={variant as 0 | 1 | 2}
+            />
+          ))
+        }
+      </div>
+
+      <aside
+        class="spec:sticky spec:top-[88px] spec:col-start-2 spec:row-start-1 spec:row-end-3"
+      >
+        <Panel class="px-6 py-2">
+          <dl>
+            {
+              data.specs.map((spec) => (
+                <Fact label={spec.label} ph={spec.placeholder} narrow>
+                  {spec.value}
+                </Fact>
+              ))
+            }
+          </dl>
+        </Panel>
+
+        {
+          ctas.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-2">
+              {ctas.map((cta) => (
+                <Button href={cta.href} variant="primary" icon={cta.icon}>
+                  {cta.label}
+                </Button>
+              ))}
+            </div>
+          )
+        }
+      </aside>
+
+      <div class="spec:col-start-1 spec:row-start-2">
+        <div class="prose max-w-measure"><Content /></div>
+
+        <PhNote>Every paragraph on this page is placeholder copy.</PhNote>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

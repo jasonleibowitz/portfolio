@@ -1,0 +1,41 @@
+---
+import { tv } from '../../lib/tv';
+
+/**
+ * A project's stage: a coloured dot beside the word for it.
+ *
+ * The dot is keyed to `status` and never to anything else. An earlier version
+ * keyed it to a separate "actively moving" flag, which meant two projects
+ * reading `Beta` carried different dots for a reason nothing on the page
+ * explained. Colour here only ever repeats the label beside it.
+ *
+ * Testing pulses because it is the stage that is going somewhere; the other
+ * two are steady states.
+ */
+const dot = tv({
+  base: 'block size-[7px] rounded-full',
+  variants: {
+    status: {
+      live: 'bg-stage-live',
+      testing: 'animate-status bg-stage-testing',
+      development: 'bg-stage-development',
+    },
+  },
+});
+
+interface Props {
+  status: 'development' | 'testing' | 'live';
+  class?: string;
+}
+
+const { status, class: className } = Astro.props;
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-[7px] font-mono text-meta tracking-[0.1em] text-muted uppercase',
+    className,
+  ]}
+>
+  <i class={dot({ status })}></i><slot />
+</span>

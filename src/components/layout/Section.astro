@@ -1,0 +1,33 @@
+---
+import Container from './Container.astro';
+
+/**
+ * One band of a page: centered, width-capped, with space below it. Wrap every
+ * top-level block in one so spacing down the page stays even.
+ *
+ * `Container` plus vertical space, on a single element.
+ *
+ * `flush` (default) omits the space above, since the band before already paid
+ * it. The first band on a page wants `flush={false}`.
+ */
+interface Props {
+  as?: 'div' | 'section' | 'article';
+  flush?: boolean;
+  class?: string;
+}
+
+const {
+  as: Tag = 'section',
+  flush = true,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<Container
+  as={Tag}
+  class:list={[flush ? 'pb-(--section)' : 'py-(--section)', className]}
+  {...rest}
+>
+  <slot />
+</Container>

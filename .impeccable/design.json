@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-06T12:00:00.000Z",
+  "title": "Design System: Orbit — leibowitz.me",
+  "extensions": {
+    "colorMeta": {
+      "ultraviolet": {
+        "role": "primary",
+        "displayName": "Ultraviolet",
+        "canonical": "#5b3df5",
+        "darkModeValue": "#a99bff",
+        "tonalRamp": [
+          "oklch(20% 0.12 285)",
+          "oklch(30% 0.18 285)",
+          "oklch(40% 0.24 285)",
+          "oklch(50% 0.28 285)",
+          "oklch(60% 0.24 285)",
+          "oklch(72% 0.17 285)",
+          "oklch(85% 0.09 285)",
+          "oklch(95% 0.03 285)"
+        ]
+      },
+      "aurora-teal": {
+        "role": "secondary",
+        "displayName": "Aurora Teal",
+        "canonical": "#0e9fb8",
+        "darkModeValue": "#5fdff2",
+        "note": "3.1:1 on the light base. Structural only — never body text.",
+        "tonalRamp": [
+          "oklch(20% 0.05 214)",
+          "oklch(30% 0.07 214)",
+          "oklch(40% 0.09 214)",
+          "oklch(52% 0.10 214)",
+          "oklch(64% 0.11 214)",
+          "oklch(76% 0.09 214)",
+          "oklch(87% 0.06 214)",
+          "oklch(95% 0.02 214)"
+        ]
+      },
+      "sun": {
+        "role": "tertiary",
+        "displayName": "Sun",
+        "canonical": "#c2701a",
+        "note": "Theme-toggle sun glyph only. Keeps its warmth in both themes.",
+        "tonalRamp": [
+          "oklch(20% 0.05 60)",
+          "oklch(31% 0.08 60)",
+          "oklch(42% 0.11 60)",
+          "oklch(53% 0.13 60)",
+          "oklch(64% 0.13 60)",
+          "oklch(76% 0.10 60)",
+          "oklch(87% 0.06 60)",
+          "oklch(95% 0.02 60)"
+        ]
+      },
+      "base": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#fcfaf6",
+        "darkModeValue": "#16161f",
+        "note": "Dark base is deliberately lifted off near-black; #0B0B12 read murkier than its ratio suggested.",
+        "tonalRamp": [
+          "oklch(18% 0.012 285)",
+          "oklch(28% 0.012 285)",
+          "oklch(40% 0.010 285)",
+          "oklch(52% 0.008 285)",
+          "oklch(64% 0.007 60)",
+          "oklch(78% 0.006 60)",
+          "oklch(90% 0.005 60)",
+          "oklch(98% 0.004 60)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#131220",
+        "darkModeValue": "#f4f2fb",
+        "note": "Near-black with a violet cast, so text belongs to the accent's family.",
+        "tonalRamp": [
+          "oklch(15% 0.02 285)",
+          "oklch(26% 0.02 285)",
+          "oklch(38% 0.02 285)",
+          "oklch(50% 0.02 285)",
+          "oklch(62% 0.018 285)",
+          "oklch(74% 0.014 285)",
+          "oklch(86% 0.010 285)",
+          "oklch(95% 0.006 285)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#55536a",
+        "darkModeValue": "#c2becf",
+        "tonalRamp": [
+          "oklch(20% 0.02 285)",
+          "oklch(31% 0.025 285)",
+          "oklch(42% 0.03 285)",
+          "oklch(53% 0.03 285)",
+          "oklch(65% 0.025 285)",
+          "oklch(77% 0.02 285)",
+          "oklch(88% 0.012 285)",
+          "oklch(96% 0.006 285)"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint",
+        "canonical": "#85819c",
+        "darkModeValue": "#948fa8",
+        "note": "Metadata, eyebrows, captions, inactive dock tabs.",
+        "tonalRamp": [
+          "oklch(22% 0.02 290)",
+          "oklch(33% 0.025 290)",
+          "oklch(44% 0.03 290)",
+          "oklch(56% 0.035 290)",
+          "oklch(67% 0.03 290)",
+          "oklch(79% 0.022 290)",
+          "oklch(89% 0.014 290)",
+          "oklch(96% 0.006 290)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "rgb(255 255 255 / 0.72)",
+        "darkModeValue": "rgb(255 255 255 / 0.07)",
+        "note": "Translucent surface fill. Deliberately unblurred — it sits over a static aurora."
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgb(20 18 30 / 0.09)",
+        "darkModeValue": "rgb(255 255 255 / 0.13)",
+        "note": "The default way to bound anything in this system."
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Line Strong",
+        "canonical": "rgb(20 18 30 / 0.16)",
+        "darkModeValue": "rgb(255 255 255 / 0.22)"
+      },
+      "glow-a": {
+        "role": "neutral",
+        "displayName": "Glow A",
+        "canonical": "rgb(91 61 245 / 0.16)",
+        "darkModeValue": "rgb(125 95 255 / 0.2)",
+        "note": "Aurora only."
+      },
+      "glow-b": {
+        "role": "neutral",
+        "displayName": "Glow B",
+        "canonical": "rgb(14 159 184 / 0.16)",
+        "darkModeValue": "rgb(70 205 235 / 0.14)",
+        "note": "Aurora only."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The homepage headline only. Breaks are explicit, never emergent."
+      },
+      "headline": { "displayName": "Headline", "purpose": "Page titles." },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and rendered `##` in prose."
+      },
+      "body": { "displayName": "Body", "purpose": "Default UI text." },
+      "reading": {
+        "displayName": "Reading",
+        "purpose": "Long-form prose only, on a 46rem measure (~78 characters)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Eyebrows, dates, counts, tags, stacks. Monospace marks data, never prose."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 10px 34px rgb(24 18 60 / 0.08)",
+        "darkValue": "0 12px 38px rgb(0 0 0 / 0.42)",
+        "purpose": "The only shadow token. Objects (portrait, post images, device frames) and button hover. Never on a Panel."
+      },
+      {
+        "name": "dock-glass",
+        "value": "0 14px 40px rgb(24 18 60 / 0.22), 0 2px 6px rgb(24 18 60 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -14px 24px -14px rgb(24 18 60 / 0.42)",
+        "darkValue": "0 16px 44px rgb(0 0 0 / 0.62), inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -14px 24px -14px rgb(0 0 0 / 0.6)",
+        "purpose": "Not reusable. Exists once, on the mobile dock, to make real glass out of a floating capsule."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-lift",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Default easing for interactive state — button hover, dock collapse, tab press."
+      },
+      {
+        "name": "drift",
+        "value": "drift 34s ease-in-out infinite alternate",
+        "purpose": "The aurora's slow wander. The system's ambient pulse."
+      },
+      {
+        "name": "orbit",
+        "value": "orbit 26s linear infinite",
+        "purpose": "The dashed ring around the homepage portrait."
+      },
+      {
+        "name": "status",
+        "value": "status 2.6s ease-in-out infinite",
+        "purpose": "Pulsing status dot. Applied only to a project that is actively moving."
+      },
+      {
+        "name": "travel",
+        "value": "travel 6.5s ease-in-out infinite",
+        "purpose": "A pulse running up the career timeline spine, upward so it reads as progression."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) { animation: none !important; transition: none !important; }",
+        "purpose": "Global kill switch. Every animation in the system is decorative enough to drop entirely."
+      }
+    ],
+    "breakpoints": [
+      { "name": "hero", "value": "26rem" },
+      { "name": "card", "value": "46rem" },
+      { "name": "nav", "value": "50rem" },
+      { "name": "rail", "value": "52rem" },
+      { "name": "case", "value": "54rem" },
+      { "name": "bio", "value": "56rem" }
+    ],
+    "containers": [
+      { "name": "shell", "value": "70rem" },
+      { "name": "measure", "value": "46rem" },
+      { "name": "bio", "value": "52rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The spectrum gradient. Used for the single most important action on a surface.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\"><svg class=\"ds-btn-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg>Download resume</a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 22px; border: 1px solid transparent; border-radius: 999px; background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); color: #fff; font-family: 'Inter Variable', Inter, sans-serif; font-size: 0.9375rem; font-weight: 600; text-decoration: none; transition: transform 0.2s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.2s cubic-bezier(0.2,0.8,0.2,1); } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 34px rgb(24 18 60 / 0.08); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-violet, #5b3df5); outline-offset: 3px; } .ds-btn-icon { width: 20px; height: 20px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Hairline border over the translucent panel fill. Every secondary action.",
+      "html": "<a class=\"ds-btn-default\" href=\"#\"><svg class=\"ds-btn-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\"/><path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\"/></svg>Email me</a>",
+      "css": ".ds-btn-default { display: inline-flex; align-items: center; gap: 8px; min-height: 50px; padding: 0 22px; border: 1px solid var(--color-line, rgb(20 18 30 / 0.09)); border-radius: 999px; background: var(--color-panel, rgb(255 255 255 / 0.72)); color: var(--color-ink, #131220); font-family: 'Inter Variable', Inter, sans-serif; font-size: 0.9375rem; font-weight: 600; text-decoration: none; transition: transform 0.2s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.2s cubic-bezier(0.2,0.8,0.2,1); } .ds-btn-default:hover { transform: translateY(-2px); box-shadow: 0 10px 34px rgb(24 18 60 / 0.08); } .ds-btn-default:focus-visible { outline: 2px solid var(--color-violet, #5b3df5); outline-offset: 3px; } .ds-btn-icon { width: 20px; height: 20px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Monospace token for a stack item, tag, or spec. The accent variant swaps the border only.",
+      "html": "<span class=\"ds-chip\">TypeScript</span> <span class=\"ds-chip ds-chip-accent\">Claude Code</span>",
+      "css": ".ds-chip { display: inline-block; padding: 4px 10px; border: 1px solid var(--color-line, rgb(20 18 30 / 0.09)); border-radius: 999px; background: transparent; color: var(--color-muted, #55536a); font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.6875rem; letter-spacing: 0.04em; } .ds-chip-accent { border-color: color-mix(in srgb, var(--color-violet, #5b3df5) 45%, transparent); }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The universal surface: translucent fill, hairline border, 18px corners, and never a shadow.",
+      "html": "<div class=\"ds-panel\"><b class=\"ds-panel-figure\">11</b><span class=\"ds-panel-label\">Years shipping</span></div>",
+      "css": ".ds-panel { display: block; padding: 24px; border: 1px solid var(--color-line, rgb(20 18 30 / 0.09)); border-radius: 18px; background: var(--color-panel, rgb(255 255 255 / 0.72)); } .ds-panel-figure { display: block; font-family: 'Space Grotesk Variable', 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.04em; background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-block: 0.08em 0.2em; margin-block: -0.08em -0.2em; } .ds-panel-label { display: block; margin-top: 8px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-faint, #85819c); }"
+    },
+    {
+      "name": "Desktop Nav",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "Pill row in the sticky header. The active item takes the full spectrum; the rest are muted until hover.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-active\" href=\"#\" aria-current=\"page\">Home</a><a class=\"ds-nav-link\" href=\"#\">About</a><a class=\"ds-nav-link\" href=\"#\">Projects</a><a class=\"ds-nav-link\" href=\"#\">Writing</a></nav>",
+      "css": ".ds-nav { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; } .ds-nav-link { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; font-family: 'Inter Variable', Inter, sans-serif; font-size: 0.9375rem; color: var(--color-muted, #55536a); text-decoration: none; transition: color 0.16s ease; } .ds-nav-link:hover { color: var(--color-ink, #131220); } .ds-nav-active { background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); color: #fff; } .ds-nav-link:focus-visible { outline: 2px solid var(--color-violet, #5b3df5); outline-offset: 3px; }"
+    },
+    {
+      "name": "Status",
+      "kind": "custom",
+      "refersTo": "status-dot",
+      "description": "Monospace state line. The dot pulses only when the project is actively moving; parked projects get a flat faint dot.",
+      "html": "<span class=\"ds-status\"><i class=\"ds-status-dot ds-status-pulse\"></i>Beta · near release</span><br/><span class=\"ds-status\"><i class=\"ds-status-dot\"></i>Live · being rebuilt</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted, #55536a); } .ds-status-dot { display: block; width: 7px; height: 7px; border-radius: 999px; background: var(--color-faint, #85819c); } .ds-status-pulse { background: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); animation: ds-status 2.6s ease-in-out infinite; } @keyframes ds-status { 50% { opacity: 0.35; transform: scale(0.85); } } @media (prefers-reduced-motion: reduce) { .ds-status-pulse { animation: none; } }"
+    },
+    {
+      "name": "Eyebrow",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "The monospace label above a heading. The system's most repeated typographic move.",
+      "html": "<p class=\"ds-eyebrow\">Full-stack engineer · New York</p>",
+      "css": ".ds-eyebrow { margin: 0; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-faint, #85819c); }"
+    },
+    {
+      "name": "Mobile Dock",
+      "kind": "nav",
+      "refersTo": "dock-tab",
+      "description": "The floating glass capsule below 50rem. Per-position radii let the active tab reach the capsule's own end cap with no uncolored gap.",
+      "html": "<nav class=\"ds-dock\"><a class=\"ds-dock-tab ds-dock-active\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Home</span></a><a class=\"ds-dock-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg><span>About</span></a><a class=\"ds-dock-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/><rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\"/></svg><span>Projects</span></a></nav>",
+      "css": ".ds-dock { display: flex; width: 320px; padding: 0; overflow: hidden; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.62); background: color-mix(in srgb, var(--color-base, #fcfaf6) 28%, transparent); backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%); box-shadow: 0 14px 40px rgb(24 18 60 / 0.22), 0 2px 6px rgb(24 18 60 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -14px 24px -14px rgb(24 18 60 / 0.42); } .ds-dock-tab { position: relative; flex: 1 1 0; min-width: 0; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-inline: 2px; border-radius: 18px; font-family: 'Inter Variable', Inter, sans-serif; font-size: 10px; color: var(--color-faint, #85819c); text-decoration: none; transition: transform 0.16s cubic-bezier(0.2,0.8,0.2,1); } .ds-dock-tab svg { width: 19px; height: 19px; flex-shrink: 0; } .ds-dock-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-dock-tab:active { transform: scale(0.93); } .ds-dock-tab:first-child { border-radius: 999px 18px 18px 999px; } .ds-dock-tab:last-child { border-radius: 18px 999px 999px 18px; } .ds-dock-active { background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Daylit Observatory",
+    "overview": "Every motif in this system is borrowed from deep space — an aurora, an orbit, a spectrum, a status light — and every one of them is rendered in full daylight on warm paper. That inversion is the whole idea. The obvious way to build a sci-fi interface is neon on black; this one refuses that and puts the same instruments on #FCFAF6, where they have to earn their presence through precision instead of contrast. The result reads as an observatory at midday rather than a console at night.\n\nThe system's governing tension is that the atmosphere is alive while the objects are still. Behind everything, a three-gradient aurora drifts on a 34-second loop, a dot orbits the portrait, a status light pulses, and a pulse travels up the career timeline. In front of it, the components are almost severe: hairline borders, flat translucent fills, pill geometry, monospace labels, and exactly one accent. Nothing in the foreground competes with the motion behind it. When a new component is ambiguous, resolve it toward restraint — the luminosity is already handled by the field it sits on.\n\nDepth comes from light rather than from shadow, which is why the standard surface is a translucent fill over the aurora rather than a card floating above a flat page. The palette is near-monochrome ink on paper with a single violet-to-cyan spectrum that marks anything active, anywhere, and marks nothing else.",
+    "keyCharacteristics": [
+      "Sci-fi vocabulary rendered on warm paper (#FCFAF6), never on a dark console",
+      "A single Ultraviolet → Aurora Teal spectrum as the only accent in the system",
+      "Ambient motion behind, still and restrained objects in front",
+      "Hairline borders and flat translucent fills instead of cards and shadows",
+      "Monospace for every label, date, number, and path",
+      "Theming by token redefinition, so utilities re-derive rather than needing a dark: twin"
+    ],
+    "rules": [
+      {
+        "name": "The One Spectrum Rule",
+        "body": "There is exactly one accent in this system and it is a gradient: linear-gradient(100deg, Ultraviolet, Aurora Teal). It marks active navigation, primary buttons, the progress bar, status pulses, and gradient text. Introducing a third hue — a red error, a green success, a category color — is a change to the system, not a use of it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cyan Never Reads Rule",
+        "body": "Aurora Teal is 3.1:1 on the light base. It may terminate a gradient, fill a dot, or mark a state beside ink. It may never carry body text, and it may never be the sole signal of meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The Re-derive Rule",
+        "body": "Dark mode overrides the same custom properties rather than adding dark: variants, so every utility recomputes automatically. Reach for the dark: variant only when a property genuinely has no token behind it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voices Rule",
+        "body": "Space Grotesk states, Inter explains, JetBrains Mono labels. Every piece of text belongs to exactly one of those three jobs. A fourth family is a defect, not an addition.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Means Data Rule",
+        "body": "Monospace is not a decorative texture here — it marks content that is a value rather than a sentence: dates, tenures, counts, stacks, tags, file paths, captions. Prose never sets in mono, and a date never sets in Inter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Explicit Break Rule",
+        "body": "Display headlines break where they are told. The homepage headline contains a word that changes at runtime, so an emergent break would recompose the type every few seconds; the breaks are hard-coded and collapse to inline only below 26rem. text-wrap: balance does not solve this.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fluid Scale Rule",
+        "body": "Every size above UI text is a clamp() fluid from 320px up. There is no viewport where type is sized for a different screen than the one it is on, and there are no size breakpoints.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Rhythm Rule",
+        "body": "Bands are spaced by --section and nothing else. Per-block vertical padding is what made the gaps drift in the first revision; if a band needs more air, the value changes for every band or not at all.",
+        "section": "layout"
+      },
+      {
+        "name": "The Never Touch --spacing Rule",
+        "body": "--section and --gutter live in plain :root, not in @theme. Defining any --spacing-* key inside @theme drops Tailwind's own --spacing base and every numeric p-*, gap-*, and size-* utility silently stops resolving — with an error that points at the wrong file.",
+        "section": "layout"
+      },
+      {
+        "name": "The Zero-Overflow Rule",
+        "body": "document.documentElement.scrollWidth must not exceed the viewport at 320/360/390/414/768/1280 in both themes on every page. Grid children need min-width: 0 and minmax(0, 1fr) tracks; a flex row of chips in an auto-sized track measures to max-content and drags a 320px page ~400px wide.",
+        "section": "layout"
+      },
+      {
+        "name": "The Surface/Object Rule",
+        "body": "Flat surfaces never cast; objects do. Panel — the translucent fill behind every card, stat tile, and container — carries no shadow, ever. shadow-lift is reserved for things that behave like physical objects resting on the page: photographs, screenshots, device frames. Buttons borrow it on hover, which is exactly why the hover reads as picking the button up. When a new component is ambiguous, ask whether it is a surface or an object; there is no third answer.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Two Blurs Rule",
+        "body": "backdrop-filter appears in exactly two places — the sticky header and the floating dock — because those are the only elements that composite against content that moves beneath them. Everywhere else it is forbidden: a dozen blurred elements per page is the single most likely thing to fail a performance audit, and over a static aurora it is invisible anyway.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Pill-or-Card Rule",
+        "body": "If a user can act on it, it is a pill (999px). If it holds content, it is an 18px card. A new radius value needs a reason that neither covers.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do route every accent through the one Ultraviolet → Aurora Teal spectrum, and let its rarity carry the emphasis.",
+      "Do set every label, date, count, tag, and stack item in JetBrains Mono, uppercase with 0.16em tracking where it is an eyebrow.",
+      "Do bound elements with a 1px line hairline and a translucent fill rather than with a shadow or a solid card.",
+      "Do define new colors as tokens overridden under :root[data-theme='dark'], so utilities re-derive instead of needing a dark: twin.",
+      "Do name a new breakpoint after the layout decision it makes, not after a device.",
+      "Do keep interactive controls and chrome at 44px or larger. Inline text links inside prose are exempt.",
+      "Do use bg-linear-100 from-violet to-cyan — the Tailwind v4 gradient names, not bg-gradient-to-r.",
+      "Do verify anything visual in a real browser at 320/360/390/414/768/1280 in both themes. None of the four build gates renders a page."
+    ],
+    "donts": [
+      "Don't add a marquee, ticker, or any content that scrolls horizontally on its own. This was rejected explicitly and is a standing ban.",
+      "Don't put a backdrop-filter on anything but the header and the dock.",
+      "Don't give a Panel a shadow, or give a photograph none.",
+      "Don't let Aurora Teal carry body text, or be the only signal that something is active.",
+      "Don't add a key to the --spacing namespace in @theme; it silently breaks every numeric spacing utility in the project.",
+      "Don't introduce a fourth type family, or set prose in monospace.",
+      "Don't let a display headline break wherever the browser lands — set the breaks explicitly.",
+      "Don't renumber a ranked list when it is filtered; rank comes from the data, not from <ol> or a CSS counter."
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+---
+/**
+ * Centers content and caps how wide it gets. Width only, no vertical space.
+ *
+ * Use `Section` for a normal page band. Use this only where section spacing
+ * would be wrong: the header and the footer.
+ */
+interface Props {
+  as?: 'div' | 'section' | 'article' | 'header' | 'footer' | 'aside' | 'nav';
+  class?: string;
+}
+
+const { as: Tag = 'div', class: className, ...rest } = Astro.props;
+---
+
+<Tag
+  class:list={['mx-auto w-full max-w-page px-(--gutter)', className]}
+  {...rest}
+>
+  <slot />
+</Tag>

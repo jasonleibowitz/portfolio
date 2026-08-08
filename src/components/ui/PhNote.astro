@@ -1,0 +1,17 @@
+---
+/** A note to Jason about what is still outstanding on the block above it. */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<p
+  class:list={[
+    'mt-3 font-mono text-meta text-violet before:content-["◇_"]',
+    className,
+  ]}
+>
+  <slot />
+</p>

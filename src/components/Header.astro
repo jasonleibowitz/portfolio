@@ -1,7 +1,123 @@
 ---
-import Navigation from './Navigation.astro';
+import { Icon } from 'astro-icon/components';
+import Monogram from './Monogram.astro';
+import Container from './layout/Container.astro';
+import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
+
+interface Props {
+  page: PageKey;
+  /** Posts and project pages get a reading-progress bar under the header. */
+  progress?: boolean;
+}
+
+const { page, progress = false } = Astro.props;
+const active = NAV_FOR_PAGE[page];
 ---
 
-<header class="p-4">
-  <Navigation />
+<header
+  class="sticky top-0 z-30 py-3 backdrop-blur-md [background:color-mix(in_srgb,var(--color-canvas)_78%,transparent)]"
+>
+  <Container class="flex min-h-12 items-center gap-4">
+    <a
+      href="/"
+      class="inline-flex min-h-11 items-center gap-2.5 font-display text-body font-bold tracking-[-0.02em] whitespace-nowrap text-ink no-underline"
+    >
+      <Monogram class="block size-[30px] shrink-0 rounded-[9px]" />
+      Jason Leibowitz
+    </a>
+
+    <nav
+      class="ml-auto hidden gap-1 rounded-full p-1 nav:flex"
+      aria-label="Primary"
+    >
+      {
+        NAV.map((item) => (
+          <a
+            href={item.href}
+            aria-current={item.key === active ? 'page' : undefined}
+            class:list={[
+              'inline-flex min-h-10 items-center rounded-full px-4 text-ui no-underline',
+              item.key === active
+                ? 'spectrum-fill'
+                : 'text-muted hover:text-ink',
+            ]}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <button
+      id="themeBtn"
+      type="button"
+      aria-label="Toggle dark mode"
+      class="theme-btn ml-auto inline-flex size-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border text-muted hover:text-ink nav:ml-0"
+    >
+      <span class="relative block size-5">
+        <Icon name="lucide:sun" class="ticon sun" />
+        <Icon name="lucide:moon" class="ticon moon" />
+      </span>
+    </button>
+  </Container>
+
+  {
+    progress && (
+      <div class="absolute inset-x-0 bottom-0 h-[3px]" aria-hidden="true">
+        <i
+          id="progressFill"
+          class="block h-full w-0 rounded-r-[3px] bg-linear-100 from-violet to-cyan transition-[width] duration-[80ms] ease-linear"
+        />
+      </div>
+    )
+  }
 </header>
+
+<style>
+  /* The toggle carries color: a warm sun in light, a violet moon in dark. The
+     two glyphs are stacked and cross-fade — one SVG with a translated moon path
+     still painted over the sun. */
+  .theme-btn {
+    border-color: color-mix(in srgb, var(--color-sun) 34%, transparent);
+    background: color-mix(in srgb, var(--color-sun) 9%, transparent);
+    transition:
+      background 0.4s ease,
+      border-color 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+  .theme-btn:hover {
+    border-color: var(--color-line-strong);
+  }
+  :root[data-theme='dark'] .theme-btn {
+    border-color: color-mix(in srgb, var(--color-violet) 50%, transparent);
+    background: color-mix(in srgb, var(--color-violet) 16%, transparent);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--color-violet) 9%, transparent);
+  }
+
+  .ticon {
+    position: absolute;
+    inset: 0;
+    width: 20px;
+    height: 20px;
+    transition:
+      opacity 0.34s ease,
+      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sun {
+    color: var(--color-sun);
+  }
+  .moon {
+    opacity: 0;
+    transform: rotate(70deg) scale(0.6);
+    color: var(--color-violet);
+  }
+  :root[data-theme='dark'] .sun {
+    opacity: 0;
+    transform: rotate(-70deg) scale(0.6);
+  }
+  :root[data-theme='dark'] .moon {
+    opacity: 1;
+    transform: none;
+  }
+</style>

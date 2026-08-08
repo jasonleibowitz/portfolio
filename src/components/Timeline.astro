@@ -1,0 +1,118 @@
+---
+import Chip from './ui/Chip.astro';
+import { CAREER, isConcurrent, roleDates, tenure } from '../lib/career';
+
+/**
+ * The career as a spine with a pulse traveling up it. Companies, titles and
+ * dates are the whole of it on purpose — accomplishments live in the resume,
+ * which is where a recruiter reads them. `bullets` still renders if a role
+ * ever carries any. Every date string and the concurrency test come from
+ * `lib/career.ts`.
+ */
+---
+
+<ul class="track relative m-0 list-none p-0 pl-6">
+  {
+    CAREER.map((employer) => (
+      <li class="relative py-6">
+        <span class="font-mono text-meta tracking-[0.08em] text-faint">
+          {tenure(employer)}
+        </span>
+
+        <h3 class="my-1 font-display text-h3 font-bold tracking-[-0.025em]">
+          {employer.company}
+        </h3>
+
+        <ol class="m-0 grid list-none gap-2 p-0">
+          {employer.roles.map((role, index) => (
+            <li>
+              <p class="m-0 text-ui">
+                <span class="font-medium">{role.title}</span>{' '}
+                <span class="font-mono text-meta whitespace-nowrap text-faint">
+                  {roleDates(employer.roles, index)}
+                </span>
+                {isConcurrent(employer.roles, index) && (
+                  <Chip size="mini" accent="violet" class="ml-1.5 align-middle">
+                    concurrent
+                  </Chip>
+                )}
+              </p>
+
+              {role.bullets && (
+                <ul class="m-0 mt-1.5 grid max-w-[60ch] list-none gap-1.5 p-0">
+                  {role.bullets.map((bullet) => (
+                    <li class="relative pl-4 text-ui text-muted">{bullet}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .track::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
+    opacity: 0.45;
+  }
+
+  /* Travels upward, so the career reads as progression. */
+  .track::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    width: 4px;
+    height: 64px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--color-violet),
+      transparent
+    );
+    filter: blur(1px);
+    opacity: 0.85;
+    animation: var(--animate-travel);
+  }
+
+  .track > li::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 30px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-canvas);
+    border: 2px solid var(--color-violet);
+    z-index: 1;
+  }
+  .track > li:first-child::before {
+    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
+    border-color: transparent;
+    box-shadow: 0 0 0 4px var(--color-glow-a);
+  }
+
+  /* Accomplishment bullets, now nested under the role they belong to. */
+  .track > li > ol > li > ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-violet);
+    opacity: 0.55;
+  }
+</style>

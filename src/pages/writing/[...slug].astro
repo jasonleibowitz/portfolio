@@ -1,0 +1,22 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '@layouts/PostLayout.astro';
+import { getPublished } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getPublished('blog');
+
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    // Sorted newest first, so "next" is the one published before this.
+    props: { post, next: posts[index + 1] },
+  }));
+}
+
+const { post, next } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<PostLayout post={post} headings={headings} next={next}>
+  <Content />
+</PostLayout>

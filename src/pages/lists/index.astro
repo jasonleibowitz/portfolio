@@ -1,8 +1,41 @@
 ---
-import ContentListLayout from '@layouts/ContentListLayout.astro';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Section from '@components/layout/Section.astro';
+import ListRow from '@components/ListRow.astro';
 import { getPublished } from '../../lib/content';
 
 const lists = await getPublished('lists');
 ---
 
-<ContentListLayout pageTitle="Listicles" items={lists} baseUrl="/lists" />
+<BaseLayout
+  pageTitle="Lists"
+  page="lists"
+  description="Recommendations I get asked for often enough that it was easier to write them down."
+>
+  <PageHead
+    eyebrow="Lists"
+    title="Things, ranked and sorted"
+    lead="Recommendations I get asked for often enough that it was easier to write them down. Shorter than a post, updated whenever something changes."
+  />
+
+  <Section>
+    {
+      /* Hairline-separated rows rather than cards, matching /projects and
+        /writing. Each row draws its own top rule and the footer draws the
+        page's closing one, so a bottom rule here would land a second hairline
+        barely a section's padding above the footer's. */
+    }
+    {lists.map((list) => <ListRow list={list} />)}
+
+    {
+      /* Every list can be a draft at once, which renders a headline, a lead
+        and then nothing at all. Reachable today with two entries. */
+      lists.length === 0 && (
+        <p class="border-t border-line py-10 text-body text-muted">
+          No lists are published right now. They will be back.
+        </p>
+      )
+    }
+  </Section>
+</BaseLayout>
