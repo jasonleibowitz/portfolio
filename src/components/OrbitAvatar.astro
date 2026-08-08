@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import { PORTRAIT_SOCIALS, type SocialKey } from '../lib/site';
+import { AVATAR_SOCIALS, type SocialKey } from '../lib/site';
 
 import headshot from '@images/headshot.png';
 import github from '@images/githubprofile.png';
@@ -10,15 +10,15 @@ import twitter from '@images/twitterprofile.png';
 import instagram from '@images/instagramprofile.png';
 
 /**
- * The portrait, with an orbiting dot, that swaps to the profile picture for
- * whichever social chip you are on. Hover and focus on pointer devices, tap on
- * touch — where the chip stays lit until you tap another.
+ * The headshot, ringed by an orbiting dot, that swaps to the profile picture
+ * for whichever social chip you are on. Hover and focus on pointer devices, tap
+ * on touch, where the chip stays lit until you tap another.
  *
  * The images are imported rather than referenced from public/ so they go
  * through astro:assets: five 500px PNGs is ~900kB of source for something that
  * renders at 250px.
  */
-const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
+const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
   default: headshot,
   github,
   linkedin,
@@ -36,7 +36,7 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
   </div>
 
   <div
-    id="portrait"
+    id="orbit-avatar"
     class="absolute inset-3.5 overflow-hidden rounded-full shadow-lift"
   >
     <Image
@@ -44,12 +44,12 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
       alt="Jason Leibowitz"
       width={250}
       densities={[1, 2]}
-      class="portrait-shot is-active"
+      class="avatar-shot is-active"
       data-key="default"
     />
     {
-      PORTRAIT_SOCIALS.map((social) => {
-        const image = PORTRAITS[social.key];
+      AVATAR_SOCIALS.map((social) => {
+        const image = AVATARS[social.key];
         return (
           image && (
             <Image
@@ -57,7 +57,7 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
               alt=""
               width={250}
               densities={[1, 2]}
-              class="portrait-shot"
+              class="avatar-shot"
               data-key={social.key}
               aria-hidden="true"
             />
@@ -82,7 +82,7 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
     box-shadow: 0 0 12px var(--color-glow-a);
   }
 
-  .portrait-shot {
+  .avatar-shot {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -94,7 +94,7 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
       opacity 0.32s ease,
       transform 0.32s ease;
   }
-  .portrait-shot.is-active {
+  .avatar-shot.is-active {
     opacity: 1;
     transform: none;
   }
@@ -102,7 +102,7 @@ const PORTRAITS: Record<SocialKey | 'default', ImageMetadata | null> = {
 
 <script>
   const shots = document.querySelectorAll<HTMLElement>(
-    '#portrait .portrait-shot'
+    '#orbit-avatar .avatar-shot'
   );
   const chips = document.querySelectorAll<HTMLElement>('[data-swap]');
 

@@ -10,8 +10,8 @@ import { NAV, NAV_FOR_PAGE, type PageKey } from '../lib/site';
  * per-position border-radius, and nothing is left uncolored around the active
  * item. Chosen deliberately over an Apple-style inset tinted chip.
  *
- * At a 320px viewport five tabs are 59px each — above the 44px target rule.
- * Labels ellipsis rather than widen the dock.
+ * At a 320px viewport five tabs are 59px each, above the 44px target rule.
+ * Labels ellipsis rather than widen the bar.
  */
 interface Props {
   page: PageKey;
@@ -21,14 +21,14 @@ const { page } = Astro.props;
 const active = NAV_FOR_PAGE[page];
 ---
 
-<nav class="dock" aria-label="Primary">
+<nav class="mobile-tab-nav" aria-label="Primary">
   {
     NAV.map((item) => (
       <a
         href={item.href}
         aria-current={item.key === active ? 'page' : undefined}
         class:list={[
-          'dock-tab',
+          'tab',
           item.key === active ? 'spectrum-fill' : 'text-faint',
         ]}
       >
@@ -40,7 +40,7 @@ const active = NAV_FOR_PAGE[page];
 </nav>
 
 <style>
-  .dock {
+  .mobile-tab-nav {
     position: fixed;
     left: 50%;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
@@ -53,7 +53,7 @@ const active = NAV_FOR_PAGE[page];
     padding: 0;
     overflow: hidden;
     background: color-mix(in srgb, var(--color-canvas) 28%, transparent);
-    /* One of only two live blurs on the page: the dock sits over scrolling
+    /* One of only two live blurs on the page: the bar sits over scrolling
        content, so it has to composite against something that moves. No SVG
        refraction — that needs feDisplacementMap inside backdrop-filter, which
        Safari and Firefox ignore, so it would be invisible on the phones that
@@ -73,7 +73,7 @@ const active = NAV_FOR_PAGE[page];
     transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  :root[data-theme='dark'] .dock {
+  :root[data-theme='dark'] .mobile-tab-nav {
     background: color-mix(in srgb, var(--color-canvas) 36%, transparent);
     border-color: rgb(255 255 255 / 0.2);
     box-shadow:
@@ -86,23 +86,23 @@ const active = NAV_FOR_PAGE[page];
      each of 18px and 14px -- which is how the collapsed state drifted to 15px.
      Registered so the variable itself interpolates rather than a transition
      chasing a var substitution. Not inherited: only the tabs read it. */
-  @property --dock-tab-radius {
+  @property --tab-radius {
     syntax: '<length>';
     inherits: false;
     initial-value: 18px;
   }
 
-  /* One block per selector: a second `.dock-tab { transition: … }` elsewhere
+  /* One block per selector: a second `.tab { transition: … }` elsewhere
      silently replaced this one during the mockup and the collapse stopped
      animating. */
-  .dock-tab {
-    --dock-tab-radius: 18px;
+  .tab {
+    --tab-radius: 18px;
     position: relative;
     z-index: 1;
     flex: 1 1 0;
     min-width: 0;
     height: 56px;
-    border-radius: var(--dock-tab-radius);
+    border-radius: var(--tab-radius);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -119,20 +119,20 @@ const active = NAV_FOR_PAGE[page];
     transition:
       transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
       height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      --dock-tab-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      --tab-radius 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
       gap 0.3s ease;
   }
-  .dock-tab:active {
+  .tab:active {
     transform: scale(0.93);
   }
-  .dock-tab:first-child {
-    border-radius: 999px var(--dock-tab-radius) var(--dock-tab-radius) 999px;
+  .tab:first-child {
+    border-radius: 999px var(--tab-radius) var(--tab-radius) 999px;
   }
-  .dock-tab:last-child {
-    border-radius: var(--dock-tab-radius) 999px 999px var(--dock-tab-radius);
+  .tab:last-child {
+    border-radius: var(--tab-radius) 999px 999px var(--tab-radius);
   }
 
-  .dock-tab span {
+  .tab span {
     max-width: 100%;
     /* The box has to hold the line, or `overflow: hidden` crops it. The body
        line-height of 1.62 put a 19px line inside a 14px box and cut the
@@ -151,21 +151,21 @@ const active = NAV_FOR_PAGE[page];
   }
 
   /* Collapsed: icons only, added by the scroll handler in lib/chrome.ts. */
-  .dock.is-min {
+  .mobile-tab-nav.is-min {
     width: min(300px, calc(100vw - 24px));
   }
-  .dock.is-min .dock-tab {
-    --dock-tab-radius: 14px;
+  .mobile-tab-nav.is-min .tab {
+    --tab-radius: 14px;
     height: 46px;
     gap: 0;
   }
-  .dock.is-min .dock-tab span {
+  .mobile-tab-nav.is-min .tab span {
     max-height: 0;
     opacity: 0;
   }
 
   @media (min-width: 50rem) {
-    .dock {
+    .mobile-tab-nav {
       display: none;
     }
   }

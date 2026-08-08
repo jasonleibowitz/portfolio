@@ -1,21 +1,21 @@
 ---
 import { Icon } from 'astro-icon/components';
-import { SOCIALS, PORTRAIT_SOCIALS, type Social } from '../lib/site';
+import { SOCIALS, AVATAR_SOCIALS, type Social } from '../lib/site';
 
 /**
  * Icon-only by convention. The name lives in aria-label, so each link still
- * announces properly; pill chrome here competed with the portrait above it.
+ * announces properly; pill chrome here competed with the avatar above it.
  *
- * `swap` marks the row that drives the homepage portrait swap.
+ * `swap` marks the row that drives the homepage avatar swap.
  */
 interface Props {
-  variant?: 'full' | 'portrait';
+  variant?: 'full' | 'avatar';
   swap?: boolean;
   class?: string;
 }
 
 const { variant = 'full', swap = false, class: className } = Astro.props;
-const items: Social[] = variant === 'full' ? SOCIALS : PORTRAIT_SOCIALS;
+const items: Social[] = variant === 'full' ? SOCIALS : AVATAR_SOCIALS;
 ---
 
 <div class:list={['flex flex-wrap gap-1', className]}>

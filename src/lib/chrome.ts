@@ -1,5 +1,5 @@
 /**
- * Chrome behavior that every page gets: the theme toggle, the mobile dock's
+ * Chrome behavior that every page gets: the theme toggle, the tab bar's
  * scroll collapse, and the reading-progress bar.
  *
  * Vanilla, no framework — the site ships zero JS islands.
@@ -85,17 +85,17 @@ function initThemeToggle() {
 }
 
 /** Collapses to icons as you scroll down, expands again on the way up. */
-function initDock() {
-  const dock = document.querySelector('.dock');
-  if (!dock || reduced) return;
+function initMobileTabNav() {
+  const nav = document.querySelector('.mobile-tab-nav');
+  if (!nav || reduced) return;
 
   let lastY = window.scrollY;
   window.addEventListener(
     'scroll',
     () => {
       const y = window.scrollY;
-      if (y > lastY + 4 && y > 140) dock.classList.add('is-min');
-      else if (y < lastY - 4) dock.classList.remove('is-min');
+      if (y > lastY + 4 && y > 140) nav.classList.add('is-min');
+      else if (y < lastY - 4) nav.classList.remove('is-min');
       lastY = y;
     },
     { passive: true }
@@ -123,7 +123,7 @@ function initProgress() {
 export function initChrome() {
   initThemeSync();
   initThemeToggle();
-  initDock();
+  initMobileTabNav();
   initProgress();
   initFilters();
 }

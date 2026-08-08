@@ -2,8 +2,8 @@
 import Shell from './ui/Shell.astro';
 import Eyebrow from './ui/Eyebrow.astro';
 import Button from './ui/Button.astro';
-import Cycler from './Cycler.astro';
-import Portrait from './Portrait.astro';
+import RotatingWords from './RotatingWords.astro';
+import OrbitAvatar from './OrbitAvatar.astro';
 import SocialRow from './SocialRow.astro';
 import { EMAIL, RESUME_HREF } from '../lib/site';
 import { yearsShipping } from '../lib/career';
@@ -37,9 +37,9 @@ import { yearsShipping } from '../lib/career';
           */
           }{' '}<span class="inline hero:block"
             >that <span class="whitespace-nowrap"
-              ><Cycler words={['ship', 'last', 'delight', 'scale']} /><span
-                class="text-gradient">.</span
-              ></span
+              ><RotatingWords
+                words={['ship', 'last', 'delight', 'scale']}
+              /><span class="text-gradient">.</span></span
             ></span
           >
         </h1>
@@ -57,8 +57,8 @@ import { yearsShipping } from '../lib/career';
       </div>
 
       <div class="mt-12 flex flex-col items-center gap-6 nav:mt-0">
-        <Portrait />
-        <SocialRow variant="portrait" swap class="justify-center" />
+        <OrbitAvatar />
+        <SocialRow variant="avatar" swap class="justify-center" />
       </div>
     </div>
 

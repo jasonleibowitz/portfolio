@@ -1,6 +1,6 @@
 ---
 /**
- * The cycling word in the headline.
+ * The word in the headline that rotates through a short list.
  *
  * Two things here are less obvious than they look:
  *
@@ -19,7 +19,7 @@ const { words } = Astro.props;
 ---
 
 {/* All four words are in the DOM, so only the first is read aloud. */}
-<span class="cycler" id="cycler"
+<span class="rotating-words" id="rotating-words"
   >{
     words.map((word, i) => (
       <span
@@ -33,19 +33,19 @@ const { words } = Astro.props;
 >
 
 <style>
-  .cycler {
+  .rotating-words {
     position: relative;
     display: inline-block;
     vertical-align: baseline;
     white-space: nowrap;
     transition: width 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .cycler::before {
+  .rotating-words::before {
     content: '\200b';
     display: inline-block;
     width: 0;
   }
-  .cycler span {
+  .rotating-words span {
     position: absolute;
     left: 0;
     top: 0;
@@ -57,12 +57,12 @@ const { words } = Astro.props;
       transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1),
       filter 0.42s ease;
   }
-  .cycler span.is-in {
+  .rotating-words span.is-in {
     opacity: 1;
     transform: none;
     filter: none;
   }
-  .cycler span.is-out {
+  .rotating-words span.is-out {
     opacity: 0;
     transform: translateY(-0.24em);
     filter: blur(6px);
@@ -70,10 +70,10 @@ const { words } = Astro.props;
 </style>
 
 <script>
-  const cycler = document.getElementById('cycler');
+  const rotator = document.getElementById('rotating-words');
 
-  if (cycler) {
-    const words = Array.from(cycler.children) as HTMLElement[];
+  if (rotator) {
+    const words = Array.from(rotator.children) as HTMLElement[];
 
     // Measure off-screen, once, so the container has a width to animate to.
     const widths = words.map((word) => {
@@ -85,7 +85,7 @@ const { words } = Astro.props;
       return width;
     });
 
-    cycler.style.width = `${widths[0]}px`;
+    rotator.style.width = `${widths[0]}px`;
 
     const reduced = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
@@ -102,7 +102,7 @@ const { words } = Astro.props;
         previous.classList.add('is-out');
         next.classList.remove('is-out');
         next.classList.add('is-in');
-        cycler.style.width = `${widths[i]}px`;
+        rotator.style.width = `${widths[i]}px`;
 
         setTimeout(() => previous.classList.remove('is-out'), 500);
       }, 2800);

@@ -1,4 +1,4 @@
-/** Nav, social links and page keys — shared by the header, dock and footer. */
+/** Nav, social links and page keys, shared by the header, tab bar and footer. */
 
 /**
  * Drives the active nav state. A page key is not always its nav key: a post
@@ -61,8 +61,8 @@ export type Social = {
   label: string;
   href: string;
   icon: string;
-  /** Whether hovering this chip swaps the homepage portrait. */
-  hasPortrait?: boolean;
+  /** Whether hovering this chip swaps the homepage avatar. */
+  hasAvatar?: boolean;
 };
 
 export const SOCIALS: Social[] = [
@@ -71,34 +71,34 @@ export const SOCIALS: Social[] = [
     label: 'GitHub',
     href: 'https://github.com/jasonleibowitz',
     icon: 'simple-icons:github',
-    hasPortrait: true,
+    hasAvatar: true,
   },
   {
     key: 'linkedin',
     label: 'LinkedIn',
     href: 'https://www.linkedin.com/in/jasonleibowitz/',
     icon: 'simple-icons:linkedin',
-    hasPortrait: true,
+    hasAvatar: true,
   },
   {
     key: 'twitter',
     label: 'X, formerly known as Twitter',
     href: 'https://twitter.com/jasonleibowitz',
     icon: 'simple-icons:x',
-    hasPortrait: true,
+    hasAvatar: true,
   },
   {
     key: 'instagram',
     label: 'Instagram',
     href: 'https://www.instagram.com/jasonleibowitz/',
     icon: 'simple-icons:instagram',
-    hasPortrait: true,
+    hasAvatar: true,
   },
   { key: 'rss', label: 'RSS feed', href: '/rss.xml', icon: 'lucide:rss' },
 ];
 
-/** The four that drive the homepage portrait swap; RSS has no portrait. */
-export const PORTRAIT_SOCIALS = SOCIALS.filter((s) => s.hasPortrait);
+/** The four that drive the homepage avatar swap; RSS has no picture. */
+export const AVATAR_SOCIALS = SOCIALS.filter((s) => s.hasAvatar);
 
 export const EMAIL = 'jason@leibowitz.me';
 
