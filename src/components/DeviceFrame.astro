@@ -88,7 +88,7 @@ const slabs = SLABS[kind][variant];
     slabs.map((slab) => (
       <div
         class:list={[
-          kind === 'phone' ? 'rounded-[10px]' : 'rounded-lg',
+          kind === 'phone' ? 'rounded-[10px]' : 'rounded-sm',
           slab.fill && 'flex-1',
           slab.accent
             ? 'bg-linear-100 from-violet to-cyan opacity-55'

@@ -106,6 +106,13 @@
   --container-measure: 46rem;
   --container-bio: 52rem;
 
+  /* The whole radius scale. `initial` clears Tailwind's seven defaults first,
+     so `rounded-lg` and `rounded-xl` stop existing rather than silently
+     resolving to an 8px or 12px step nobody documented. `rounded-full` is not
+     in this namespace and survives. */
+  --radius-*: initial;
+  --radius-sm: 6px;
+  --radius-md: 14px;
   --radius-card: 18px;
 
   /* Semantic breakpoints: each one is a specific layout decision, so naming
@@ -222,7 +229,7 @@
   :focus-visible {
     outline: 2px solid var(--color-violet);
     outline-offset: 3px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
 }
 
@@ -374,7 +381,7 @@
     font-size: 0.85em;
     background: var(--color-panel);
     border: 1px solid var(--color-line);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     padding: 1px 6px;
   }
 
@@ -484,7 +491,7 @@
   align-items: center;
   min-height: 32px;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .footnotes a[data-footnote-backref]:hover {
   background: var(--color-panel);
@@ -513,7 +520,7 @@
   z-index: 50;
   max-width: min(340px, calc(100vw - 32px));
   padding: 0.75rem 1rem;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-canvas);
   border: 1px solid var(--color-line-strong);
   box-shadow: var(--shadow-lift);

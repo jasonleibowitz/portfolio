@@ -139,6 +139,12 @@ Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no Post
   `spectrum-fill`, `aurora-field`, `placeholder-copy`, `initials`, and `markdown`
   (rendered Markdown has no classes to hang utilities on).
 
+**Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial`
+drops Tailwind's seven default radii so only the design's four exist, which is
+deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than failing,
+and the element loses its corner with a green build. The same is true of any namespace
+you clear. Grep for the old names after clearing one.
+
 **Do not add keys to the `--spacing` namespace.** Defining `--spacing-foo` in `@theme`
 drops Tailwind's own `--spacing` base, and every numeric `p-*`/`gap-*`/`size-*` utility
 silently stops resolving — with an error that points at the wrong file. The design's

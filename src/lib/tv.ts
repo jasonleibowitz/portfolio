@@ -33,7 +33,7 @@ export const tv = createTV({
         leading: ['numeral', 'reading'],
         ease: ['orbit'],
         shadow: ['lift'],
-        radius: ['card'],
+        radius: ['sm', 'md', 'card'],
         container: ['page', 'measure', 'bio'],
       },
     },

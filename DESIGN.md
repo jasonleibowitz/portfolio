@@ -338,11 +338,17 @@ fail a performance audit, and over a static aurora it is invisible anyway.
 
 ## Shapes
 
-Two radii do nearly all the work. **Pill** (`999px`) marks anything interactive
-or token-like: buttons, chips, nav links, the dock, the theme toggle, the
-portrait. **Card** (`18px`) marks surfaces: panels, code blocks, images,
-embeds. Small utility radii fill the gaps — `6px` for inline code and focus
-outlines, `14px` for the footnote popover, `9px` for the monogram.
+Four radii, and no others. **Pill** (`rounded-full`) marks anything interactive
+or token-like: buttons, chips, nav links, the tab bar, the theme toggle, the
+avatar. **Card** (`18px`) marks surfaces: panels, code blocks, images, embeds.
+**Medium** (`14px`) is for smaller surfaces that sit inside one, like a list
+entry's artwork or a post row. **Small** (`6px`) is for inline marks: code,
+focus outlines, the footnote popover and its backref.
+
+Tailwind's own seven-step radius scale is cleared in `@theme`, so `rounded-lg`
+and `rounded-xl` do not exist here. Anything outside these four is either a
+circle (`50%`), the app icon's superellipse (`22.37%`), or a component already
+marked for removal.
 
 The form language is defined by hairlines rather than fills. A `1px` border in
 `line` or `line-strong` is the default way to bound anything, and the aurora

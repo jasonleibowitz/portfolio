@@ -106,7 +106,7 @@ const shape = data.ranked
             loading="lazy"
             style={`z-index: ${covers.length - i}`}
             class:list={[
-              'relative w-14 shrink-0 rounded-xl border border-line object-cover ring-[3px] ring-canvas card:w-22',
+              'relative w-14 shrink-0 rounded-md border border-line object-cover ring-[3px] ring-canvas card:w-22',
               data.thumb === 'poster' ? 'aspect-[2/3]' : 'aspect-square',
               i > 0 && '-ml-[22px] card:-ml-8',
               'transition-transform duration-300 ease-orbit group-hover:-translate-y-1',
