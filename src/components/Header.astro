@@ -54,11 +54,17 @@ const active = NAV_FOR_PAGE[page];
       id="themeBtn"
       type="button"
       aria-label="Toggle dark mode"
-      class="theme-btn ml-auto inline-flex size-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border text-muted hover:text-ink nav:ml-0"
+      class="theme-btn ml-auto inline-flex size-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-sun/34 bg-sun/9 text-muted transition-[background,border-color,box-shadow] duration-400 hover:border-line-strong hover:text-ink nav:ml-0 dark:border-violet/50 dark:bg-violet/16 dark:ring-3 dark:ring-violet/9"
     >
       <span class="relative block size-5">
-        <Icon name="lucide:sun" class="ticon sun" />
-        <Icon name="lucide:moon" class="ticon moon" />
+        <Icon
+          name="lucide:sun"
+          class="absolute inset-0 size-5 [transition:opacity_0.34s_ease,rotate_0.5s_cubic-bezier(0.4,0,0.2,1),scale_0.5s_cubic-bezier(0.4,0,0.2,1)] text-sun dark:scale-[0.6] dark:rotate-[-70deg] dark:opacity-0"
+        />
+        <Icon
+          name="lucide:moon"
+          class="absolute inset-0 size-5 [transition:opacity_0.34s_ease,rotate_0.5s_cubic-bezier(0.4,0,0.2,1),scale_0.5s_cubic-bezier(0.4,0,0.2,1)] scale-[0.6] rotate-[70deg] text-violet opacity-0 dark:scale-100 dark:rotate-0 dark:opacity-100"
+        />
       </span>
     </button>
   </Container>
@@ -74,52 +80,3 @@ const active = NAV_FOR_PAGE[page];
     )
   }
 </header>
-
-<style>
-  /* The toggle carries color: a warm sun in light, a violet moon in dark. The
-     two glyphs are stacked and cross-fade — one SVG with a translated moon path
-     still painted over the sun. */
-  .theme-btn {
-    border-color: color-mix(in srgb, var(--color-sun) 34%, transparent);
-    background: color-mix(in srgb, var(--color-sun) 9%, transparent);
-    transition:
-      background 0.4s ease,
-      border-color 0.4s ease,
-      box-shadow 0.4s ease;
-  }
-  .theme-btn:hover {
-    border-color: var(--color-line-strong);
-  }
-  :root[data-theme='dark'] .theme-btn {
-    border-color: color-mix(in srgb, var(--color-violet) 50%, transparent);
-    background: color-mix(in srgb, var(--color-violet) 16%, transparent);
-    box-shadow: 0 0 0 3px
-      color-mix(in srgb, var(--color-violet) 9%, transparent);
-  }
-
-  .ticon {
-    position: absolute;
-    inset: 0;
-    width: 20px;
-    height: 20px;
-    transition:
-      opacity 0.34s ease,
-      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .sun {
-    color: var(--color-sun);
-  }
-  .moon {
-    opacity: 0;
-    transform: rotate(70deg) scale(0.6);
-    color: var(--color-violet);
-  }
-  :root[data-theme='dark'] .sun {
-    opacity: 0;
-    transform: rotate(-70deg) scale(0.6);
-  }
-  :root[data-theme='dark'] .moon {
-    opacity: 1;
-    transform: none;
-  }
-</style>

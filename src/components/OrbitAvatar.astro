@@ -30,7 +30,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
 
 <div class="relative aspect-square w-[200px] shrink-0 nav:w-[250px]">
   <div
-    class="orbit-ring animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong"
+    class="animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong after:absolute after:top-[-4px] after:left-1/2 after:-ml-1 after:size-2 after:rounded-full after:shadow-[0_0_12px_var(--color-glow-a)] after:content-[''] after:spectrum-fill"
     aria-hidden="true"
   >
   </div>
@@ -44,7 +44,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
       alt="Jason Leibowitz"
       width={250}
       densities={[1, 2]}
-      class="avatar-shot"
+      class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100"
       data-active
       data-key="default"
     />
@@ -58,7 +58,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
               alt=""
               width={250}
               densities={[1, 2]}
-              class="avatar-shot"
+              class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100"
               data-key={social.key}
               aria-hidden="true"
             />
@@ -68,38 +68,6 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
     }
   </div>
 </div>
-
-<style>
-  .orbit-ring::after {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    width: 8px;
-    height: 8px;
-    margin-left: -4px;
-    border-radius: 50%;
-    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
-    box-shadow: 0 0 12px var(--color-glow-a);
-  }
-
-  .avatar-shot {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transform: scale(1.04);
-    transition:
-      opacity 0.32s ease,
-      transform 0.32s ease;
-  }
-  .avatar-shot[data-active] {
-    opacity: 1;
-    transform: none;
-  }
-</style>
 
 <script>
   const shots = document.querySelectorAll<HTMLElement>(

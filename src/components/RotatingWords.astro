@@ -19,11 +19,18 @@ const { words } = Astro.props;
 ---
 
 {/* All four words are in the DOM, so only the first is read aloud. */}
-<span class="rotating-words" id="rotating-words"
+{
+  /* The zero-width strut restores a baseline: every word is absolutely
+     positioned, so without it the inline-block has no line box and the word
+     floats above the rest of the headline. */
+}
+<span
+  class="rotating-words relative inline-block align-baseline whitespace-nowrap transition-[width] duration-[420ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] before:inline-block before:w-0 before:content-['\200b']"
+  id="rotating-words"
   >{
     words.map((word, i) => (
       <span
-        class="text-gradient"
+        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,transform,filter] duration-[420ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
         data-state={i === 0 ? 'in' : undefined}
         aria-hidden={i === 0 ? undefined : 'true'}
       >
@@ -32,43 +39,6 @@ const { words } = Astro.props;
     ))
   }</span
 >
-
-<style>
-  .rotating-words {
-    position: relative;
-    display: inline-block;
-    vertical-align: baseline;
-    white-space: nowrap;
-    transition: width 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .rotating-words::before {
-    content: '\200b';
-    display: inline-block;
-    width: 0;
-  }
-  .rotating-words span {
-    position: absolute;
-    left: 0;
-    top: 0;
-    opacity: 0;
-    transform: translateY(0.24em);
-    filter: blur(6px);
-    transition:
-      opacity 0.42s ease,
-      transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1),
-      filter 0.42s ease;
-  }
-  .rotating-words span[data-state='in'] {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-  .rotating-words span[data-state='out'] {
-    opacity: 0;
-    transform: translateY(-0.24em);
-    filter: blur(6px);
-  }
-</style>
 
 <script>
   const rotator = document.getElementById('rotating-words');
