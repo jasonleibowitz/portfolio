@@ -1,5 +1,6 @@
 ---
-import { tv } from '../../lib/tv';
+import type { CollectionEntry } from 'astro:content';
+import { tv } from '@lib/tv';
 import Typography from './Typography.astro';
 
 /**
@@ -24,8 +25,14 @@ const dot = tv({
   },
 });
 
+/**
+ * Read off the `projects` schema rather than restated, so adding a stage in
+ * `content.config.ts` is a type error here until this component handles it.
+ */
+export type ProjectStatus = CollectionEntry<'projects'>['data']['status'];
+
 interface Props {
-  status: 'development' | 'testing' | 'live';
+  status: ProjectStatus;
   class?: string;
 }
 
