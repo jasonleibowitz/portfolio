@@ -27,16 +27,16 @@ const { title, pubDate, description, tags } = post.data;
         because the rows sit directly under the page title -- `PostRow` is not
         used inside a section that owns its own heading. */
     }
-    <h2
+    <Typography
+      variant={compact ? 'body' : 'heading3'}
+      as="h2"
       class:list={[
-        'leading-tight tracking-[-0.025em] group-hover:text-violet',
-        compact
-          ? 'text-body font-semibold tracking-[-0.01em]'
-          : 'font-display text-h3 font-bold',
+        'leading-tight group-hover:text-violet',
+        compact && 'font-semibold tracking-[-0.01em]',
       ]}
     >
       {title}
-    </h2>
+    </Typography>
 
     {
       description && (

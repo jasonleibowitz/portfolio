@@ -6,10 +6,10 @@ import Typography from './Typography.astro';
 interface Props {
   eyebrow?: string;
   title: string;
-  lead?: string;
+  intro?: string;
 }
 
-const { eyebrow, title, lead } = Astro.props;
+const { eyebrow, title, intro } = Astro.props;
 ---
 
 <Section flush={false}>
@@ -19,9 +19,9 @@ const { eyebrow, title, lead } = Astro.props;
     {title}
   </Typography>
   {
-    lead && (
+    intro && (
       <Typography variant="intro" class="max-w-[56ch] text-muted">
-        {lead}
+        {intro}
       </Typography>
     )
   }
