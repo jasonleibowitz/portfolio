@@ -4,7 +4,7 @@ import PostLayout from '@layouts/PostLayout.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
 import Anchor from '@components/markdown/Anchor.astro';
-import { getPublished } from '../../lib/content';
+import { getPublished } from '@lib/content';
 
 export async function getStaticPaths() {
   const posts = await getPublished('blog');

@@ -6,7 +6,7 @@ import SidebarLayout from '@components/layout/SidebarLayout.astro';
 import Typography from '@components/ui/Typography.astro';
 import PostRow from '@components/PostRow.astro';
 import TagRail from '@components/TagRail.astro';
-import { getPublished, getPublishedTags } from '../../lib/content';
+import { getPublished, getPublishedTags } from '@lib/content';
 
 const posts = await getPublished('blog');
 const tags = await getPublishedTags();

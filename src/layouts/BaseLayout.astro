@@ -3,7 +3,7 @@ import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
 import MobileTabNav from '@components/MobileTabNav.astro';
 import Footer from '@components/Footer.astro';
-import type { PageKey } from '../lib/site';
+import type { PageKey } from '@lib/site';
 
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/inter';
@@ -87,7 +87,7 @@ const showProgress = page === 'post' || page === 'project';
 </html>
 
 <script>
-  import { initChrome } from '../lib/chrome';
+  import { initChrome } from '@lib/chrome';
 
   initChrome();
 </script>

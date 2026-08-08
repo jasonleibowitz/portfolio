@@ -3,7 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
 import ListRow from '@components/ListRow.astro';
-import { getPublished } from '../../lib/content';
+import { getPublished } from '@lib/content';
 import Typography from '@components/ui/Typography.astro';
 
 const lists = await getPublished('lists');

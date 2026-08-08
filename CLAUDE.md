@@ -218,8 +218,11 @@ role has to match what the PDF says.
   range. This covers page copy, headings, meta descriptions, frontmatter
   `description` and `note` fields, button labels, and any string rendered to the
   page. Code comments are exempt. Published blog post bodies are left as written.
-- **Path aliases** (`tsconfig.json`): `@components/*`, `@layouts/*`, `@images/*`, `@styles/*`.
-  `src/lib/*` is imported relatively.
+- **Path aliases** (`tsconfig.json`): `@components/*`, `@layouts/*`, `@lib/*`, `@images/*`,
+  `@styles/*`. Everything under `src/` is imported through one, so no import counts `../`
+  to work out where it is. The exception is a file inside `src/lib/` importing a sibling,
+  which stays `./`. Aliases resolve in client `<script>` blocks too, so `chrome.ts` and
+  `footnotes.ts` are imported the same way as anything else.
 - **Images**: `src/images/*` is imported and passed to `<Image>` from `astro:assets`, which
   requires `sharp`. The five portraits went from ~843 kB of PNG to ~26 kB of webp this way.
   Files in `public/` are **not importable** — reference them as URL strings. Importing a

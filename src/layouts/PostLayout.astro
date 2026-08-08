@@ -1,12 +1,12 @@
 ---
 import type { MarkdownHeading } from 'astro';
 import type { CollectionEntry } from 'astro:content';
-import { formatDay, isoDay } from '../lib/dates';
+import { formatDay, isoDay } from '@lib/dates';
 import BaseLayout from './BaseLayout.astro';
 import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Toc from '@components/Toc.astro';
-import { readingMinutes, wordCount } from '../lib/reading';
+import { readingMinutes, wordCount } from '@lib/reading';
 import Link from '@components/ui/Link.astro';
 
 interface Props {
@@ -100,7 +100,7 @@ const words = wordCount(post.body);
 </BaseLayout>
 
 <script>
-  import { initFootnotes } from '../lib/footnotes';
+  import { initFootnotes } from '@lib/footnotes';
 
   initFootnotes();
 </script>

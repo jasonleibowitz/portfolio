@@ -3,7 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
 import ProjectRow from '@components/ProjectRow.astro';
-import { getPublished } from '../../lib/content';
+import { getPublished } from '@lib/content';
 
 const projects = await getPublished('projects');
 ---
