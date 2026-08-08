@@ -501,7 +501,7 @@
     transform 0.16s ease;
   pointer-events: none;
 }
-#fnpop.is-open {
+#fnpop[data-open] {
   opacity: 1;
   transform: none;
   pointer-events: auto;

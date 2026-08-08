@@ -44,7 +44,8 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
       alt="Jason Leibowitz"
       width={250}
       densities={[1, 2]}
-      class="avatar-shot is-active"
+      class="avatar-shot"
+      data-active
       data-key="default"
     />
     {
@@ -94,7 +95,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
       opacity 0.32s ease,
       transform 0.32s ease;
   }
-  .avatar-shot.is-active {
+  .avatar-shot[data-active] {
     opacity: 1;
     transform: none;
   }
@@ -111,7 +112,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
 
     const show = (key: string) => {
       shots.forEach((shot) =>
-        shot.classList.toggle('is-active', shot.dataset.key === key)
+        shot.toggleAttribute('data-active', shot.dataset.key === key)
       );
       chips.forEach((chip) =>
         chip.setAttribute('aria-current', String(chip.dataset.swap === key))

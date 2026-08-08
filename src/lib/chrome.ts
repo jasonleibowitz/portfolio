@@ -94,8 +94,8 @@ function initMobileTabNav() {
     'scroll',
     () => {
       const y = window.scrollY;
-      if (y > lastY + 4 && y > 140) nav.classList.add('is-min');
-      else if (y < lastY - 4) nav.classList.remove('is-min');
+      if (y > lastY + 4 && y > 140) nav.setAttribute('data-collapsed', '');
+      else if (y < lastY - 4) nav.removeAttribute('data-collapsed');
       lastY = y;
     },
     { passive: true }

@@ -23,7 +23,8 @@ const { words } = Astro.props;
   >{
     words.map((word, i) => (
       <span
-        class:list={['text-gradient', i === 0 && 'is-in']}
+        class="text-gradient"
+        data-state={i === 0 ? 'in' : undefined}
         aria-hidden={i === 0 ? undefined : 'true'}
       >
         {word}
@@ -57,12 +58,12 @@ const { words } = Astro.props;
       transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1),
       filter 0.42s ease;
   }
-  .rotating-words span.is-in {
+  .rotating-words span[data-state='in'] {
     opacity: 1;
     transform: none;
     filter: none;
   }
-  .rotating-words span.is-out {
+  .rotating-words span[data-state='out'] {
     opacity: 0;
     transform: translateY(-0.24em);
     filter: blur(6px);
@@ -98,13 +99,11 @@ const { words } = Astro.props;
         i = (i + 1) % words.length;
         const next = words[i];
 
-        previous.classList.remove('is-in');
-        previous.classList.add('is-out');
-        next.classList.remove('is-out');
-        next.classList.add('is-in');
+        previous.dataset.state = 'out';
+        next.dataset.state = 'in';
         rotator.style.width = `${widths[i]}px`;
 
-        setTimeout(() => previous.classList.remove('is-out'), 500);
+        setTimeout(() => delete previous.dataset.state, 500);
       }, 2800);
     }
   }

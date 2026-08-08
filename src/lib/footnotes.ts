@@ -26,7 +26,7 @@ export function initFootnotes() {
   let openRef: HTMLButtonElement | null = null;
 
   const close = () => {
-    pop.classList.remove('is-open');
+    pop.removeAttribute('data-open');
     openRef?.setAttribute('aria-expanded', 'false');
     openRef = null;
   };
@@ -45,7 +45,7 @@ export function initFootnotes() {
     pop.append(label);
     pop.insertAdjacentHTML('beforeend', body.innerHTML.trim());
 
-    pop.classList.add('is-open');
+    pop.setAttribute('data-open', '');
     button.setAttribute('aria-expanded', 'true');
     openRef = button;
 
@@ -106,10 +106,7 @@ export function initFootnotes() {
     });
 
   document.addEventListener('click', (event) => {
-    if (
-      pop.classList.contains('is-open') &&
-      !pop.contains(event.target as Node)
-    ) {
+    if (pop.hasAttribute('data-open') && !pop.contains(event.target as Node)) {
       close();
     }
   });

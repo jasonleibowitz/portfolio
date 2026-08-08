@@ -151,15 +151,15 @@ const active = NAV_FOR_PAGE[page];
   }
 
   /* Collapsed: icons only, added by the scroll handler in lib/chrome.ts. */
-  .mobile-tab-nav.is-min {
+  .mobile-tab-nav[data-collapsed] {
     width: min(300px, calc(100vw - 24px));
   }
-  .mobile-tab-nav.is-min .tab {
+  .mobile-tab-nav[data-collapsed] .tab {
     --tab-radius: 14px;
     height: 46px;
     gap: 0;
   }
-  .mobile-tab-nav.is-min .tab span {
+  .mobile-tab-nav[data-collapsed] .tab span {
     max-height: 0;
     opacity: 0;
   }
