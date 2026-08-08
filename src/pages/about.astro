@@ -86,7 +86,14 @@ const STATS = [
       unfloats and goes full width, which is what killed the old page.
     */
     }
-    <Typography variant="longform" class="bio max-w-bio">
+    {
+      /* The after: clearfix clears the floated photo, so the CTA below it does
+        not ride up alongside. */
+    }
+    <Typography
+      variant="longform"
+      class="max-w-bio after:block after:clear-both after:content-['']"
+    >
       <figure class="mb-8 bio:float-right bio:ml-12 bio:w-[360px]">
         <Image
           src={aboutPhoto}
@@ -163,12 +170,3 @@ const STATS = [
     </div>
   </Section>
 </BaseLayout>
-
-<style>
-  /* Clears the floated photo so the CTA below it doesn't ride up alongside. */
-  .bio::after {
-    content: '';
-    display: block;
-    clear: both;
-  }
-</style>

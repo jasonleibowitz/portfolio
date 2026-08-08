@@ -54,7 +54,10 @@ const columns = tv({
 
 /** An icon still awaiting a final version takes the dotted-violet placeholder mark. */
 const tile = tv({
-  base: 'app-icon w-full object-cover',
+  /* Apple's icon corner is a superellipse at 22.37% of the side, and that
+     curve is what reads as "app icon" rather than "rounded photo". A
+     percentage keeps one declaration correct at both 72px and 128px. */
+  base: 'w-full rounded-[22.37%] object-cover [corner-shape:squircle]',
   variants: {
     provisional: {
       true: 'border border-dotted border-violet/60',
@@ -140,13 +143,3 @@ const iconIsProvisional = data.placeholder.includes('icon');
     </Typography>
   </div>
 </a>
-
-<style>
-  /* Apple's icon corner is a superellipse at 22.37% of the side, and that
-     curve is what reads as "app icon" rather than "rounded photo". A
-     percentage keeps one declaration correct at both 72px and 128px. */
-  .app-icon {
-    border-radius: 22.37%;
-    corner-shape: squircle;
-  }
-</style>

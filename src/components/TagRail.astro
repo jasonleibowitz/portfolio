@@ -33,7 +33,12 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
   <div
     class="flex gap-2 overflow-x-auto pb-2 rail:flex-col rail:overflow-visible"
   >
-    <button type="button" data-tag="" aria-pressed="true" class="tag-btn">
+    <button
+      type="button"
+      data-tag=""
+      aria-pressed="true"
+      class="inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2 rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted hover:border-line-strong hover:text-ink [&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint aria-pressed:spectrum-fill aria-pressed:border-transparent aria-pressed:[&>b]:text-on-spectrum/75"
+    >
       All <b>{total}</b>
     </button>
     {
@@ -42,7 +47,7 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
           type="button"
           data-tag={tag}
           aria-pressed="false"
-          class="tag-btn"
+          class="inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2 rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted hover:border-line-strong hover:text-ink [&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint aria-pressed:spectrum-fill aria-pressed:border-transparent aria-pressed:[&>b]:text-on-spectrum/75"
         >
           {tag} <b>{count}</b>
         </button>
@@ -50,44 +55,3 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
     }
   </div>
 </aside>
-
-<style>
-  .tag-btn {
-    font: inherit;
-    font-size: var(--text-ui);
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 44px;
-    padding-inline: 14px;
-    border-radius: 999px;
-    border: 1px solid var(--color-line);
-    background: var(--color-panel);
-    color: var(--color-muted);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .tag-btn:hover {
-    color: var(--color-ink);
-    border-color: var(--color-line-strong);
-  }
-  .tag-btn b {
-    font-family: var(--font-mono);
-    font-size: var(--text-meta);
-    font-weight: 400;
-    color: var(--color-faint);
-  }
-  /* Same fill and same label rule as the nav pill and the primary button; see
-     `spectrum-fill` in global.css. Written out rather than composed because a
-     scoped `<style>` block cannot apply a utility class. */
-  .tag-btn[aria-pressed='true'] {
-    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
-    border-color: transparent;
-    color: var(--color-on-spectrum);
-  }
-  .tag-btn[aria-pressed='true'] b {
-    color: color-mix(in srgb, var(--color-on-spectrum) 75%, transparent);
-  }
-</style>

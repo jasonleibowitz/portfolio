@@ -12,10 +12,12 @@ import Typography from './ui/Typography.astro';
  */
 ---
 
-<ul class="track relative m-0 list-none p-0 pl-6">
+<ul
+  class="relative m-0 list-none p-0 pl-6 before:absolute before:top-2 before:bottom-2 before:left-1 before:w-0.5 before:rounded-full before:opacity-45 before:content-[''] before:spectrum-fill after:absolute after:left-[3px] after:h-16 after:w-1 after:animate-travel after:rounded-full after:bg-[linear-gradient(to_bottom,transparent,var(--color-violet),transparent)] after:opacity-85 after:blur-[1px] after:content-['']"
+>
   {
     CAREER.map((employer) => (
-      <li class="relative py-6">
+      <li class="relative py-6 before:absolute before:top-[30px] before:left-[-24px] before:z-[1] before:size-2.5 before:rounded-full before:border-2 before:border-violet before:bg-canvas before:content-[''] first:before:border-transparent first:before:shadow-[0_0_0_4px_var(--color-glow-a)] first:before:spectrum-fill">
         <Typography variant="data">{tenure(employer)}</Typography>
 
         <Typography variant="heading3" class="my-1">
@@ -43,7 +45,7 @@ import Typography from './ui/Typography.astro';
                     <Typography
                       variant="compact"
                       as="li"
-                      class="relative pl-4 text-muted"
+                      class="relative pl-4 text-muted before:absolute before:top-[0.62em] before:left-0 before:size-[5px] before:rounded-full before:bg-violet before:opacity-55 before:content-['']"
                     >
                       {bullet}
                     </Typography>
@@ -57,67 +59,3 @@ import Typography from './ui/Typography.astro';
     ))
   }
 </ul>
-
-<style>
-  .track::before {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 8px;
-    bottom: 8px;
-    width: 2px;
-    border-radius: 999px;
-    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
-    opacity: 0.45;
-  }
-
-  /* Travels upward, so the career reads as progression. */
-  .track::after {
-    content: '';
-    position: absolute;
-    left: 3px;
-    width: 4px;
-    height: 64px;
-    border-radius: 999px;
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      var(--color-violet),
-      transparent
-    );
-    filter: blur(1px);
-    opacity: 0.85;
-    animation: var(--animate-travel);
-  }
-
-  .track > li::before {
-    content: '';
-    position: absolute;
-    left: -24px;
-    top: 30px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--color-canvas);
-    border: 2px solid var(--color-violet);
-    z-index: 1;
-  }
-  .track > li:first-child::before {
-    background: linear-gradient(100deg, var(--color-violet), var(--color-cyan));
-    border-color: transparent;
-    box-shadow: 0 0 0 4px var(--color-glow-a);
-  }
-
-  /* Accomplishment bullets, now nested under the role they belong to. */
-  .track > li > ol > li > ul > li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.62em;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--color-violet);
-    opacity: 0.55;
-  }
-</style>
