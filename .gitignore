@@ -24,6 +24,12 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# Local design exploration: hand-built mockup rounds, direction notes, and the
+# measurement logs that go with them. Not written by any tool. The durable
+# record of the design is DESIGN.md at the root plus .impeccable/design.json,
+# both tracked, so a mockup is scaffolding once the build it describes ships.
+design/
+
 # impeccable-ignore-start
 # Ephemeral output, runtime state, and per-dev overrides.
 # Shared artifacts stay tracked: config.json, live/config.json,
