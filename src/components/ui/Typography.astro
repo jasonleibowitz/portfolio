@@ -1,0 +1,72 @@
+---
+import { tv } from '../../lib/tv';
+
+/**
+ * Every piece of text on the site. Variants are the type roles from DESIGN.md
+ * and own their size, family, weight and tracking.
+ *
+ * Pick by job, not size: `label` for uppercase captions, `data` for dates and
+ * counts, `ui` for dense interface text. Each variant renders a sensible
+ * element, so `title` is an `h2`; pass `as` when the semantics differ.
+ */
+const text = tv({
+  variants: {
+    variant: {
+      display:
+        'font-display text-mega leading-display font-bold tracking-display',
+      headline: 'font-display text-h1 font-bold tracking-headline',
+      title: 'font-display text-h2 font-bold tracking-title',
+      subtitle: 'font-display text-h3 font-bold tracking-subtitle',
+      lead: 'text-lead',
+      body: 'text-body',
+      ui: 'text-ui',
+      note: 'text-note',
+      /* The two monospace roles carry a color because they are nearly always
+         de-emphasized against the thing they annotate. Pass `text-muted` to
+         bring one forward. */
+      label: 'font-mono text-meta tracking-label text-faint uppercase',
+      data: 'font-mono text-meta tracking-data text-faint',
+    },
+  },
+});
+
+/** What each role is semantically, absent an `as` that says otherwise. */
+const ELEMENT = {
+  display: 'h1',
+  headline: 'h1',
+  title: 'h2',
+  subtitle: 'h3',
+  lead: 'p',
+  body: 'p',
+  ui: 'p',
+  note: 'p',
+  /* A caption sits on its own line; a date or count sits inside one. */
+  label: 'p',
+  data: 'span',
+} as const;
+
+export type TypographyVariant = keyof typeof ELEMENT;
+
+interface Props {
+  variant: TypographyVariant;
+  as?:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'p'
+    | 'span'
+    | 'div'
+    | 'dt'
+    | 'dd'
+    | 'time'
+    | 'figcaption'
+    | 'li';
+  class?: string;
+}
+
+const { variant, as, class: className, ...rest } = Astro.props as Props;
+const Tag = as ?? ELEMENT[variant];
+---
+
+<Tag class={text({ variant, class: className })} {...rest}><slot /></Tag>

@@ -2,7 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
-import Eyebrow from '@components/ui/Eyebrow.astro';
+import Typography from '@components/ui/Typography.astro';
 import PostRow from '@components/PostRow.astro';
 import { getPublished, getPublishedTags } from '../../../lib/content';
 
@@ -37,10 +37,10 @@ const { posts } = Astro.props;
 
   <Section class="max-w-measure">
     <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
-      <Eyebrow>
+      <Typography variant="label">
         {posts.length}
         {posts.length === 1 ? 'post' : 'posts'}
-      </Eyebrow>
+      </Typography>
       <a
         href="/writing/"
         class="inline-flex min-h-11 items-center text-ui text-muted no-underline hover:text-violet"

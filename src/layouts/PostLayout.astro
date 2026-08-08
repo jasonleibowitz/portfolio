@@ -4,7 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { formatDay, isoDay } from '../lib/dates';
 import BaseLayout from './BaseLayout.astro';
 import Section from '@components/layout/Section.astro';
-import Eyebrow from '@components/ui/Eyebrow.astro';
+import Typography from '@components/ui/Typography.astro';
 import Toc from '@components/Toc.astro';
 import { readingMinutes, wordCount } from '../lib/reading';
 
@@ -25,7 +25,7 @@ const words = wordCount(post.body);
   <Section as="article" flush={false}>
     {/* One centered column at a 46rem measure — 40rem read too narrow. */}
     <header class="mx-auto max-w-measure">
-      <Eyebrow>Writing</Eyebrow>
+      <Typography variant="label">Writing</Typography>
       <h1
         class="mt-3 mb-4 font-display text-h1 leading-[1.04] font-bold tracking-[-0.04em]"
       >

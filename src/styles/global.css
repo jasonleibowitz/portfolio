@@ -81,6 +81,22 @@
   --text-note: 0.8125rem;
   --text-meta: 0.75rem;
 
+  /* Tracking and leading are owned by the `Typography` variant that uses them,
+     so they are named after the variant rather than by amount. Type sets
+     tighter as it grows and looser as it shrinks; the two positive steps are
+     the monospace roles, where letters need air to read as data. */
+  --tracking-display: -0.042em;
+  --tracking-headline: -0.04em;
+  --tracking-title: -0.03em;
+  --tracking-subtitle: -0.025em;
+  --tracking-data: 0.06em;
+  --tracking-label: 0.16em;
+
+  --leading-display: 0.96;
+  --leading-headline: 1.04;
+  --leading-numeral: 1.15;
+  --leading-reading: 1.72;
+
   --container-page: 70rem;
   --container-measure: 46rem;
   --container-bio: 52rem;

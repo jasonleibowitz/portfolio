@@ -1,7 +1,7 @@
 ---
 import type { MarkdownHeading } from 'astro';
 import Panel from './ui/Panel.astro';
-import Eyebrow from './ui/Eyebrow.astro';
+import Typography from './ui/Typography.astro';
 
 interface Props {
   headings: MarkdownHeading[];
@@ -15,7 +15,9 @@ const sections = headings.filter((heading) => heading.depth === 2);
 {
   sections.length > 1 && (
     <Panel as="nav" class="my-8 px-6 py-4" aria-label="Contents">
-      <Eyebrow as="span">Contents</Eyebrow>
+      <Typography variant="label" as="span">
+        Contents
+      </Typography>
       {/*
         These are navigation, not links inside a sentence, so the inline
         exception to the target-size rule doesn't apply to them: each row is a
