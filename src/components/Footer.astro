@@ -4,6 +4,7 @@ import SocialRow from './SocialRow.astro';
 import Button from './ui/Button.astro';
 import Typography from './ui/Typography.astro';
 import { EMAIL, NAV, RESUME_HREF } from '../lib/site';
+import Link from './ui/Link.astro';
 
 const year = new Date().getFullYear();
 ---
@@ -42,14 +43,13 @@ const year = new Date().getFullYear();
       <div class="flex flex-wrap justify-center gap-x-6 sm:justify-start">
         {
           NAV.map((item) => (
-            <Typography
+            <Link
               variant="compact"
-              as="a"
-              class="inline-flex min-h-11 items-center text-muted no-underline hover:text-violet"
               href={item.href}
+              class="text-muted hover:text-violet"
             >
               {item.label}
-            </Typography>
+            </Link>
           ))
         }
       </div>

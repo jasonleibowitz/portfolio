@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import Section from './layout/Section.astro';
 import Typography from './ui/Typography.astro';
+import Link from './ui/Link.astro';
 
 /**
  * The end of a list.
@@ -27,15 +28,14 @@ const { others } = Astro.props;
     aria-label="More lists"
     class="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-line pt-6"
   >
-    <Typography
+    <Link
       variant="compact"
-      as="a"
-      class="inline-flex min-h-11 items-center gap-2 text-muted no-underline hover:text-violet"
+      class="text-muted hover:text-violet gap-2"
       href="/lists/"
     >
       <Icon name="lucide:arrow-left" class="size-3.5" />
       All lists
-    </Typography>
+    </Link>
 
     <span class="flex flex-wrap items-center gap-x-6">
       {

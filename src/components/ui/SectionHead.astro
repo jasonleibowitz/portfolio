@@ -1,5 +1,6 @@
 ---
 import Typography from './Typography.astro';
+import Link from './Link.astro';
 /** Section title, with an optional link out to the full thing. */
 interface Props {
   title: string;
@@ -14,14 +15,13 @@ const { title, more, class: className } = Astro.props;
   <Typography variant="heading2">{title}</Typography>
   {
     more && (
-      <Typography
+      <Link
         variant="compact"
-        as="a"
-        class="inline-flex min-h-11 items-center whitespace-nowrap text-muted no-underline hover:text-violet"
+        class="text-muted hover:text-violet whitespace-nowrap"
         href={more.href}
       >
         {more.label} →
-      </Typography>
+      </Link>
     )
   }
 </div>

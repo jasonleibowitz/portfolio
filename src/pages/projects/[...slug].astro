@@ -5,6 +5,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
+import Anchor from '@components/markdown/Anchor.astro';
 import Panel from '@components/ui/Panel.astro';
 import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
@@ -115,7 +116,7 @@ const ctas = [
 
       <div class="spec:col-start-1 spec:row-start-2">
         <Typography variant="longform" class="markdown max-w-measure">
-          <Content components={{ h2: Heading2, h3: Heading3 }} />
+          <Content components={{ h2: Heading2, h3: Heading3, a: Anchor }} />
         </Typography>
 
         <PhNote>Every paragraph on this page is placeholder copy.</PhNote>

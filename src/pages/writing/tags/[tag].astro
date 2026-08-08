@@ -5,6 +5,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import PostRow from '@components/PostRow.astro';
 import { getPublished, getPublishedTags } from '../../../lib/content';
+import Link from '@components/ui/Link.astro';
 
 /**
  * The Writing index filters in place, but each tag also gets a real URL: the
@@ -41,14 +42,13 @@ const { posts } = Astro.props;
         {posts.length}
         {posts.length === 1 ? 'post' : 'posts'}
       </Typography>
-      <Typography
+      <Link
         variant="compact"
-        as="a"
-        class="inline-flex min-h-11 items-center text-muted no-underline hover:text-violet"
         href="/writing/"
+        class="text-muted hover:text-violet"
       >
         ← All writing
-      </Typography>
+      </Link>
     </div>
 
     <ul>

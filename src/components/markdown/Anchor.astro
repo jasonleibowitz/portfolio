@@ -1,0 +1,15 @@
+---
+import Link from '../ui/Link.astro';
+
+/**
+ * A link in rendered markdown. Same object as a link inside a sentence
+ * anywhere else, which is why the stylesheet no longer carries an `& a` rule.
+ */
+interface Props {
+  href: string;
+}
+
+const { href, ...rest } = Astro.props as Props;
+---
+
+<Link href={href} kind="text" {...rest}><slot /></Link>

@@ -7,6 +7,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Toc from '@components/Toc.astro';
 import { readingMinutes, wordCount } from '../lib/reading';
+import Link from '@components/ui/Link.astro';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -34,14 +35,13 @@ const words = wordCount(post.body);
       <div class="mb-4 flex flex-wrap gap-2">
         {
           tags.map((tag) => (
-            <Typography
+            <Link
               variant="data"
-              as="a"
-              class="inline-flex min-h-11 items-center rounded-full border border-line bg-panel px-3.5 text-muted no-underline before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
+              class="text-muted hover:text-violet rounded-full border border-line bg-panel px-3.5 before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
               href={`/writing/tags/${tag}/`}
             >
               {tag}
-            </Typography>
+            </Link>
           ))
         }
       </div>

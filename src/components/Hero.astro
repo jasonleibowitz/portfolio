@@ -2,6 +2,7 @@
 import Section from './layout/Section.astro';
 import Typography from './ui/Typography.astro';
 import Button from './ui/Button.astro';
+import Link from './ui/Link.astro';
 import RotatingWords from './RotatingWords.astro';
 import OrbitAvatar from './OrbitAvatar.astro';
 import SocialRow from './SocialRow.astro';
@@ -47,10 +48,8 @@ import { yearsShipping } from '../lib/career';
         {yearsShipping()} years of products people use every day - Carta, Capsule,
         Invitae, TodayTix, Reserve, and more. Right now I'm shipping two mobile apps
         of my own. I also{' '}
-        <a
-          href="/writing/"
-          class="font-medium text-violet no-underline shadow-[inset_0_-1px_0_color-mix(in_srgb,var(--color-violet)_45%,transparent)]"
-          >write about the things I take apart</a
+        <Link href="/writing/" kind="text"
+          >write about the things I take apart</Link
         >.
       </Typography>
     </div>
