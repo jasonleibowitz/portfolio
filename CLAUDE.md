@@ -148,8 +148,8 @@ Two things to know about how the tokens work:
   re-derives in dark mode instead of needing a `dark:` twin for each color. `@custom-variant
 dark` points at the same attribute for the cases that do need one.
 
-The `@utility` blocks are `text-gradient`, `spectrum-fill`, `aurora-field`,
-`placeholder-copy`, `initials` and `markdown`. A utility has to live in a
+The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`,
+`aurora-field`, `placeholder-copy` and `markdown`. A utility has to live in a
 Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when
 only one component does.
 

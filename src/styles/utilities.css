@@ -73,13 +73,6 @@
   initial-value: 18px;
 }
 
-/* The initials fallback for a list entry with no artwork. */
-@utility initials {
-  &::after {
-    content: attr(data-initials);
-  }
-}
-
 /* The three-layer glow behind the page. A named utility rather than a
    `bg-[…]` arbitrary value: three stacked gradients inline would need every
    space underscore-escaped and would be unreadable. Position, layer and hit
@@ -90,8 +83,3 @@
     radial-gradient(34vw 34vw at 88% 22%, var(--color-glow-b), transparent 60%),
     radial-gradient(40vw 40vw at 60% 92%, var(--color-glow-a), transparent 65%);
 }
-
-/* Rendered Markdown. The elements come out of MDX without classes, so this is
-   the one place a descendant-selector block genuinely beats utilities.
-   Deliberately sets no text size: the `Typography` variant wrapping this picks
-   that, which is why a post reads at `longform` and a list note at `body`. */

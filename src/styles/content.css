@@ -1,3 +1,7 @@
+/* Rendered Markdown. The elements come out of MDX without classes, so this is
+   the one place a descendant-selector block genuinely beats utilities.
+   Deliberately sets no text size: the `Typography` variant wrapping this picks
+   that, which is why a post reads at `longform` and a list note at `body`. */
 @utility markdown {
   & p,
   & ul,
