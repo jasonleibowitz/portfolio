@@ -5,21 +5,24 @@ import Chip from './ui/Chip.astro';
 import { readingMinutes } from '@lib/reading';
 import Typography from './ui/Typography.astro';
 
+/**
+ * One post in a list of posts: title, description, date, reading time, tags.
+ *
+ * Used by `/writing` and by each tag archive. The whole row is one link, and
+ * `data-tags` is what the tag filter reads to show or hide it.
+ */
 interface Props {
   post: CollectionEntry<'blog'>;
-  /** The homepage strip runs tighter than the archive. */
-  compact?: boolean;
 }
 
-const { post, compact = false } = Astro.props;
+const { post } = Astro.props;
 const { title, pubDate, description, tags } = post.data;
 ---
 
 <li data-tags={tags.join(' ')} class="border-b border-line [&[hidden]]:hidden">
   <a
     href={`/writing/${post.id}/`}
-    class="group -mx-3 grid gap-2 rounded-xl px-3 no-underline transition-colors duration-150 hover:bg-panel"
-    class:list={[compact ? 'py-4' : 'py-6']}
+    class="group -mx-3 grid gap-2 rounded-xl px-3 py-6 no-underline transition-colors duration-150 hover:bg-panel"
   >
     {
       /* A heading, not a styled span: this is the only content on the archive,
@@ -28,12 +31,9 @@ const { title, pubDate, description, tags } = post.data;
         used inside a section that owns its own heading. */
     }
     <Typography
-      variant={compact ? 'body' : 'heading3'}
+      variant="heading3"
       as="h2"
-      class:list={[
-        'leading-tight group-hover:text-violet',
-        compact && 'font-semibold tracking-[-0.01em]',
-      ]}
+      class="leading-tight group-hover:text-violet"
     >
       {title}
     </Typography>
