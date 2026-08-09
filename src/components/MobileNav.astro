@@ -4,22 +4,15 @@ import Button from './ui/Button.astro';
 import { EMAIL, NAV, NAV_FOR_PAGE, RESUME_HREF, type PageKey } from '@lib/site';
 
 /**
- * The mobile nav: one corner control that raises destinations and the two
- * contact CTAs.
+ * The mobile nav below `nav:`: a corner control that raises the destinations
+ * and the two contact CTAs.
  *
- * A full-width bar cannot work here. Safari keeps its own translucent capsule
- * at the bottom of the viewport, so a second one 12px above it reads as a
- * duplicate of the browser rather than as part of the page. A single control
- * in the right corner clears Safari's centered URL field and gives the page
- * back the width.
+ * It is a corner control and not a full-width bar because Safari keeps its own
+ * capsule at the foot of the viewport, and a second one above it reads as
+ * browser chrome.
  *
- * Closed, it names the current section: visitors arrive on any page, so "where
- * am I" is real information. It shrinks to the spectrum node alone on scroll
- * down.
- *
- * The panel is a native popover, which supplies the top layer, light dismiss,
- * Esc and `::backdrop`. `chrome.ts` drives `data-open` for the parts CSS
- * cannot reach, and stands in for the API on browsers that lack it.
+ * The panel is a native popover. `chrome.ts` owns `data-open`, the scroll
+ * collapse, and the fallback for browsers without the API.
  */
 interface Props {
   page: PageKey;
