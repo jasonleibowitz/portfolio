@@ -15,12 +15,43 @@ interface Props {
   description?: string;
   /** Drives the active nav state and the reading-progress bar. */
   page: PageKey;
+  /**
+   * The share card's picture. Only pages holding a real image pass one; the
+   * rest share as a text card rather than as an invented graphic.
+   */
+  image?: string;
+  imageAlt?: string;
 }
 
-const { pageTitle, description, page } = Astro.props;
-const title =
-  pageTitle === 'Home' ? 'Jason Leibowitz' : `${pageTitle} · Jason Leibowitz`;
+const { pageTitle, description, page, image, imageAlt } = Astro.props;
+
+/**
+ * The homepage states a role where the interior pages state a section.
+ *
+ * A bare name is the convention for a personal site, but it assumes the name
+ * is already unambiguous. A search for this one returns a page of Miami ENT
+ * surgeons, so the title has to say which Jason Leibowitz this is, and the
+ * city separates him from the other doctor as well. This restates the hero's
+ * eyebrow in prose deliberately: the two are the same claim, and a searcher
+ * scanning results reads this one before any of the page.
+ */
+const HOME_TITLE = 'Jason Leibowitz · Full-stack engineer in New York';
+
+const isHome = pageTitle === 'Home';
+const title = isHome ? HOME_TITLE : `${pageTitle} · Jason Leibowitz`;
 const showProgress = page === 'post' || page === 'project';
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/* Absolute, because every scraper resolves these against its own host and not
+   against the page. A post's frontmatter image may already be absolute, which
+   `URL` leaves alone. */
+const share = image ? new URL(image, Astro.site).href : undefined;
+
+/* The card's headline drops the site suffix that `<title>` carries, since
+   `og:site_name` is already saying it one line below. The homepage keeps its
+   full title: without the role it would repeat `og:site_name` word for word. */
+const shareTitle = isHome ? HOME_TITLE : pageTitle;
 ---
 
 <html lang="en" data-theme="light">
@@ -35,9 +66,33 @@ const showProgress = page === 'post' || page === 'project';
       title="Jason Leibowitz"
       href="/rss.xml"
     />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonical} />
     {description && <meta name="description" content={description} />}
     <title>{title}</title>
+
+    {
+      /*
+      Visitors mostly arrive from somewhere else, so the card a link renders as
+      is a real entry surface rather than a nicety. X reads the `og:` tags when
+      it has no `twitter:` twin, so only the two it has no equivalent for are
+      spelled out here; a second copy of the title is a second thing to drift.
+    */
+    }
+    <meta
+      property="og:type"
+      content={page === 'post' ? 'article' : 'website'}
+    />
+    <meta property="og:site_name" content="Jason Leibowitz" />
+    <meta property="og:title" content={shareTitle} />
+    <meta property="og:url" content={canonical} />
+    {description && <meta property="og:description" content={description} />}
+    {share && <meta property="og:image" content={share} />}
+    {share && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    <meta
+      name="twitter:card"
+      content={share ? 'summary_large_image' : 'summary'}
+    />
+    <meta name="twitter:creator" content="@jasonleibowitz" />
     {
       /*
       Blocking on purpose. Every page of a static site is a fresh document, so

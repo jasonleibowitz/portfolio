@@ -36,7 +36,13 @@ const words = wordCount(post.body);
 const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
 ---
 
-<BaseLayout pageTitle={title} page="post" description={description}>
+<BaseLayout
+  pageTitle={title}
+  page="post"
+  description={description}
+  image={image?.url}
+  imageAlt={image?.alt}
+>
   <Section as="article" flush={false}>
     {
       /* Three grid children rather than two, the same shape a project page
