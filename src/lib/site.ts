@@ -127,7 +127,7 @@ export function testflightRequestHref(app: string): string {
     `First name:`,
     `Last name:`,
     `iCloud email:`,
-    `  (the address registered with your Apple ID — TestFlight can only send`,
+    `  (the address registered with your Apple ID, since TestFlight can only send`,
     `  the invite there)`,
     ``,
     `Thanks!`,
