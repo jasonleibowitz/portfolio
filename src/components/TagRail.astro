@@ -16,6 +16,25 @@ interface Props {
 }
 
 const { tags, total, heading = 'Filter by tag' } = Astro.props;
+
+/*
+ * `All` and a tag chip differ only in their label, so the styling is named once
+ * rather than written out beside each.
+ *
+ * A string and not a `tv`: nothing here varies and no caller passes a class, so
+ * there is no conflict for a merger to resolve. Local and not folded into
+ * `Chip`: that one is an inline `<span>` marker at 11px, and these are 44px
+ * pressable buttons.
+ */
+const chip = [
+  'inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2',
+  'rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted',
+  'hover:border-line-strong hover:text-ink',
+  /* The count is data beside a label that is prose, so it sets in mono. */
+  '[&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint',
+  'aria-pressed:spectrum-fill aria-pressed:border-transparent',
+  'aria-pressed:[&>b]:text-on-spectrum/75',
+].join(' ');
 ---
 
 <aside class="rail:order-last rail:sticky rail:top-[88px]">
@@ -33,22 +52,12 @@ const { tags, total, heading = 'Filter by tag' } = Astro.props;
   <div
     class="flex gap-2 overflow-x-auto pb-2 rail:flex-col rail:overflow-visible"
   >
-    <button
-      type="button"
-      data-tag=""
-      aria-pressed="true"
-      class="inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2 rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted hover:border-line-strong hover:text-ink [&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint aria-pressed:spectrum-fill aria-pressed:border-transparent aria-pressed:[&>b]:text-on-spectrum/75"
-    >
+    <button type="button" data-tag="" aria-pressed="true" class={chip}>
       All <b>{total}</b>
     </button>
     {
       tags.map(({ tag, count }) => (
-        <button
-          type="button"
-          data-tag={tag}
-          aria-pressed="false"
-          class="inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2 rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted hover:border-line-strong hover:text-ink [&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint aria-pressed:spectrum-fill aria-pressed:border-transparent aria-pressed:[&>b]:text-on-spectrum/75"
-        >
+        <button type="button" data-tag={tag} aria-pressed="false" class={chip}>
           {tag} <b>{count}</b>
         </button>
       ))
