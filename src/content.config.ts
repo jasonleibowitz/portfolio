@@ -16,8 +16,18 @@ const blog = defineCollection({
     pubDate: z.coerce.date(),
     description: z.string().optional(),
     author: z.string(),
+    /**
+     * The hero, and the share card's picture.
+     *
+     * An absolute path under `public/blog-images/YYYY-MM-DD/`, never a remote
+     * URL. These are referenced as URL strings rather than imported, so unlike
+     * list artwork and project icons nothing here can enforce that. The rule is
+     * the same and matters more: this one is the `og:image`, so a host that
+     * stops serving it takes the link preview with it, silently and with every
+     * build still green.
+     */
     image: z.object({
-      url: z.string(),
+      url: z.string().startsWith('/', 'a local path under public/, not a URL'),
       alt: z.string(),
     }),
     tags: z.array(z.string()),
