@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Container from './Container.astro';
 import Typography from '@components/ui/Typography.astro';
 import Link from '@components/ui/Link.astro';
@@ -16,12 +17,11 @@ import { tv } from '@lib/tv';
  * `flush` (default) omits the space above, since the band before already paid
  * it. The first band on a page wants `flush={false}`.
  */
-interface Props {
+interface Props extends HTMLAttributes<'div'> {
   as?: 'div' | 'section' | 'article';
   title?: string;
   more?: { label: string; href: string };
   flush?: boolean;
-  class?: string;
 }
 
 const {
@@ -31,7 +31,7 @@ const {
   flush = true,
   class: className,
   ...rest
-} = Astro.props;
+} = Astro.props as Props;
 
 /* Merged rather than concatenated, so a caller passing `pb-10` replaces this
    padding instead of both landing on the element. */

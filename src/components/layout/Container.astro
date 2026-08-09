@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import { tv } from '@lib/tv';
 
 /**
@@ -7,12 +8,11 @@ import { tv } from '@lib/tv';
  * Use `Section` for a normal page band. Use this only where section spacing
  * would be wrong: the header and the footer.
  */
-interface Props {
+interface Props extends HTMLAttributes<'div'> {
   as?: 'div' | 'section' | 'article' | 'header' | 'footer' | 'aside' | 'nav';
-  class?: string;
 }
 
-const { as: Tag = 'div', class: className, ...rest } = Astro.props;
+const { as: Tag = 'div', class: className, ...rest } = Astro.props as Props;
 
 /* `tv` rather than `class:list`, so a caller passing `max-w-measure` replaces
    the default width instead of both landing on the element and the winner
