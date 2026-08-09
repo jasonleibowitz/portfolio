@@ -159,11 +159,17 @@ deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than 
 and the element loses its corner with a green build. The same is true of any namespace
 you clear. Grep for the old names after clearing one.
 
-**Do not add keys to the `--spacing` namespace.** Defining `--spacing-foo` in `@theme`
-drops Tailwind's own `--spacing` base, and every numeric `p-*`/`gap-*`/`size-*` utility
-silently stops resolving — with an error that points at the wrong file. The design's
-`--section` and `--gutter` deliberately live in plain `:root` and are used as
-`py-(--section)` / `px-(--gutter)`.
+**Adding to the `--spacing` namespace is fine; clearing it is not.** `--spacing-header: 88px`
+in `@theme` generates `scroll-mt-header` and `top-header` and leaves Tailwind's `--spacing`
+base intact — verified on 4.3.3 by building with and without the key and confirming every
+numeric `p-*`/`gap-*`/`size-*` utility still resolved. Clearing a namespace does delete
+utilities silently, which is what `--radius-*: initial` above does on purpose. An earlier
+note here banned adding as well; if numeric spacing utilities ever stop resolving, this is
+the first place to look.
+
+The design's `--section` and `--gutter` still live in plain `:root`, used as
+`py-(--section)` / `px-(--gutter)`, because they are page rhythm rather than a step on a
+scale. Nothing should generate a `p-section` utility.
 
 The spacing ladder itself is Tailwind's default: the design's 4/8/12/16/24/32/40/48/64px
 steps are exactly `p-1` … `p-16`.
