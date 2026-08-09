@@ -1,0 +1,30 @@
+---
+import Link from './Link.astro';
+
+/**
+ * The section a detail page belongs to, linked, above its title.
+ *
+ * A breadcrumb rather than a call to action: it names where you are the way
+ * the nav does, so it says "Writing", not "All writing". The way *out* at the
+ * end of the page is the one that asks to be pressed.
+ *
+ * It carries the 44px target the system wants of chrome, which is taller than
+ * the word it holds; `-ml-1 px-1` pulls back only that inset so the text still
+ * lines up with the title underneath it rather than the tap target's edge.
+ */
+interface Props {
+  href: string;
+  class?: string;
+}
+
+const { href, class: className, ...rest } = Astro.props;
+---
+
+<Link
+  href={href}
+  variant="caption"
+  class:list={['-ml-1 px-1 hover:text-ink', className]}
+  {...rest}
+>
+  <slot />
+</Link>

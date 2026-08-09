@@ -3,6 +3,7 @@ import { formatDay } from '@lib/dates';
 import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
@@ -61,6 +62,12 @@ const hasBody = Boolean(list.body?.trim());
 
 <BaseLayout pageTitle={data.title} page="list" description={data.description}>
   <PageHead title={data.title} intro={data.description}>
+    {
+      /* `-mb-3` cancels the title's own top margin, which is sized for a 15px
+        caption line rather than for a 44px tap target. Without it this page's
+        breadcrumb sits 12px further off its title than a post's does. */
+    }
+    <Breadcrumb href="/lists/" slot="eyebrow" class="-mb-3">Lists</Breadcrumb>
     <Typography
       variant="caption"
       as="div"
