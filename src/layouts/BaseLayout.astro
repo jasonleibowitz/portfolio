@@ -3,7 +3,7 @@ import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
 import MobileTabNav from '@components/MobileTabNav.astro';
 import Footer from '@components/Footer.astro';
-import type { PageKey } from '@lib/site';
+import { FEED_TITLE, type PageKey } from '@lib/site';
 
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/inter';
@@ -63,7 +63,7 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     <link
       rel="alternate"
       type="application/rss+xml"
-      title="Jason Leibowitz"
+      title={FEED_TITLE}
       href="/rss.xml"
     />
     <link rel="canonical" href={canonical} />

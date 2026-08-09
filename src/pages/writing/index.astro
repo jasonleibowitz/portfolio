@@ -7,21 +7,18 @@ import Typography from '@components/ui/Typography.astro';
 import PostRow from '@components/PostRow.astro';
 import TagRail from '@components/TagRail.astro';
 import { getPublished, getPublishedTags } from '@lib/content';
+import { WRITING } from '@lib/site';
 
 const posts = await getPublished('blog');
 const tags = await getPublishedTags();
 ---
 
 <BaseLayout
-  pageTitle="Writing"
+  pageTitle={WRITING.title}
   page="writing"
-  description="Long reviews of hardware I probably didn't need to buy, plus the occasional how-to."
+  description={WRITING.description}
 >
-  <PageHead
-    eyebrow="Archive"
-    title="Writing"
-    intro="Long reviews of hardware I probably didn't need to buy, plus the occasional how-to I wrote so I'd never have to work it out twice."
-  />
+  <PageHead eyebrow="Archive" title={WRITING.title} intro={WRITING.intro} />
 
   <Section>
     <SidebarLayout data-filter-root data-unit="posts">

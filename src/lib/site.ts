@@ -102,6 +102,27 @@ export const AVATAR_SOCIALS = SOCIALS.filter((s) => s.hasAvatar);
 
 export const EMAIL = 'jason@leibowitz.me';
 
+/**
+ * What the Writing archive says it is, in the one place all four surfaces read
+ * it from: the page's meta description, its header intro, the RSS feed's own
+ * description, and the head link that offers the feed.
+ *
+ * The shared sentence is named separately because the header has room for a
+ * clause a meta description does not, and the two used to differ by that clause
+ * plus whatever had drifted.
+ */
+const WRITING_LEAD =
+  "Long reviews of hardware I probably didn't need to buy, plus the occasional how-to";
+
+export const WRITING = {
+  title: 'Writing',
+  description: `${WRITING_LEAD}.`,
+  intro: `${WRITING_LEAD} I wrote so I'd never have to work it out twice.`,
+} as const;
+
+/** How the feed names itself, in its XML and in the head link offering it. */
+export const FEED_TITLE = `${WRITING.title} · Jason Leibowitz`;
+
 /** Jason supplies the PDF; it belongs at `public/resume.pdf`. */
 export const RESUME_HREF = '/resume.pdf';
 
