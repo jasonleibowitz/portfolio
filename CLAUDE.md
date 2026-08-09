@@ -362,5 +362,22 @@ of reusing `verify`'s `dist/`:
 ### Setup this depends on
 
 Repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the repo **variable**
-`CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above). Without the variable the
-workflow builds a `site` value with an empty segment and the preview URL will not resolve.
+`CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above, currently `leibowitz`). It is a
+variable rather than a secret because it is baked into the built `site` value; without it the
+workflow builds a URL with an empty segment that will not resolve.
+
+The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and
+`Memberships`. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages,
+Containers, Observability), which a static site never touches, and its `Zone: Workers Routes`
+entry cannot even be saved while the account has no zone. Routes matter at DNS cutover, not
+before.
+
+**`wrangler versions upload` cannot create a Worker.** It fails with "You cannot upload a new
+version of a Worker that does not yet exist", so a brand new Worker has to be created by one
+`wrangler deploy` before any preview can upload. This is undocumented and was found by hitting
+it. It is a one-time bootstrap, already done for `portfolio` — but it repeats for any new
+Worker, and it means the `preview` job cannot be the first thing that ever runs.
+
+A freshly created `workers.dev` subdomain takes a few minutes to resolve in DNS. A preview URL
+returning `Could not resolve host` immediately after the account's first deploy is propagation,
+not a broken build.
