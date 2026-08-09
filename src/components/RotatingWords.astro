@@ -46,24 +46,50 @@ const { words } = Astro.props;
   if (rotator) {
     const words = Array.from(rotator.children) as HTMLElement[];
 
-    // Measure off-screen, once, so the container has a width to animate to.
-    const widths = words.map((word) => {
-      word.style.position = 'static';
-      word.style.opacity = '0';
-      const width = word.getBoundingClientRect().width;
-      word.style.position = '';
-      word.style.opacity = '';
-      return width;
-    });
+    let widths: number[] = [];
+    let i = 0;
 
-    rotator.style.width = `${widths[0]}px`;
+    /* Every word is absolutely positioned, so each one is taken back into flow
+       for the moment it is measured. */
+    const measure = () => {
+      widths = words.map((word) => {
+        word.style.position = 'static';
+        word.style.opacity = '0';
+        const width = word.getBoundingClientRect().width;
+        word.style.position = '';
+        word.style.opacity = '';
+        return width;
+      });
+
+      rotator.style.width = `${widths[i]}px`;
+    };
+
+    measure();
+
+    /* The headline sets in a webfont at a size that clamps against the
+       viewport, so a width measured once is wrong twice: before the font
+       settles, and after any resize or rotation. Either leaves the full stop
+       stranded off the end of the word, which is the jump this width exists to
+       prevent. */
+    document.fonts.ready.then(measure);
+
+    /* Coalesced into a frame: a drag fires continuously and each measurement
+       forces a layout per word. */
+    let queued = false;
+    window.addEventListener('resize', () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        measure();
+      });
+    });
 
     const reduced = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
     if (!reduced && words.length > 1) {
-      let i = 0;
       setInterval(() => {
         const previous = words[i];
         i = (i + 1) % words.length;
