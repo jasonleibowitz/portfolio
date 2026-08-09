@@ -67,12 +67,6 @@ previews do, so an unpublished post can be reviewed in the real design rather th
 `localhost`. Every other build excludes them. To verify, check build output rather than
 reading code: a draft's slug must not appear anywhere under `dist/`.
 
-**No entry is currently `draft: true`.** The espresso post was the last one and is now
-published, so nothing exercises this path today: a preview and the staging build render the
-same set. That makes `SHOW_DRAFTS` easy to break without noticing. The way to check it still
-works is to flip an entry to `draft: true`, confirm the page count rises on a preview and not
-on staging, and flip it back.
-
 `SHOW_DRAFTS` is a plain `process.env` read, as is `SITE_URL` in `astro.config.mjs`. Astro's
 typed `astro:env` schema would work for `SHOW_DRAFTS` and was tried, but `SITE_URL` cannot use
 it — that value configures Astro itself, before `astro:env` exists — so the schema bought one
