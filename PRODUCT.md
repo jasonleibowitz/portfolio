@@ -170,7 +170,7 @@ Real:
 - Three projects in `src/content/projects/`: Winnie the Poo Tracker (TestFlight
   beta, Expo/RN + Supabase), Reel Watch (TestFlight beta, Expo/RN + Django
   Ninja/Supabase/Turborepo), and this site.
-- **The full employment record** — six employers, nine roles, September 2014 to
+- **The full employment record** — six employers, nine roles, October 2014 to
   present, in `src/lib/career.ts`: Carta (Senior Software Engineer II), Capsule
   Pharmacy (Senior Software Engineer, plus Technical Lead held **concurrently**
   from Jul 2021), Invitae, TodayTix, Reserve, and Tigerspike. Dates are stored
@@ -184,8 +184,8 @@ Real:
   it is an authority the site cannot read; anything taken from it is transcribed
   by Jason, not parsed.
 - **"Beyond the CV" numbers:** 15 countries, 50 podcasts, 2 apps in TestFlight,
-  and years shipping — the last computed at build time from September 2014 so it
-  cannot go stale or contradict the homepage.
+  and years shipping — the last derived at build time from the earliest month in
+  the employment record, so it cannot go stale or contradict the homepage.
 - **App pitches**, in Jason's own words and marked for later sharpening: "Bowel
   movement tracker for IBS/IBD patients" and "Better movie recommendations."
 

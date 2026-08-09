@@ -134,8 +134,14 @@ export function currentRole(): string {
   return `${roles[0].title} at ${company}`;
 }
 
-/** September 2014, when the first job started. */
-const CAREER_START: Month = '2014-09';
+/**
+ * The earliest month in the record. Derived, because a second copy of a date
+ * in this file is a date that can disagree with the first one.
+ */
+const CAREER_START: Month = CAREER.flatMap(({ roles }) => roles).reduce<Month>(
+  (earliest, role) => (role.from < earliest ? role.from : earliest),
+  CAREER[0].roles[0].from
+);
 
 /**
  * Whole years shipping, computed at build time rather than written down, so
