@@ -8,7 +8,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
-import Anchor from '@components/markdown/Anchor.astro';
+import TextLink from '@components/markdown/TextLink.astro';
 import SidebarLayout from '@components/layout/SidebarLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
@@ -178,7 +178,9 @@ const hasBody = Boolean(list.body?.trim());
               as="div"
               class="markdown mt-10 max-w-measure border-t border-line pt-8"
             >
-              <Content components={{ h2: Heading2, h3: Heading3, a: Anchor }} />
+              <Content
+                components={{ h2: Heading2, h3: Heading3, a: TextLink }}
+              />
             </Typography>
           )
         }
