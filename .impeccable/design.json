@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-06T12:00:00.000Z",
+  "generatedAt": "2026-08-08T21:00:00.000Z",
   "title": "Design System: Orbit — leibowitz.me",
   "extensions": {
     "colorMeta": {
@@ -106,9 +106,9 @@
       "faint": {
         "role": "neutral",
         "displayName": "Faint",
-        "canonical": "#85819c",
+        "canonical": "#6f6b86",
         "darkModeValue": "#948fa8",
-        "note": "Metadata, eyebrows, captions, inactive dock tabs.",
+        "note": "Metadata, eyebrows, dates, captions, inactive dock tabs. 4.9:1 on the canvas; the earlier #85819c measured 3.59:1, under the 4.5 this token's text sizes need.",
         "tonalRamp": [
           "oklch(22% 0.02 290)",
           "oklch(33% 0.025 290)",
@@ -158,21 +158,47 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The homepage headline only. Breaks are explicit, never emergent."
+        "purpose": "The homepage headline only. Breaks are explicit, never emergent, and it is deliberately not a shared variant."
       },
-      "headline": { "displayName": "Headline", "purpose": "Page titles." },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Section headings and rendered `##` in prose."
+      "heading1": {
+        "displayName": "Heading 1",
+        "purpose": "Page titles. Renders an h1."
       },
-      "body": { "displayName": "Body", "purpose": "Default UI text." },
-      "reading": {
-        "displayName": "Reading",
-        "purpose": "Long-form prose only, on a 46rem measure (~78 characters)."
+      "heading2": {
+        "displayName": "Heading 2",
+        "purpose": "Section headings, card titles, and `##` in markdown."
       },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Eyebrows, dates, counts, tags, stacks. Monospace marks data, never prose."
+      "heading3": {
+        "displayName": "Heading 3",
+        "purpose": "Employer names, homepage project titles, and `###` in markdown. Sized to clear Longform at every width."
+      },
+      "intro": {
+        "displayName": "Intro",
+        "purpose": "The paragraph under a page title. Capped near 48ch and always muted."
+      },
+      "longform": {
+        "displayName": "Longform",
+        "purpose": "Text read for minutes, on a 46rem measure (~78 characters)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text. Card descriptions and a list's trailing note."
+      },
+      "compact": {
+        "displayName": "Compact",
+        "purpose": "Dense interface text: rows, role lines, nav and footer links."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "Annotation prose. A remark about the thing it sits under."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Uppercase mono labels. The line that names the thing beneath it."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Dates, tenures, counts, ranks. Mono but never uppercased, because these are values being read rather than labels being scanned."
       }
     },
     "shadows": [
@@ -191,9 +217,9 @@
     ],
     "motion": [
       {
-        "name": "ease-lift",
+        "name": "ease-orbit",
         "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
-        "purpose": "Default easing for interactive state — button hover, dock collapse, tab press."
+        "purpose": "The system's one easing curve. Interactive state everywhere: button hover, dock collapse, tab press, contents marker."
       },
       {
         "name": "drift",
@@ -222,17 +248,63 @@
       }
     ],
     "breakpoints": [
-      { "name": "hero", "value": "26rem" },
-      { "name": "card", "value": "46rem" },
-      { "name": "nav", "value": "50rem" },
-      { "name": "rail", "value": "52rem" },
-      { "name": "case", "value": "54rem" },
-      { "name": "bio", "value": "56rem" }
+      {
+        "name": "hero",
+        "value": "26rem",
+        "decision": "Homepage headline breaks collapse to inline."
+      },
+      {
+        "name": "card",
+        "value": "46rem",
+        "decision": "Card internals go horizontal."
+      },
+      {
+        "name": "nav",
+        "value": "50rem",
+        "decision": "Header nav replaces the mobile dock."
+      },
+      {
+        "name": "rail",
+        "value": "52rem",
+        "decision": "Tag rails move beside the list."
+      },
+      {
+        "name": "spec",
+        "value": "54rem",
+        "decision": "A project's spec rail becomes sticky."
+      },
+      {
+        "name": "bio",
+        "value": "56rem",
+        "decision": "The About photo floats."
+      },
+      {
+        "name": "feature",
+        "value": "58rem",
+        "decision": "A featured project brief gains its second column."
+      },
+      {
+        "name": "toc",
+        "value": "68rem",
+        "decision": "A post's contents leave the body and become a rail beside it."
+      }
     ],
     "containers": [
-      { "name": "shell", "value": "70rem" },
-      { "name": "measure", "value": "46rem" },
-      { "name": "bio", "value": "52rem" }
+      {
+        "name": "page",
+        "value": "70rem",
+        "purpose": "The page shell."
+      },
+      {
+        "name": "measure",
+        "value": "46rem",
+        "purpose": "Long-form reading, ~78 characters."
+      },
+      {
+        "name": "bio",
+        "value": "52rem",
+        "purpose": "The About bio column."
+      }
     ]
   },
   "components": [
@@ -266,7 +338,7 @@
       "refersTo": "panel",
       "description": "The universal surface: translucent fill, hairline border, 18px corners, and never a shadow.",
       "html": "<div class=\"ds-panel\"><b class=\"ds-panel-figure\">11</b><span class=\"ds-panel-label\">Years shipping</span></div>",
-      "css": ".ds-panel { display: block; padding: 24px; border: 1px solid var(--color-line, rgb(20 18 30 / 0.09)); border-radius: 18px; background: var(--color-panel, rgb(255 255 255 / 0.72)); } .ds-panel-figure { display: block; font-family: 'Space Grotesk Variable', 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.04em; background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-block: 0.08em 0.2em; margin-block: -0.08em -0.2em; } .ds-panel-label { display: block; margin-top: 8px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-faint, #85819c); }"
+      "css": ".ds-panel { display: block; padding: 24px; border: 1px solid var(--color-line, rgb(20 18 30 / 0.09)); border-radius: 18px; background: var(--color-panel, rgb(255 255 255 / 0.72)); } .ds-panel-figure { display: block; font-family: 'Space Grotesk Variable', 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.04em; background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-block: 0.08em 0.2em; margin-block: -0.08em -0.2em; } .ds-panel-label { display: block; margin-top: 8px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-faint, #6f6b86); }"
     },
     {
       "name": "Desktop Nav",
@@ -282,15 +354,7 @@
       "refersTo": "status-dot",
       "description": "Monospace state line. The dot pulses only when the project is actively moving; parked projects get a flat faint dot.",
       "html": "<span class=\"ds-status\"><i class=\"ds-status-dot ds-status-pulse\"></i>Beta · near release</span><br/><span class=\"ds-status\"><i class=\"ds-status-dot\"></i>Live · being rebuilt</span>",
-      "css": ".ds-status { display: inline-flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted, #55536a); } .ds-status-dot { display: block; width: 7px; height: 7px; border-radius: 999px; background: var(--color-faint, #85819c); } .ds-status-pulse { background: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); animation: ds-status 2.6s ease-in-out infinite; } @keyframes ds-status { 50% { opacity: 0.35; transform: scale(0.85); } } @media (prefers-reduced-motion: reduce) { .ds-status-pulse { animation: none; } }"
-    },
-    {
-      "name": "Eyebrow",
-      "kind": "custom",
-      "refersTo": "label",
-      "description": "The monospace label above a heading. The system's most repeated typographic move.",
-      "html": "<p class=\"ds-eyebrow\">Full-stack engineer · New York</p>",
-      "css": ".ds-eyebrow { margin: 0; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-faint, #85819c); }"
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted, #55536a); } .ds-status-dot { display: block; width: 7px; height: 7px; border-radius: 999px; background: var(--color-faint, #6f6b86); } .ds-status-pulse { background: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); animation: ds-status 2.6s ease-in-out infinite; } @keyframes ds-status { 50% { opacity: 0.35; transform: scale(0.85); } } @media (prefers-reduced-motion: reduce) { .ds-status-pulse { animation: none; } }"
     },
     {
       "name": "Mobile Dock",
@@ -298,7 +362,23 @@
       "refersTo": "dock-tab",
       "description": "The floating glass capsule below 50rem. Per-position radii let the active tab reach the capsule's own end cap with no uncolored gap.",
       "html": "<nav class=\"ds-dock\"><a class=\"ds-dock-tab ds-dock-active\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Home</span></a><a class=\"ds-dock-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg><span>About</span></a><a class=\"ds-dock-tab\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/><rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\"/></svg><span>Projects</span></a></nav>",
-      "css": ".ds-dock { display: flex; width: 320px; padding: 0; overflow: hidden; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.62); background: color-mix(in srgb, var(--color-base, #fcfaf6) 28%, transparent); backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%); box-shadow: 0 14px 40px rgb(24 18 60 / 0.22), 0 2px 6px rgb(24 18 60 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -14px 24px -14px rgb(24 18 60 / 0.42); } .ds-dock-tab { position: relative; flex: 1 1 0; min-width: 0; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-inline: 2px; border-radius: 18px; font-family: 'Inter Variable', Inter, sans-serif; font-size: 10px; color: var(--color-faint, #85819c); text-decoration: none; transition: transform 0.16s cubic-bezier(0.2,0.8,0.2,1); } .ds-dock-tab svg { width: 19px; height: 19px; flex-shrink: 0; } .ds-dock-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-dock-tab:active { transform: scale(0.93); } .ds-dock-tab:first-child { border-radius: 999px 18px 18px 999px; } .ds-dock-tab:last-child { border-radius: 18px 999px 999px 18px; } .ds-dock-active { background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); color: #fff; }"
+      "css": ".ds-dock { display: flex; width: 320px; padding: 0; overflow: hidden; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.62); background: color-mix(in srgb, var(--color-canvas, #fcfaf6) 28%, transparent); backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%); box-shadow: 0 14px 40px rgb(24 18 60 / 0.22), 0 2px 6px rgb(24 18 60 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -14px 24px -14px rgb(24 18 60 / 0.42); } .ds-dock-tab { position: relative; flex: 1 1 0; min-width: 0; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-inline: 2px; border-radius: 18px; font-family: 'Inter Variable', Inter, sans-serif; font-size: 10px; color: var(--color-faint, #6f6b86); text-decoration: none; transition: transform 0.16s cubic-bezier(0.2,0.8,0.2,1); } .ds-dock-tab svg { width: 19px; height: 19px; flex-shrink: 0; } .ds-dock-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-dock-tab:active { transform: scale(0.93); } .ds-dock-tab:first-child { border-radius: 999px 18px 18px 999px; } .ds-dock-tab:last-child { border-radius: 18px 999px 999px 18px; } .ds-dock-active { background-image: linear-gradient(100deg, var(--color-violet, #5b3df5), var(--color-cyan, #0e9fb8)); color: #fff; }"
+    },
+    {
+      "name": "Breadcrumb",
+      "kind": "nav",
+      "refersTo": "label",
+      "description": "The section a detail page belongs to, linked, above its title. Names where you are the way the nav does, so it says 'Writing', not 'All writing'.",
+      "html": "<a class=\"ds-breadcrumb\" href=\"#\">Writing</a>",
+      "css": ".ds-breadcrumb { display: inline-flex; align-items: center; min-height: 44px; margin-left: -4px; padding-inline: 4px; font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--color-faint); text-decoration: none; transition: color 0.2s var(--ease-orbit); } .ds-breadcrumb:hover { color: var(--color-ink); } .ds-breadcrumb:focus-visible { outline: 2px solid var(--color-violet); outline-offset: 3px; border-radius: var(--radius-sm); }"
+    },
+    {
+      "name": "Contents Rail",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "A post's sections, sticky beside the prose from 68rem up and a bordered panel above the body below it. A gradient segment on the rail's hairline marks the section being read.",
+      "html": "<nav class=\"ds-toc\" aria-label=\"Contents\"><p class=\"ds-toc__label\">Contents</p><ol class=\"ds-toc__list\"><li><a class=\"ds-toc__link\" href=\"#a\">Intro</a></li><li><a class=\"ds-toc__link\" href=\"#b\" aria-current=\"location\">Sound Quality</a></li><li><a class=\"ds-toc__link\" href=\"#c\">Noise Cancellation</a></li></ol></nav>",
+      "css": ".ds-toc { position: sticky; top: 88px; width: 200px; } .ds-toc__label { margin: 0; font-family: var(--font-mono); font-size: var(--text-meta); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--color-faint); } .ds-toc__list { margin: 12px 0 0; padding: 0 0 0 16px; list-style: none; border-left: 1px solid var(--color-line); font-size: var(--text-ui); color: var(--color-muted); } .ds-toc__link { position: relative; display: flex; align-items: center; min-height: 36px; color: inherit; text-decoration: none; transition: color 0.2s var(--ease-orbit); } .ds-toc__link::before { content: ''; position: absolute; left: -16px; top: 4px; bottom: 4px; width: 2px; border-radius: 999px; opacity: 0; background-image: linear-gradient(100deg, var(--color-violet), var(--color-cyan)); transition: opacity 0.2s var(--ease-orbit); } .ds-toc__link:hover { color: var(--color-violet); } .ds-toc__link[aria-current='location'] { color: var(--color-ink); font-weight: 500; } .ds-toc__link[aria-current='location']::before { opacity: 1; }"
     }
   ],
   "narrative": {

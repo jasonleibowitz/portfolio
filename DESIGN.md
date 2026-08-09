@@ -271,7 +271,7 @@ the one it is on, and there are no size breakpoints.
 
 ## Layout
 
-The page is a single centered column: a 70rem shell (`--container-shell`) with a
+The page is a single centered column: a 70rem shell (`--container-page`) with a
 fluid gutter (`clamp(20px, 12px + 2vw, 36px)`), narrowing to 46rem for long-form
 reading (`--container-measure`) and 52rem for the About bio (`--container-bio`).
 There is no multi-column grid at the page level; rhythm does the work that
@@ -285,7 +285,9 @@ Breakpoints are named after the layout decision each one makes rather than after
 a device size: `hero` (26rem, headline breaks collapse), `card` (46rem, card
 internals go horizontal), `nav` (50rem, header nav replaces the dock), `rail`
 (52rem, tag rails move beside content), `spec` (54rem, the spec rail becomes
-sticky), `bio` (56rem, the About photo floats).
+sticky), `bio` (56rem, the About photo floats), `feature` (58rem, a featured
+project brief gains its second column), and `toc` (68rem, a post's contents
+leave the body and become a rail beside it).
 
 ### Named Rules
 
