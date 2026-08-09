@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "portfolio",
+  "compatibility_date": "2026-08-09",
+
+  // No `main`, so there is no Worker script and each request reads an asset
+  // directly. Cloudflare does not bill static asset requests.
+  "assets": {
+    "directory": "./dist",
+
+    // Astro makes directory-style URLs (`/writing/foo/index.html`), which the
+    // default `auto-trailing-slash` mode matches. There is no `404.astro` yet,
+    // so `none` returns a plain 404 instead of an incorrect page.
+    "not_found_handling": "none",
+  },
+
+  // Preview URLs for each version. CI gives each version an alias with
+  // `--preview-alias`, which it sets to `pr-<number>`.
+  "preview_urls": true,
+}

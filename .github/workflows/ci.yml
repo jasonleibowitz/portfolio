@@ -5,14 +5,21 @@ on:
   push:
     branches: [main]
 
-# A newer push supersedes the in-flight run for the same ref -- PR or main.
+# A new push cancels the run in progress for the same ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# CI only reads the repo -- don't inherit whatever the repo default becomes.
+# CI only reads the repo, and does not use the repository default, which can
+# change. The `preview` job adds `pull-requests: write` for its comment.
 permissions:
   contents: read
+
+env:
+  # One Worker holds every build. A preview is a version of that Worker, and an
+  # alias points to it. CI makes no new environment for each branch, and has
+  # nothing to remove.
+  WORKER_NAME: portfolio
 
 jobs:
   verify:
@@ -23,10 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Version comes from the `packageManager` field, so CI matches local.
+      # pnpm reads its version from the `packageManager` field, so CI matches
+      # local.
       - uses: pnpm/action-setup@v4
 
-      # Exact pin from .nvmrc -- `engines.node` is an open range and would float.
+      # .nvmrc gives the exact version. `engines.node` is a range, and floats.
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -35,7 +43,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Separate steps so a failure names which gate broke. Cheapest first.
+      # Each gate is a separate step, so a failure names the gate. Cheapest
+      # first.
       - name: Format
         run: pnpm format:check
 
@@ -47,3 +56,183 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # `preview` and `staging` build again. They do not reuse the `dist/` from
+  # `verify`, because they set SITE_URL, and `preview` also sets SHOW_DRAFTS.
+  # Both jobs need `verify`, so a failed gate publishes no URL.
+  preview:
+    name: Publish preview
+    needs: verify
+    # GitHub gives no repository secrets to a pull request from a fork. Without
+    # this condition, the upload fails on a missing token and looks like a break.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `pr-<number>` is always a valid alias. It starts with a letter, DNS
+      # accepts each character, and two branch names cannot collide. The alias
+      # and the Worker name must fit one 63-character DNS label.
+      #
+      # This step makes the URL, so the build below knows its own address.
+      #
+      # The commit subject comes from the API, not `git log`: the checkout is a
+      # depth-1 clone of the merge ref, which does not contain the head commit
+      # message. The author controls this value, so it stays quoted. `tr`
+      # removes newlines, which could add a false line to $GITHUB_OUTPUT.
+      - name: Resolve preview URL
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          alias="pr-${{ github.event.pull_request.number }}"
+          host="$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev"
+          subject=$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq '.commit.message' \
+            | head -1 | tr -d '\n\r' | cut -c1-100)
+          echo "alias=$alias" >> "$GITHUB_OUTPUT"
+          echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          echo "url=https://$host" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          SITE_URL: ${{ steps.preview.outputs.url }}
+          SHOW_DRAFTS: 'true'
+        run: pnpm build
+
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      # The dashboard shows `--message` in its version history. Without it, each
+      # row reads "Manually deployed". Cloudflare fills in the branch and the
+      # commit only for its own CI, so these two flags are the only labels.
+      #
+      # wrangler runs directly, not through `cloudflare/wrangler-action`. That
+      # action takes its command as one string, so a commit subject could end
+      # the quote and run other commands. A quoted variable cannot do this.
+      - name: Upload version to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALIAS: ${{ steps.preview.outputs.alias }}
+          SHA: ${{ steps.preview.outputs.sha }}
+          SUBJECT: ${{ steps.preview.outputs.subject }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          pnpm exec wrangler versions upload \
+            --preview-alias "$ALIAS" \
+            --tag "$SHA" \
+            --message "PR #$PR_NUMBER $SHA: $SUBJECT"
+
+      # The build gates do not show a page. Therefore each review is visual.
+      # Each surface in `NAV` (src/lib/site.ts) has a link.
+      #
+      # Each address ends with a slash. A request without the slash causes a
+      # 307. GitHub draws a line below an `h2` only. The host has its own line.
+      # The combined line wraps at 320 px.
+      #
+      # Do not add the commit subject. An author controls that text. A comment
+      # is not a safe place for it.
+      - name: Write comment body
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+          HOST: ${{ steps.preview.outputs.host }}
+          SHA: ${{ steps.preview.outputs.sha }}
+          COMMIT: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
+        run: |
+          cat > preview-comment.md <<EOF
+          ## [Deploy preview]($URL/)
+
+          [Home]($URL/) · [About]($URL/about/) · [Projects]($URL/projects/) · [Writing]($URL/writing/) · [Lists]($URL/lists/)
+
+          <sub>$HOST</sub><br><sub>Built from [\`$SHA\`]($COMMIT) · Draft posts rendered · Not indexed</sub>
+          EOF
+
+      # One comment per pull request. `header` identifies it, and `recreate`
+      # deletes the previous one, so the comment stays below the commits that
+      # produced it. The action is pinned to a commit, because a tag can move.
+      - name: Comment preview URL
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: cloudflare-preview
+          recreate: true
+          path: preview-comment.md
+
+  # `main` at a stable URL. This is a real deployment, but leibowitz.me still
+  # answers from GitHub Pages. Drafts stay hidden, so this shows the published
+  # set.
+  #
+  # TODO: promote this job to production at DNS cutover. The deploy mechanism
+  # does not change. Three things do:
+  #
+  #   1. Attach leibowitz.me to the `portfolio` Worker as a custom domain.
+  #   2. Set SITE_URL to https://leibowitz.me, so the canonical tag, the
+  #      og:image URL and the RSS links use the real domain.
+  #   3. Delete the `Mark as noindex` step. Production must be indexable.
+  #
+  # Then rename the job to `Deploy production`.
+  staging:
+    name: Deploy staging
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `git log` is sufficient here. A push checks out the commit itself, so
+      # the depth-1 clone contains its subject.
+      - name: Resolve revision
+        id: rev
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          subject=$(git log -1 --pretty=%s | tr -d '\n\r' | cut -c1-100)
+          echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          SITE_URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
+        run: pnpm build
+
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SHA: ${{ steps.rev.outputs.sha }}
+          SUBJECT: ${{ steps.rev.outputs.subject }}
+        run: |
+          pnpm exec wrangler deploy \
+            --tag "$SHA" \
+            --message "main $SHA: $SUBJECT"
