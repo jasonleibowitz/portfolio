@@ -95,9 +95,14 @@ jobs:
       # lets the build below know its own URL.
       - name: Resolve preview URL
         id: preview
+        # HEAD_SHA comes through the environment rather than an inline
+        # expression, so nothing from the event is expanded as shell.
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           alias="pr-${{ github.event.pull_request.number }}"
           echo "alias=$alias" >> "$GITHUB_OUTPUT"
+          echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "url=https://$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev" >> "$GITHUB_OUTPUT"
 
       - name: Build
@@ -109,12 +114,20 @@ jobs:
       - name: Mark as noindex
         run: node scripts/noindex.mjs
 
+      # `--message` is what the dashboard's version history shows. Left unset it
+      # reads "Manually deployed" for every row, which cannot be traced back to
+      # a commit. Only the PR number and the commit SHA go in: both are fixed
+      # formats, unlike a PR title, which could carry shell metacharacters.
       - name: Upload version
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions upload --preview-alias ${{ steps.preview.outputs.alias }}
+          command: >-
+            versions upload
+            --preview-alias ${{ steps.preview.outputs.alias }}
+            --tag ${{ steps.preview.outputs.sha }}
+            --message "PR #${{ github.event.pull_request.number }} at ${{ steps.preview.outputs.sha }}"
 
       # One comment per pull request, rewritten in place. The alias is stable
       # across pushes, so a comment per commit would repeat the same URL.
@@ -178,6 +191,12 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Resolve revision
+        id: rev
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
       - name: Build
         env:
           SITE_URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
@@ -191,4 +210,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          command: >-
+            deploy
+            --tag ${{ steps.rev.outputs.sha }}
+            --message "main at ${{ steps.rev.outputs.sha }}"

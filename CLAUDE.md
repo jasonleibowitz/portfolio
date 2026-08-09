@@ -352,6 +352,10 @@ Cloudflare sets its own header on preview URLs and it wins. The staging deployme
 the full value, which is how the two were told apart. Nothing is broken and the file needs no
 "fix" — checking a preview's headers and finding one directive missing is expected.
 
+**Cloudflare edge-caches a preview response.** A URL can still serve the previous build for a
+while after a green deploy. Append a query string (`?cb=1`) to see the new one. A preview that
+looks like it did not pick up the last commit is usually this, not a broken upload.
+
 ### Why the preview build is not the production build
 
 Two env vars make a preview deliberately differ, which is why the deploy jobs rebuild instead
