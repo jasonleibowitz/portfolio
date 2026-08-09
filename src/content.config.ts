@@ -17,14 +17,13 @@ const blog = defineCollection({
     description: z.string().optional(),
     author: z.string(),
     /**
-     * The hero, and the share card's picture.
+     * The hero image. The share card shows the same image.
      *
-     * An absolute path under `public/blog-images/YYYY-MM-DD/`, never a remote
-     * URL. These are referenced as URL strings rather than imported, so unlike
-     * list artwork and project icons nothing here can enforce that. The rule is
-     * the same and matters more: this one is the `og:image`, so a host that
-     * stops serving it takes the link preview with it, silently and with every
-     * build still green.
+     * Use an absolute path in `public/blog-images/YYYY-MM-DD/`. Do not use a
+     * remote URL. The build stops if you use one.
+     *
+     * A remote host can remove its files. Then the page and the share card
+     * show no image, and the build does not report an error.
      */
     image: z.object({
       url: z.string().startsWith('/', 'a local path under public/, not a URL'),
