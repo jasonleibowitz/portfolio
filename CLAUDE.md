@@ -324,8 +324,9 @@ without deploying it, which is what a per-PR preview needs.
 
 Until DNS cuts over, the live site is still served by the separate
 `jasonleibowitz.github.io` repo — and its apex record points at deprecated GitHub Pages IPs,
-so HTTPS is currently broken. **DNS is the only thing holding production back.** Everything
-below is already live on `*.workers.dev`.
+so HTTPS is currently broken. **DNS is most of what holds production back, but not all of
+it:** the staging job also overrides `SITE_URL` and runs `scripts/noindex.mjs`, and neither
+belongs in a production build. Everything below is already live on `*.workers.dev`.
 
 `wrangler.jsonc` declares one Worker, `portfolio`, serving `dist/` with no `main` — there is
 no Worker script, so every request is a static asset request, which Cloudflare does not bill.
@@ -370,9 +371,9 @@ of reusing `verify`'s `dist/`:
 ### Setup this depends on
 
 Repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the repo **variable**
-`CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above, currently `leibowitz`). It is a
-variable rather than a secret because it is baked into the built `site` value; without it the
-workflow builds a URL with an empty segment that will not resolve.
+`CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above, currently `jasonaleibowitz`).
+It is a variable rather than a secret because it is baked into the built `site` value;
+without it the workflow builds a URL with an empty segment that will not resolve.
 
 The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and
 `Memberships`. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages,
