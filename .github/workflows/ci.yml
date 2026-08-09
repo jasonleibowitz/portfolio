@@ -93,16 +93,28 @@ jobs:
       #
       # Resolving it here rather than reading it back from the upload is what
       # lets the build below know its own URL.
+      # The commit subject is read from the API rather than `git log`: the
+      # checkout above is a depth-1 clone of the pull request's *merge* ref, so
+      # the head commit's parents -- and its message -- are not in the clone.
+      #
+      # It is also the one value here an author controls, so it never reaches a
+      # shell as anything but a quoted variable. `tr` strips newlines, which
+      # would otherwise let a crafted subject forge a second line in
+      # $GITHUB_OUTPUT, and the cut bounds a message length Cloudflare does not
+      # document a limit for.
       - name: Resolve preview URL
         id: preview
-        # HEAD_SHA comes through the environment rather than an inline
-        # expression, so nothing from the event is expanded as shell.
         env:
+          GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
         run: |
           alias="pr-${{ github.event.pull_request.number }}"
+          subject=$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq '.commit.message' \
+            | head -1 | tr -d '\n\r' | cut -c1-100)
           echo "alias=$alias" >> "$GITHUB_OUTPUT"
           echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
           echo "url=https://$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev" >> "$GITHUB_OUTPUT"
 
       - name: Build
@@ -114,20 +126,30 @@ jobs:
       - name: Mark as noindex
         run: node scripts/noindex.mjs
 
-      # `--message` is what the dashboard's version history shows. Left unset it
-      # reads "Manually deployed" for every row, which cannot be traced back to
-      # a commit. Only the PR number and the commit SHA go in: both are fixed
-      # formats, unlike a PR title, which could carry shell metacharacters.
+      # `--message` is what the dashboard's version history shows. Left unset,
+      # every row reads "Manually deployed" and traces back to nothing.
+      # Cloudflare populates branch and commit itself only for Workers Builds,
+      # its own CI -- a Worker built here has no build record, so these two
+      # flags are the only way to label a version.
+      #
+      # wrangler runs directly rather than through `cloudflare/wrangler-action`,
+      # which takes its command as one string: the subject would be spliced into
+      # it and a commit message could then close the quote and run whatever
+      # followed. Quoted variable expansion does not re-tokenize, so this form
+      # cannot.
       - name: Upload version
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            versions upload
-            --preview-alias ${{ steps.preview.outputs.alias }}
-            --tag ${{ steps.preview.outputs.sha }}
-            --message "PR #${{ github.event.pull_request.number }} at ${{ steps.preview.outputs.sha }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ALIAS: ${{ steps.preview.outputs.alias }}
+          SHA: ${{ steps.preview.outputs.sha }}
+          SUBJECT: ${{ steps.preview.outputs.subject }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          pnpm exec wrangler versions upload \
+            --preview-alias "$ALIAS" \
+            --tag "$SHA" \
+            --message "PR #$PR_NUMBER $SHA: $SUBJECT"
 
       # One comment per pull request, rewritten in place. The alias is stable
       # across pushes, so a comment per commit would repeat the same URL.
@@ -191,11 +213,16 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # `git log` is enough here, unlike in `preview`: a push checks out the
+      # pushed commit itself, so its subject is in the depth-1 clone.
       - name: Resolve revision
         id: rev
         env:
           HEAD_SHA: ${{ github.sha }}
-        run: echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+        run: |
+          subject=$(git log -1 --pretty=%s | tr -d '\n\r' | cut -c1-100)
+          echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
 
       - name: Build
         env:
@@ -206,11 +233,12 @@ jobs:
         run: node scripts/noindex.mjs
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: >-
-            deploy
-            --tag ${{ steps.rev.outputs.sha }}
-            --message "main at ${{ steps.rev.outputs.sha }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SHA: ${{ steps.rev.outputs.sha }}
+          SUBJECT: ${{ steps.rev.outputs.subject }}
+        run: |
+          pnpm exec wrangler deploy \
+            --tag "$SHA" \
+            --message "main $SHA: $SUBJECT"
