@@ -3,15 +3,14 @@ import { Icon } from 'astro-icon/components';
 import { NAV, NAV_FOR_PAGE, type PageKey } from '@lib/site';
 
 /**
- * Floating glass capsule, five tabs, collapsing to icons on scroll down.
+ * A floating glass capsule with five tabs. It collapses to icons on scroll
+ * down.
  *
- * The capsule has no padding, so the active tab reaches its inner edge: the
- * first and last tabs take the capsule's own end cap on their outer side via
- * per-position border-radius, and nothing is left uncolored around the active
- * item. Chosen deliberately over an Apple-style inset tinted chip.
+ * The capsule has no padding, and the end tabs take its end caps with a radius
+ * for each position. No uncolored gap then stays around the active tab.
  *
- * At a 320px viewport five tabs are 59px each, above the 44px target rule.
- * Labels ellipsis rather than widen the bar.
+ * Five tabs are 59px each at a 320px viewport, above the 44px target rule. A
+ * long label truncates; it does not widen the bar.
  */
 interface Props {
   page: PageKey;

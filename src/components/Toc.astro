@@ -3,13 +3,12 @@ import type { MarkdownHeading } from 'astro';
 import Typography from './ui/Typography.astro';
 
 /**
- * A post's sections: a panel at the top of the body on narrow screens, a
- * sticky rail beside it from `toc` up, where the reading measure finally has
- * room for one. `lib/toc.ts` marks the section being read.
+ * A post's sections. It is a panel at the top of the body on a narrow screen,
+ * and a sticky rail beside the body from `toc` up. `lib/toc.ts` marks the
+ * section the reader is in.
  *
- * One element in both cases rather than two rendered conditionally: a second
- * copy would duplicate every anchor, and a screen reader would offer the same
- * five destinations twice.
+ * One element serves both. Keep it to one: two elements duplicate every
+ * anchor, and a screen reader then offers each destination twice.
  */
 interface Props {
   headings: MarkdownHeading[];
@@ -19,16 +18,14 @@ interface Props {
 const { headings } = Astro.props;
 const sections = headings.filter((heading) => heading.depth === 2);
 
-/* The panel chrome is scoped to `max-toc` rather than reset at `toc`, so each
-   style applies in exactly one range and no two rules race to win.
+/* Scope the panel chrome to `max-toc`. Each style then applies in one range
+   only, and no two rules compete.
 
-   As a panel it sits on the measure, not on the grid track: the track is the
-   full shell, and between 46rem and the rail's breakpoint that left the
-   contents visibly wider than the prose underneath them.
+   The panel sits on the measure, not on the grid track. The track is the full
+   shell, which is wider than the prose below it.
 
-   As a rail it spans both of the article's rows, which is what gives a sticky
-   element room to travel; pinned to a single row it has exactly its own height
-   and never moves. */
+   The rail spans both rows of the article. A sticky element needs that height
+   to travel through. */
 const shell = [
   'max-toc:mx-auto max-toc:w-full max-toc:max-w-measure',
   'max-toc:rounded-card max-toc:border max-toc:border-line',
@@ -37,11 +34,11 @@ const shell = [
 ].join(' ');
 
 /**
- * The marker: a gradient segment sitting on the rail's hairline, the same
- * spectrum the reading-progress bar uses, so position in the post is told the
- * same way in both places. Only the segment carries the gradient; the label
- * stays ink, because white on the cyan end of this gradient measures under
- * 4.5:1 at this size.
+ * The marker is a gradient segment on the rail's hairline. It uses the same
+ * spectrum as the reading-progress bar, so both tell position the same way.
+ *
+ * Only the segment takes the gradient. Keep the label in ink: white on the
+ * cyan end of this gradient measures below 4.5:1 at this size.
  */
 const marker = [
   'toc:relative toc:before:absolute toc:before:-left-4 toc:before:top-1',
@@ -61,12 +58,9 @@ const marker = [
         Contents
       </Typography>
 
-      {/*
-        Rows are 36px rather than the system's 44px floor: a bare list item
-        comes out at 19px, which is too small to hit, and a full 44px around a
-        24px line made a five-item list read as a menu. Still well clear of the
-        24px minimum.
-      */}
+      {/* Rows are 36px, below the system's 44px floor. A 19px list item is too
+        small to hit, and 44px around a 24px line reads as a menu. 36px stays
+        clear of the 24px minimum. */}
       <Typography
         variant="compact"
         as="ol"

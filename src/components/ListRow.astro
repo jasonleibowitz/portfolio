@@ -8,20 +8,10 @@ import Typography from './ui/Typography.astro';
 /**
  * One list on `/lists`, as a hairline-ruled editorial row.
  *
- * There is deliberately no card here, for the same reason `/projects` dropped
- * its own: the site bounds things with a rule and a translucent fill, and a
- * bordered box that is also entirely clickable is neither a surface nor a
- * control. The index's real problem was different from the projects index's,
- * though. A project row has one tall object to compose against; a list has
- * none. What it has is contents, and the old card described them -- "10
- * entries", "Ranked" -- instead of showing any.
- *
- * So the artwork leads, as a band across the top of the row rather than a
- * column beside the copy. A column would have to reserve its width from every
- * row, and artwork here is optional twice over: `image` is optional per entry,
- * and a whole list may have none. As a column that produces either a ragged
- * left edge down the page or an empty reserved slot; as a band it simply is
- * not rendered, and the type below it never moves.
+ * The artwork is a band across the top. It is not a column beside the copy.
+ * A column reserves its width in every row. But artwork is optional: an entry
+ * can have no `image`, and a list can have no artwork. A band shows nothing
+ * when there is nothing to show, and the type below it does not move.
  */
 interface Props {
   list: CollectionEntry<'lists'>;
@@ -33,43 +23,32 @@ const { data } = list;
 const items = allItems(data);
 
 /*
- * The first few entries that actually have artwork, not the artwork of the
- * first few entries -- a list where only entries 3, 7 and 12 carry an image
- * should still show three covers rather than none.
+ * Take the first entries that have artwork, not the artwork of the first
+ * entries.
+ *
+ * Six is the cap. Six covers at 56px, overlapped to 34px of exposed width,
+ * measure 226px. The gutters leave 280px at a 320px viewport, so the band
+ * obeys the zero-overflow rule. Covers grow to 88px from `card:` up.
  */
 const COVER_LIMIT = 6;
 const covers = items.filter((item) => item.image).slice(0, COVER_LIMIT);
 
-/*
- * The cap is what keeps the band from being the one element that fails the
- * zero-overflow rule on the narrowest phone: six covers at the mobile size of
- * 56px, overlapped to 34px of exposed width, measure 226px against the 280px
- * available inside the gutters at 320px.
- *
- * Covers grow to 88px from `card:` up. The first pass sized them 56px
- * everywhere -- the width that works on a phone -- and six of them fanned into
- * 226px of a 1048px row read as a smear rather than as six recognizable
- * covers, which is the entire point of showing them.
- */
-
 /**
- * Three entry names, which is the one thing on this page that answers "is this
- * person's taste worth a click". Derived from committed frontmatter -- the
- * year is split off so the line reads as titles rather than as data.
+ * Three entry names. They show whether this taste is worth a click. The year
+ * is split off, so the line reads as titles and not as data.
  */
 const preview = items
   .slice(0, 3)
   .map((item) => splitYear(item.name).title)
   .join(' · ');
 
-/** `1 entry` / `10 entries`, given both forms rather than a suffix rule. */
+/** `1 entry` / `10 entries`. Give both forms; do not use a suffix rule. */
 const plural = (n: number, one: string, many: string) =>
   `${n} ${n === 1 ? one : many}`;
 
 /*
- * A grouped list reports its sections, not the word "grouped". `ranked` and
- * `groups` are schema flags; how many sections there are is something a reader
- * can actually decide on, and it is the same fact stated usefully.
+ * A grouped list reports its section count, not the word "grouped". A reader
+ * can use a count. A schema flag tells them nothing.
  */
 const shape = data.ranked
   ? 'Ranked'
@@ -85,10 +64,9 @@ const shape = data.ranked
 >
   {
     /*
-      Leftmost cover on top, so the fan reads as looking along a shelf rather
-      than as a hand of cards being dealt. The ring is the canvas color rather
-      than a hairline: at 22px of overlap, two similarly-lit posters need a
-      real separation and 1px is not one.
+      The leftmost cover is on top, so the fan reads as a shelf and not as a
+      hand of cards. The ring takes the canvas color. At 22px of overlap, a
+      hairline does not separate two posters with similar light.
     */
   }
   {
@@ -123,7 +101,7 @@ const shape = data.ranked
     <div class="flex min-w-0 flex-1 flex-col gap-3">
       <Typography variant="heading2">
         {data.title}
-        {/* The row is the link, so the arrow is a visual affordance only. */}
+        {/* The row is the link, so the arrow is decoration only. */}
         <span
           class="inline-block transition-transform duration-200 ease-orbit group-hover:translate-x-1 group-hover:text-violet"
           aria-hidden="true">&nbsp;→</span
@@ -149,8 +127,8 @@ const shape = data.ranked
     </div>
 
     {
-      /* Mono because every one of these is a value rather than a sentence.
-        Stacked and right-aligned once there is a second column to align to. */
+      /* Mono, because each of these is a value and not a sentence. Stack and
+        right-align them when there is a second column to align to. */
     }
     <ul
       class="flex shrink-0 flex-wrap gap-x-3 font-mono text-body tracking-[0.16em] text-faint uppercase card:flex-col card:gap-y-1 card:text-right"

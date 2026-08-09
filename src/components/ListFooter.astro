@@ -7,14 +7,12 @@ import Link from './ui/Link.astro';
 /**
  * The end of a list.
  *
- * Every route out of an entry is `target="_blank"` to somebody else's site, so
- * without this a list's last act is to send the reader away with no lateral
- * move and no way back. Visitors arrive sideways -- a list can be the first
- * page of the site anyone sees -- so it closes by pointing further in.
+ * Each link in an entry opens a different site in a new tab. This block is then
+ * the only way further into this site, and a list is often the first page a
+ * visitor sees.
  *
- * Deliberately navigation only. The site footer directly below already carries
- * the contact CTA and the resume, and two invitations to get in touch stacked
- * one on the other read as a page that is trying too hard.
+ * Keep this block to navigation. The site footer below it holds the contact
+ * link and the resume, and two invitations to make contact are too many.
  */
 interface Props {
   others: { title: string; href: string; count: number }[];

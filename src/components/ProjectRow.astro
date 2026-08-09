@@ -6,37 +6,24 @@ import Ph from './ui/Ph.astro';
 import DeviceFrame from './DeviceFrame.astro';
 import Typography from './ui/Typography.astro';
 
-/**
- * One project on `/projects`, as a full-width editorial row.
- *
- * There is deliberately no card here. A bordered box advertises its own edges,
- * so any space left inside it reads as unfilled — and a phone screenshot is
- * roughly twice the height the copy beside it will ever reach. Bounding the
- * row with a single hairline instead lets the art stand at its real height
- * without framing the space next to it, and centering the copy against the art
- * splits the remainder evenly rather than pooling it all underneath.
- *
- * The homepage runs the same argument to its conclusion in `ProjectBrief`:
- * two-up on half a shell leaves no room for art beside the copy, so it drops
- * the frame entirely and spends the space on the spec facts instead.
- */
+/** One project on `/projects`, as a full-width editorial row. */
 interface Props {
   project: CollectionEntry<'projects'>;
-  /** Position in the list. Drives both the alternation and the frame's
-   * composition, so neither depends on the optional `order` field. */
+  /**
+   * Position in the list. Drives the alternation and the frame variant, so
+   * neither depends on the optional `order` field.
+   */
   index: number;
 }
 
 const { project, index } = Astro.props;
 const { data } = project;
 
-// Art alternates sides; the drawn frames cycle so three in a column don't read
-// as the same image repeated.
+// Art alternates sides. The frames cycle so three in a column do not repeat.
 const flip = index % 2 === 1;
 const variant = (index % 3) as 0 | 1 | 2;
 
-// A browser window is landscape; squeezed into the phone's portrait slot it
-// renders barely taller than its own title bar.
+// A browser window is landscape, so it takes a wider slot than a phone.
 const isWindow = data.frame === 'window';
 ---
 
@@ -52,9 +39,8 @@ const isWindow = data.frame === 'window';
     ]}
   >
     {
-      /* Stacked, the art is a fixed-width object in a full-width column, so it
-        sits hard left with the leftover space beside it. Centering it is what
-        makes the stack read as composed rather than as a row that failed. */
+      /* Stacked, the art is a fixed-width object in a full-width column, so
+        center it. */
     }
     <div
       class:list={[
@@ -72,10 +58,7 @@ const isWindow = data.frame === 'window';
     <div class="flex min-w-0 flex-1 flex-col gap-3">
       <Status status={data.status}>{data.status_text}</Status>
 
-      {
-        /* h2: the page's h1 is the masthead, and a row is its first subsection.
-        An h3 here left the heading outline with a hole in it. */
-      }
+      {/* The page h1 is the masthead, and a row is its first subsection. */}
       <Typography variant="heading2">
         {data.title}
       </Typography>
@@ -94,8 +77,8 @@ const isWindow = data.frame === 'window';
       </div>
 
       {
-        /* The whole row is the link, so this is a visual affordance only —
-          announcing it would append it to every project's accessible name. */
+        /* The whole row is the link, so this is decoration. `aria-hidden` keeps
+          it out of every project's accessible name. */
       }
       <Typography
         variant="compact"
