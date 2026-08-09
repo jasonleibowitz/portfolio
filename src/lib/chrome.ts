@@ -133,10 +133,6 @@ function initMobileNav() {
 
   if (reduced) return;
 
-  // The collapsed control is slid off the right edge. Tabbing to it has to
-  // bring it back, or the focus ring lands outside the viewport.
-  btn.addEventListener('focus', () => root.removeAttribute('data-collapsed'));
-
   let lastY = window.scrollY;
   window.addEventListener(
     'scroll',
