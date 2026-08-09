@@ -103,12 +103,14 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           alias="pr-${{ github.event.pull_request.number }}"
+          host="$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev"
           subject=$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq '.commit.message' \
             | head -1 | tr -d '\n\r' | cut -c1-100)
           echo "alias=$alias" >> "$GITHUB_OUTPUT"
           echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "subject=$subject" >> "$GITHUB_OUTPUT"
-          echo "url=https://$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev" >> "$GITHUB_OUTPUT"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          echo "url=https://$host" >> "$GITHUB_OUTPUT"
 
       - name: Build
         env:
@@ -140,26 +142,39 @@ jobs:
             --tag "$SHA" \
             --message "PR #$PR_NUMBER $SHA: $SUBJECT"
 
+      # The build gates do not show a page. Therefore each review is visual.
+      # Each surface in `NAV` (src/lib/site.ts) has a link.
+      #
+      # Each address ends with a slash. A request without the slash causes a
+      # 307. GitHub draws a line below an `h2` only. The host has its own line.
+      # The combined line wraps at 320 px.
+      #
+      # Do not add the commit subject. An author controls that text. A comment
+      # is not a safe place for it.
+      - name: Write comment body
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+          HOST: ${{ steps.preview.outputs.host }}
+          SHA: ${{ steps.preview.outputs.sha }}
+          COMMIT: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}
+        run: |
+          cat > preview-comment.md <<EOF
+          ## [Deploy preview]($URL/)
+
+          [Home]($URL/) · [About]($URL/about/) · [Projects]($URL/projects/) · [Writing]($URL/writing/) · [Lists]($URL/lists/)
+
+          <sub>$HOST</sub><br><sub>Built from [\`$SHA\`]($COMMIT) · Draft posts rendered · Not indexed</sub>
+          EOF
+
       # One comment per pull request. `header` identifies it, and `recreate`
       # deletes the previous one, so the comment stays below the commits that
       # produced it. The action is pinned to a commit, because a tag can move.
-      #
-      # The message holds only the URL and the short SHA. The commit subject
-      # stays out of it: an author controls that text, and a comment body is
-      # not a safe place for it.
       - name: Comment preview URL
         uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
           header: cloudflare-preview
           recreate: true
-          message: |
-            ### Preview
-
-            **${{ steps.preview.outputs.url }}**
-
-            | Commit | Drafts | Indexing |
-            | :-- | :-- | :-- |
-            | [`${{ steps.preview.outputs.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) | Rendered | Disabled |
+          path: preview-comment.md
 
   # `main` at a stable URL. This is a real deployment, but leibowitz.me still
   # answers from GitHub Pages. Drafts stay hidden, so this shows the published
