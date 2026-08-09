@@ -1,70 +1,24 @@
+/**
+ * The entry point. Tailwind bundles these imports itself, so the split is
+ * purely about where a thing is easiest to find.
+ *
+ * Order matters only for `tailwindcss`, which has to come first.
+ */
 @import 'tailwindcss';
-@plugin '@tailwindcss/typography';
 
-/* Tailwind 4 is configured in CSS rather than tailwind.config.cjs.
-   The font family is registered here so `font-sans` resolves to Noto Sans,
-   which @fontsource/noto-sans loads in BaseLayout. */
-@theme {
-  --font-sans: 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
-}
+/* Design tokens, dark-mode overrides and keyframes. */
+@import './theme.css';
 
-@layer base {
-  html {
-    background-color: #fff;
-    font-family: var(--font-sans);
-  }
+/* Element defaults: the rules that apply before any class does. */
+@import './base.css';
 
-  html.dark {
-    background-color: #0d0950;
-    color: #fff;
-  }
+/* `@utility` blocks for the things with no utility form, and the one
+   `@property` registration. */
+@import './utilities.css';
 
-  body {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
+/* Styling for HTML this repo does not author: rendered Markdown, Shiki code
+   blocks, and the footnotes remark generates. */
+@import './content.css';
 
-  h1 {
-    @apply text-5xl font-extrabold;
-  }
-
-  h2 {
-    @apply text-4xl font-bold;
-  }
-
-  p {
-    @apply text-gray-700 text-lg font-light leading-loose mt-2;
-
-    a {
-      @apply text-sky-500;
-
-      &:hover {
-        @apply text-sky-700;
-      }
-    }
-  }
-}
-
-@layer components {
-  .logo a {
-    @apply duration-200 ease-in-out transition-colors bg-linear-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent font-bold;
-
-    &:hover {
-      color: black;
-    }
-  }
-
-  .nav-link {
-    &:not(:last-child) {
-      @apply mr-6;
-    }
-
-    &.active,
-    &:hover {
-      @apply bg-linear-to-r from-purple-700 to-blue-600 text-transparent bg-clip-text;
-    }
-  }
-}
+/* The circular sweep between themes. */
+@import './transitions.css';

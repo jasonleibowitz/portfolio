@@ -1,7 +1,82 @@
 ---
-import Navigation from './Navigation.astro';
+import { Icon } from 'astro-icon/components';
+import Monogram from './Monogram.astro';
+import Container from './layout/Container.astro';
+import { NAV, NAV_FOR_PAGE, type PageKey } from '@lib/site';
+import Link from './ui/Link.astro';
+
+interface Props {
+  page: PageKey;
+  /** Renders a reading-progress bar under the header. */
+  progress?: boolean;
+}
+
+const { page, progress = false } = Astro.props;
+const active = NAV_FOR_PAGE[page];
 ---
 
-<header class="p-4">
-  <Navigation />
+<header
+  class="sticky top-0 z-30 py-3 backdrop-blur-md [background:color-mix(in_srgb,var(--color-canvas)_78%,transparent)]"
+>
+  <Container class="flex min-h-12 items-center gap-4">
+    <a
+      href="/"
+      class="inline-flex min-h-11 items-center gap-2.5 font-display text-body font-bold tracking-[-0.02em] whitespace-nowrap text-ink no-underline"
+    >
+      <Monogram class="block size-[30px] shrink-0 rounded-[9px]" />
+      Jason Leibowitz
+    </a>
+
+    <nav
+      class="ml-auto hidden gap-1 rounded-full p-1 nav:flex"
+      aria-label="Primary"
+    >
+      {
+        NAV.map((item) => (
+          <Link
+            variant="compact"
+            href={item.href}
+            aria-current={item.key === active ? 'page' : undefined}
+            class:list={[
+              'min-h-10 rounded-full px-4',
+              item.key === active
+                ? 'spectrum-fill'
+                : 'text-muted hover:text-ink',
+            ]}
+          >
+            {item.label}
+          </Link>
+        ))
+      }
+    </nav>
+
+    <button
+      id="themeBtn"
+      type="button"
+      aria-label="Toggle dark mode"
+      class="theme-btn ml-auto inline-flex size-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-sun/34 bg-sun/9 text-muted transition-[background,border-color,box-shadow] duration-400 hover:border-line-strong hover:text-ink nav:ml-0 dark:border-violet/50 dark:bg-violet/16 dark:ring-3 dark:ring-violet/9"
+    >
+      <span class="relative block size-5">
+        <Icon
+          name="lucide:sun"
+          class="absolute inset-0 size-5 [transition:opacity_0.34s_ease,rotate_0.5s_cubic-bezier(0.4,0,0.2,1),scale_0.5s_cubic-bezier(0.4,0,0.2,1)] text-sun dark:scale-[0.6] dark:rotate-[-70deg] dark:opacity-0"
+        />
+        <Icon
+          name="lucide:moon"
+          class="absolute inset-0 size-5 [transition:opacity_0.34s_ease,rotate_0.5s_cubic-bezier(0.4,0,0.2,1),scale_0.5s_cubic-bezier(0.4,0,0.2,1)] scale-[0.6] rotate-[70deg] text-violet opacity-0 dark:scale-100 dark:rotate-0 dark:opacity-100"
+        />
+      </span>
+    </button>
+  </Container>
+
+  {
+    progress && (
+      <div class="absolute inset-x-0 bottom-0 h-[3px]" aria-hidden="true">
+        <i
+          id="progressFill"
+          class="block h-full w-0 rounded-r-[3px] bg-linear-100 from-violet to-cyan transition-[width] duration-[80ms] ease-linear"
+        />
+      </div>
+    )
+  }
 </header>

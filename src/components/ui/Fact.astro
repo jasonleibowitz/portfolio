@@ -1,0 +1,41 @@
+---
+import Typography from './Typography.astro';
+
+/**
+ * One label/value row in a facts panel.
+ *
+ * The default stacks label over value below `sm`: a 132px label column left
+ * prose-length values ~180px at 390px, so short answers wrapped for no reason.
+ *
+ * `narrow` never stacks. Its values are spec-rail data rather than sentences,
+ * so 84px of label still leaves twice what the longest one needs, and stacking
+ * bought a second line to hold 76px of text in a 300px track.
+ */
+interface Props {
+  label: string;
+  /** The case-study rail is narrower, so its label column is too. */
+  narrow?: boolean;
+}
+
+const { label, narrow = false } = Astro.props;
+---
+
+<div
+  class:list={[
+    'grid border-b border-line py-3 last:border-0',
+    narrow
+      ? 'grid-cols-[84px_minmax(0,1fr)] items-baseline gap-x-4'
+      : 'grid-cols-[minmax(0,1fr)] gap-0.5 sm:grid-cols-[132px_minmax(0,1fr)] sm:items-baseline sm:gap-4',
+  ]}
+>
+  <Typography variant="caption" as="dt">
+    {label}
+  </Typography>
+  <Typography
+    as="dd"
+    variant="compact"
+    class="m-0 [&_a]:font-medium [&_a]:text-violet [&_a]:no-underline"
+  >
+    <slot />
+  </Typography>
+</div>

@@ -1,0 +1,56 @@
+---
+import { Icon } from 'astro-icon/components';
+import Section from './layout/Section.astro';
+import Typography from './ui/Typography.astro';
+import Link from './ui/Link.astro';
+
+/**
+ * The end of a list.
+ *
+ * Each link in an entry opens a different site in a new tab. This block is then
+ * the only way further into this site, and a list is often the first page a
+ * visitor sees.
+ *
+ * Keep this block to navigation. The site footer below it holds the contact
+ * link and the resume, and two invitations to make contact are too many.
+ */
+interface Props {
+  others: { title: string; href: string; count: number }[];
+}
+
+const { others } = Astro.props;
+---
+
+<Section>
+  <nav
+    aria-label="More lists"
+    class="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-line pt-6"
+  >
+    <Link
+      variant="compact"
+      class="text-muted hover:text-violet gap-2"
+      href="/lists/"
+    >
+      <Icon name="lucide:arrow-left" class="size-3.5" />
+      All lists
+    </Link>
+
+    <span class="flex flex-wrap items-center gap-x-6">
+      {
+        others.map((list) => (
+          <a
+            href={list.href}
+            class="group inline-flex min-h-11 items-center gap-2 font-semibold no-underline hover:text-violet"
+          >
+            {list.title}
+            <Typography variant="data">{list.count}</Typography>
+            <Icon
+              name="lucide:arrow-right"
+              class="size-3.5 opacity-45 transition-transform duration-150 group-hover:translate-x-px"
+            />
+          </a>
+        ))
+      }
+    </span>
+  </nav>
+</Section>

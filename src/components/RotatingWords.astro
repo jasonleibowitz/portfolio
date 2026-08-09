@@ -1,0 +1,106 @@
+---
+/**
+ * The word in the headline that rotates through a short list.
+ *
+ * Two things here are less obvious than they look:
+ *
+ * 1. Every child is absolutely positioned, which leaves the inline-block with
+ *    no in-flow line box — the browser then aligns it by its bottom edge and
+ *    the word floats above the rest of the line. The zero-width strut in
+ *    ::before restores a real baseline.
+ * 2. The container animates its own width, measured once up front, so the full
+ *    stop that follows doesn't jump as the word changes length.
+ */
+interface Props {
+  words: string[];
+}
+
+const { words } = Astro.props;
+---
+
+{/* All four words are in the DOM, so only the first is read aloud. */}
+{
+  /* The zero-width strut restores a baseline: every word is absolutely
+     positioned, so without it the inline-block has no line box and the word
+     floats above the rest of the headline. */
+}
+<span
+  class="rotating-words relative inline-block align-baseline whitespace-nowrap transition-[width] duration-[420ms] ease-orbit before:inline-block before:w-0 before:content-['\200b']"
+  id="rotating-words"
+  >{
+    words.map((word, i) => (
+      <span
+        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,transform,filter] duration-[420ms] ease-orbit translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
+        data-state={i === 0 ? 'in' : undefined}
+        aria-hidden={i === 0 ? undefined : 'true'}
+      >
+        {word}
+      </span>
+    ))
+  }</span
+>
+
+<script>
+  const rotator = document.getElementById('rotating-words');
+
+  if (rotator) {
+    const words = Array.from(rotator.children) as HTMLElement[];
+
+    let widths: number[] = [];
+    let i = 0;
+
+    /* Every word is absolutely positioned, so each one is taken back into flow
+       for the moment it is measured. */
+    const measure = () => {
+      widths = words.map((word) => {
+        word.style.position = 'static';
+        word.style.opacity = '0';
+        const width = word.getBoundingClientRect().width;
+        word.style.position = '';
+        word.style.opacity = '';
+        return width;
+      });
+
+      rotator.style.width = `${widths[i]}px`;
+    };
+
+    measure();
+
+    /* The headline sets in a webfont at a size that clamps against the
+       viewport, so a width measured once is wrong twice: before the font
+       settles, and after any resize or rotation. Either leaves the full stop
+       stranded off the end of the word, which is the jump this width exists to
+       prevent. */
+    document.fonts.ready.then(measure);
+
+    /* Coalesced into a frame: a drag fires continuously and each measurement
+       forces a layout per word. */
+    let queued = false;
+    window.addEventListener('resize', () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        measure();
+      });
+    });
+
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    if (!reduced && words.length > 1) {
+      setInterval(() => {
+        const previous = words[i];
+        i = (i + 1) % words.length;
+        const next = words[i];
+
+        previous.dataset.state = 'out';
+        next.dataset.state = 'in';
+        rotator.style.width = `${widths[i]}px`;
+
+        setTimeout(() => delete previous.dataset.state, 500);
+      }, 2800);
+    }
+  }
+</script>

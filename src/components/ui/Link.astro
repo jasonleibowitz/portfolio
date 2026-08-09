@@ -1,0 +1,50 @@
+---
+import { tv } from '@lib/tv';
+import { text, type TypographyVariant } from '@lib/typography';
+
+/**
+ * A text link. `chrome` is a link standing on its own, in nav, a footer or a
+ * section header; it carries the 44px tap target the design system requires.
+ * `text` sits inside a sentence and takes its size from the words around it.
+ *
+ * For a filled or bordered call to action, reach for `Button` instead.
+ */
+const link = tv({
+  variants: {
+    kind: {
+      /* Shape only, no color. The header's active pill fills with
+         `spectrum-fill`, which sets its own color, and a color baked in here
+         would outrank it: `.text-muted` is emitted after `.spectrum-fill`, so
+         the later rule wins and the pill renders muted on the gradient. */
+      chrome: 'inline-flex min-h-11 items-center no-underline',
+      /* The underline is a box-shadow so it clears descenders, which a
+         text-decoration does not. */
+      text: 'font-medium text-violet no-underline shadow-[inset_0_-1px_0_color-mix(in_srgb,var(--color-violet)_45%,transparent)]',
+    },
+  },
+  defaultVariants: { kind: 'chrome' },
+});
+
+interface Props {
+  href: string;
+  kind?: 'chrome' | 'text';
+  /** Type role. Omit on a `text` link, which inherits from its sentence. */
+  variant?: TypographyVariant;
+  class?: string;
+}
+
+const {
+  href,
+  kind = 'chrome',
+  variant,
+  class: className,
+  ...rest
+} = Astro.props as Props;
+
+/* The type role first, so the kind's own color and hover win over it. */
+const classes = variant
+  ? text({ variant, class: link({ kind, class: className }) })
+  : link({ kind, class: className });
+---
+
+<a href={href} class={classes} {...rest}><slot /></a>

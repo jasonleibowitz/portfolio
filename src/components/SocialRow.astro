@@ -1,0 +1,44 @@
+---
+import { Icon } from 'astro-icon/components';
+import { SOCIALS, AVATAR_SOCIALS, type Social } from '@lib/site';
+
+/**
+ * Icon-only by convention. The name lives in aria-label, so each link still
+ * announces properly; pill chrome here competed with the avatar above it.
+ *
+ * `swap` marks the row that drives the homepage avatar swap. These stay
+ * ordinary links on every device: the portrait is what cycles them, so nothing
+ * here ever intercepts a tap. `data-showing` says which picture is up, and is
+ * written by `OrbitAvatar`.
+ *
+ * The hover treatment is scoped to the unlit chips. `hover:text-ink` and
+ * `data-showing:spectrum-fill` carry the same specificity, so with both live on
+ * one element the winner would be whichever Tailwind happened to emit last.
+ */
+interface Props {
+  variant?: 'full' | 'avatar';
+  swap?: boolean;
+  class?: string;
+}
+
+const { variant = 'full', swap = false, class: className } = Astro.props;
+const items: Social[] = variant === 'full' ? SOCIALS : AVATAR_SOCIALS;
+---
+
+<div class:list={['flex flex-wrap gap-1', className]}>
+  {
+    items.map((social) => (
+      <a
+        href={social.href}
+        aria-label={social.label}
+        data-swap={swap ? social.key : undefined}
+        {...(social.key === 'rss'
+          ? {}
+          : { target: '_blank', rel: 'noreferrer noopener' })}
+        class="inline-flex size-11 items-center justify-center rounded-full text-faint no-underline transition-[color,background] duration-150 not-data-showing:hover:bg-panel not-data-showing:hover:text-ink data-showing:spectrum-fill"
+      >
+        <Icon name={social.icon} class="size-5 shrink-0" />
+      </a>
+    ))
+  }
+</div>

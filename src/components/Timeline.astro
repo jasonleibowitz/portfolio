@@ -1,0 +1,58 @@
+---
+import { CAREER, roleDates, tenure } from '@lib/career';
+import Typography from './ui/Typography.astro';
+
+/**
+ * The career as a spine with a pulse traveling up it. Companies, titles and
+ * dates are the whole of it on purpose — accomplishments live in the resume,
+ * which is where a recruiter reads them. `bullets` still renders if a role
+ * ever carries any. Every date string comes from `lib/career.ts`.
+ *
+ * The pulse hides under reduced motion rather than freezing: its keyframe
+ * animates `top`, so it has a path but no resting position, and stopping it
+ * parks a blurred violet bar at the top of the spine.
+ */
+---
+
+<ul
+  class="relative m-0 list-none p-0 pl-6 before:absolute before:top-2 before:bottom-2 before:left-1 before:w-0.5 before:rounded-full before:opacity-45 before:content-[''] before:spectrum-fill after:absolute after:left-[3px] after:h-16 after:w-1 after:animate-travel after:rounded-full after:bg-[linear-gradient(to_bottom,transparent,var(--color-violet),transparent)] after:opacity-85 after:blur-[1px] after:content-[''] motion-reduce:after:opacity-0"
+>
+  {
+    CAREER.map((employer) => (
+      <li class="relative py-6 before:absolute before:top-[30px] before:left-[-24px] before:z-[1] before:size-2.5 before:rounded-full before:border-2 before:border-violet before:bg-canvas before:content-[''] first:before:border-transparent first:before:shadow-[0_0_0_4px_var(--color-glow-a)] first:before:spectrum-fill">
+        <Typography variant="data">{tenure(employer)}</Typography>
+
+        <Typography variant="heading3" class="my-1">
+          {employer.company}
+        </Typography>
+
+        <ol class="m-0 grid list-none gap-2 p-0">
+          {employer.roles.map((role, index) => (
+            <li>
+              <Typography variant="compact" class="m-0">
+                <span class="font-medium">{role.title}</span>{' '}
+                <Typography variant="data" class="whitespace-nowrap">
+                  {roleDates(employer.roles, index)}
+                </Typography>
+              </Typography>
+
+              {role.bullets && (
+                <ul class="m-0 mt-1.5 grid max-w-[60ch] list-none gap-1.5 p-0">
+                  {role.bullets.map((bullet) => (
+                    <Typography
+                      variant="compact"
+                      as="li"
+                      class="relative pl-4 text-muted before:absolute before:top-[0.62em] before:left-0 before:size-[5px] before:rounded-full before:bg-violet before:opacity-55 before:content-['']"
+                    >
+                      {bullet}
+                    </Typography>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      </li>
+    ))
+  }
+</ul>

@@ -1,0 +1,44 @@
+---
+import { Icon } from 'astro-icon/components';
+import { NAV, NAV_FOR_PAGE, type PageKey } from '@lib/site';
+
+/**
+ * A floating glass capsule with five tabs. It collapses to icons on scroll
+ * down.
+ *
+ * The capsule has no padding, and the end tabs take its end caps with a radius
+ * for each position. No uncolored gap then stays around the active tab.
+ *
+ * Five tabs are 59px each at a 320px viewport, above the 44px target rule. A
+ * long label truncates; it does not widen the bar.
+ */
+interface Props {
+  page: PageKey;
+}
+
+const { page } = Astro.props;
+const active = NAV_FOR_PAGE[page];
+---
+
+<nav
+  class="group/nav mobile-tab-nav fixed bottom-[calc(12px+env(safe-area-inset-bottom,0px))] left-1/2 z-40 flex w-[min(420px,calc(100vw-24px))] -translate-x-1/2 isolate overflow-hidden rounded-full border border-white/62 bg-canvas/28 p-0 backdrop-blur-[30px] backdrop-saturate-[210%] shadow-[0_14px_40px_rgb(24_18_60/0.22),0_2px_6px_rgb(24_18_60/0.1),inset_0_1px_0_rgb(255_255_255/0.95),inset_0_-14px_24px_-14px_rgb(24_18_60/0.42)] transition-[width] duration-300 ease-orbit data-[collapsed]:w-[min(300px,calc(100vw-24px))] dark:border-white/20 dark:bg-canvas/36 dark:shadow-[0_16px_44px_rgb(0_0_0/0.62),inset_0_1px_0_rgb(255_255_255/0.24),inset_0_-14px_24px_-14px_rgb(0_0_0/0.6)] nav:hidden"
+  aria-label="Primary"
+>
+  {
+    NAV.map((item) => (
+      <a
+        href={item.href}
+        aria-current={item.key === active ? 'page' : undefined}
+        class:list={[
+          'tab relative z-[1] flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-[3px] overflow-hidden rounded-[var(--tab-radius)] px-[2px] text-meta no-underline [--tab-radius:18px] first:rounded-l-full last:rounded-r-full transition-[transform,height,--tab-radius,gap] duration-300 ease-orbit active:scale-[0.93] group-data-[collapsed]/nav:h-[46px] group-data-[collapsed]/nav:gap-0 group-data-[collapsed]/nav:[--tab-radius:14px]',
+          item.key === active ? 'spectrum-fill' : 'text-faint',
+        ]}
+      >
+        <Icon name={item.icon} class="size-[19px] shrink-0" />
+        <span class="max-w-full overflow-hidden leading-[15px] max-h-[15px] opacity-100 text-ellipsis whitespace-nowrap transition-[max-height,opacity] duration-[280ms] ease-orbit group-data-[collapsed]/nav:max-h-0 group-data-[collapsed]/nav:opacity-0">
+          {item.label}
+        </span>
+      </a>
+    ))
+  }
+</nav>

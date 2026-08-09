@@ -1,0 +1,35 @@
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.62;
+    overflow-wrap: break-word;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-violet);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The parts with no utility form.
+   --------------------------------------------------------------------------- */
+
+/* A gradient painted through the text only paints inside the element's
+   background box, so a descender that hangs below it -- the g in "delight" --
+   simply isn't drawn. The padding grows the box; the negative margin keeps the
+   layout identical. */

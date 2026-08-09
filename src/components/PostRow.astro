@@ -1,0 +1,61 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDay } from '@lib/dates';
+import Chip from './ui/Chip.astro';
+import { readingMinutes } from '@lib/reading';
+import Typography from './ui/Typography.astro';
+
+/**
+ * One post in a list of posts: title, description, date, reading time, tags.
+ *
+ * Used by `/writing` and by each tag archive. The whole row is one link, and
+ * `data-tags` is what the tag filter reads to show or hide it.
+ */
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, pubDate, description, tags } = post.data;
+---
+
+<li data-tags={tags.join(' ')} class="border-b border-line [&[hidden]]:hidden">
+  <a
+    href={`/writing/${post.id}/`}
+    class="group -mx-3 grid gap-2 rounded-md px-3 py-6 no-underline transition-colors duration-150 hover:bg-panel"
+  >
+    {
+      /* A heading, not a styled span: this is the only content on the archive,
+        so a reader navigating by heading had nothing to move between. Level 2
+        because the rows sit directly under the page title -- `PostRow` is not
+        used inside a section that owns its own heading. */
+    }
+    <Typography
+      variant="heading3"
+      as="h2"
+      class="leading-tight group-hover:text-violet"
+    >
+      {title}
+    </Typography>
+
+    {
+      description && (
+        <Typography variant="compact" class="max-w-[62ch] text-muted">
+          {description}
+        </Typography>
+      )
+    }
+
+    <Typography
+      variant="data"
+      class="flex flex-wrap items-center gap-x-3 gap-y-2"
+    >
+      <span>{formatDay(pubDate)}</span>
+      <span class="opacity-50">·</span>
+      <span>{readingMinutes(post.body)} min</span>
+      <span class="flex flex-wrap gap-1.5">
+        {tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
+      </span>
+    </Typography>
+  </a>
+</li>

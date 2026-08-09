@@ -1,0 +1,25 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { tv } from '@lib/tv';
+
+/**
+ * Centers content and caps how wide it gets. Width only, no vertical space.
+ *
+ * Use `Section` for a normal page band. Use this only where section spacing
+ * would be wrong: the header and the footer.
+ */
+interface Props extends HTMLAttributes<'div'> {
+  as?: 'div' | 'section' | 'article' | 'header' | 'footer' | 'aside' | 'nav';
+}
+
+const { as: Tag = 'div', class: className, ...rest } = Astro.props as Props;
+
+/* `tv` rather than `class:list`, so a caller passing `max-w-measure` replaces
+   the default width instead of both landing on the element and the winner
+   being decided by which rule Tailwind happens to emit last. */
+const container = tv({ base: 'mx-auto w-full max-w-page px-(--gutter)' });
+---
+
+<Tag class={container({ class: className })} {...rest}>
+  <slot />
+</Tag>

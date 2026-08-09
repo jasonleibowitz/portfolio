@@ -1,0 +1,41 @@
+---
+import { text, ELEMENT, type TypographyVariant } from '@lib/typography';
+
+/**
+ * Every piece of text on the site. Pick the variant that names the job.
+ *
+ * Headings are numbered so the ladder needs no lookup, and each renders the
+ * matching element. Below them: `intro` under a page title, `longform` for
+ * text you read for minutes, `body` by default, `compact` for dense rows,
+ * `footnote` for a remark, `caption` for uppercase labels, `data` for dates
+ * and counts. Pass `as` when the element should differ from the default.
+ *
+ * A link is not here: use `Link`, which requires an `href`. The homepage
+ * headline is not either, because DESIGN.md reserves display type for that one
+ * place, so it lives in `Hero.astro`.
+ */
+interface Props {
+  variant: TypographyVariant;
+  as?:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'p'
+    | 'span'
+    | 'div'
+    | 'dt'
+    | 'dd'
+    | 'time'
+    | 'figcaption'
+    | 'li'
+    | 'ol'
+    | 'ul';
+  class?: string;
+}
+
+const { variant, as, class: className, ...rest } = Astro.props as Props;
+const Tag = as ?? ELEMENT[variant];
+---
+
+<Tag class={text({ variant, class: className })} {...rest}><slot /></Tag>

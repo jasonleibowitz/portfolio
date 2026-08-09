@@ -1,34 +1,67 @@
 ---
-const socialLinks = [
-  {
-    url: 'https://github.com/jasonleibowitz',
-    src: '/icons/github-black.svg',
-    label: 'GitHub',
-  },
-  {
-    url: 'https://www.linkedin.com/in/jasonleibowitz/',
-    src: '/icons/linkedin-black.svg',
-    label: 'LinkedIn',
-  },
-  {
-    url: 'https://twitter.com/jasonleibowitz',
-    src: '/icons/twitter-black.svg',
-    label: 'Twitter',
-  },
-];
+import Container from './layout/Container.astro';
+import SocialRow from './SocialRow.astro';
+import Button from './ui/Button.astro';
+import Typography from './ui/Typography.astro';
+import { EMAIL, NAV, RESUME_HREF } from '@lib/site';
+import Link from './ui/Link.astro';
+
+const year = new Date().getFullYear();
 ---
 
-<footer class="mt-auto bg-linear-to-r from-purple-700 to-blue-600 h-40 p-8">
-  <div class="text-white">
-    <h3 class="text-2xl">Jason Leibowitz</h3>
-    <div class="flex pt-4">
-      {
-        socialLinks.map(({ url, src, label }) => (
-          <a href={url} target="_blank" rel="noreferrer noopener">
-            <img class="h-10 w-10" src={src} alt={label} />
-          </a>
-        ))
-      }
+<footer class="mt-auto border-t border-line py-(--section)">
+  <Container class="grid gap-6">
+    <div class="grid gap-4">
+      {/* The footer's heading, so the landmark is reachable by heading nav. */}
+      <Typography variant="heading2" class="max-w-[16ch]">
+        Let's build <span class="text-gradient">something</span>.
+      </Typography>
+
+      <div class="flex flex-wrap gap-2">
+        <Button
+          href={`mailto:${EMAIL}`}
+          size="sm"
+          variant="primary"
+          icon="lucide:mail">Email me</Button
+        >
+        <Button href={RESUME_HREF} size="sm" icon="lucide:file-down"
+          >Download resume</Button
+        >
+      </div>
     </div>
-  </div>
+
+    {
+      /*
+      A wrapping row rather than a two-column grid: five links left an orphan
+      cell opposite the fifth.
+    */
+    }
+    <div
+      class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-between"
+    >
+      <div class="flex flex-wrap justify-center gap-x-6 sm:justify-start">
+        {
+          NAV.map((item) => (
+            <Link
+              variant="compact"
+              href={item.href}
+              class="text-muted hover:text-violet"
+            >
+              {item.label}
+            </Link>
+          ))
+        }
+      </div>
+
+      <SocialRow class="justify-center sm:-ml-2.5 sm:justify-start" />
+
+      <Typography
+        variant="data"
+        as="p"
+        class="text-center whitespace-nowrap sm:text-right"
+      >
+        © {year} · Made with ❤️ in NYC
+      </Typography>
+    </div>
+  </Container>
 </footer>

@@ -1,0 +1,23 @@
+---
+import Link from '../ui/Link.astro';
+
+/**
+ * A link in rendered markdown: `Link` with `kind="text"` bound.
+ *
+ * It exists because MDX's component map hands a mapped element only the
+ * attributes markdown itself knows -- `href` and the children -- and has
+ * nowhere to pass a `kind`. Without this, every link in a post would take
+ * `Link`'s `chrome` default and set itself 44px tall in the middle of a
+ * sentence.
+ *
+ * Same object as a link inside a sentence anywhere else, which is why the
+ * stylesheet no longer carries an `& a` rule.
+ */
+interface Props {
+  href: string;
+}
+
+const { href, ...rest } = Astro.props as Props;
+---
+
+<Link href={href} kind="text" {...rest}><slot /></Link>

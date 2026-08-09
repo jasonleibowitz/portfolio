@@ -1,0 +1,47 @@
+---
+import Section from '../layout/Section.astro';
+import Typography from './Typography.astro';
+
+/** The masthead every page but the homepage opens with. */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+}
+
+const { eyebrow, title, intro } = Astro.props;
+
+/**
+ * The title's bottom margin separates it from whatever follows. With nothing
+ * below it, that margin lands on top of the section's own padding and the
+ * masthead reads as detached from the content it introduces.
+ */
+const hasContentBelow = Boolean(intro) || Astro.slots.has('default');
+---
+
+{
+  /*
+    `pb-10` rather than the section's own bottom padding: a masthead and the
+    content it introduces are one unit, and `--section` is the gap between
+    unrelated bands. At full width that padding put 72px under the title while
+    a section heading sits 24px above its own content.
+  */
+}
+<Section flush={false} class="pb-10">
+  {eyebrow && <Typography variant="caption">{eyebrow}</Typography>}
+  <slot name="eyebrow" />
+  <Typography
+    variant="heading1"
+    class:list={['mt-3', hasContentBelow && 'mb-3']}
+  >
+    {title}
+  </Typography>
+  {
+    intro && (
+      <Typography variant="intro" class="max-w-[56ch] text-muted">
+        {intro}
+      </Typography>
+    )
+  }
+  <slot />
+</Section>

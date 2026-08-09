@@ -1,0 +1,141 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { formatDay } from '@lib/dates';
+import { allItems, splitYear } from '@lib/lists';
+import Typography from './ui/Typography.astro';
+
+/**
+ * One list on `/lists`, as a hairline-ruled editorial row.
+ *
+ * The artwork is a band across the top. It is not a column beside the copy.
+ * A column reserves its width in every row. But artwork is optional: an entry
+ * can have no `image`, and a list can have no artwork. A band shows nothing
+ * when there is nothing to show, and the type below it does not move.
+ */
+interface Props {
+  list: CollectionEntry<'lists'>;
+}
+
+const { list } = Astro.props;
+const { data } = list;
+
+const items = allItems(data);
+
+/*
+ * Take the first entries that have artwork, not the artwork of the first
+ * entries.
+ *
+ * Six is the cap. Six covers at 56px, overlapped to 34px of exposed width,
+ * measure 226px. The gutters leave 280px at a 320px viewport, so the band
+ * obeys the zero-overflow rule. Covers grow to 88px from `card:` up.
+ */
+const COVER_LIMIT = 6;
+const covers = items.filter((item) => item.image).slice(0, COVER_LIMIT);
+
+/**
+ * Three entry names. They show whether this taste is worth a click. The year
+ * is split off, so the line reads as titles and not as data.
+ */
+const preview = items
+  .slice(0, 3)
+  .map((item) => splitYear(item.name).title)
+  .join(' · ');
+
+/** `1 entry` / `10 entries`. Give both forms; do not use a suffix rule. */
+const plural = (n: number, one: string, many: string) =>
+  `${n} ${n === 1 ? one : many}`;
+
+/*
+ * A grouped list reports its section count, not the word "grouped". A reader
+ * can use a count. A schema flag tells them nothing.
+ */
+const shape = data.ranked
+  ? 'Ranked'
+  : data.groups.length
+    ? plural(data.groups.length, 'section', 'sections')
+    : null;
+---
+
+<a
+  href={`/lists/${list.id}/`}
+  aria-label={data.title}
+  class="group block border-t border-line py-8 no-underline card:py-10"
+>
+  {
+    /*
+      The leftmost cover is on top, so the fan reads as a shelf and not as a
+      hand of cards. The ring takes the canvas color. At 22px of overlap, a
+      hairline does not separate two posters with similar light.
+    */
+  }
+  {
+    covers.length > 0 && (
+      <div class="mb-5 flex card:mb-6" aria-hidden="true">
+        {covers.map((item, i) => (
+          <Image
+            src={item.image!}
+            alt=""
+            width={88}
+            height={data.thumb === 'poster' ? 132 : 88}
+            fit="cover"
+            densities={[2, 3]}
+            quality={92}
+            loading="lazy"
+            style={`z-index: ${covers.length - i}`}
+            class:list={[
+              'relative w-14 shrink-0 rounded-md border border-line object-cover ring-[3px] ring-canvas card:w-22',
+              data.thumb === 'poster' ? 'aspect-[2/3]' : 'aspect-square',
+              i > 0 && '-ml-[22px] card:-ml-8',
+              'transition-transform duration-300 ease-orbit group-hover:-translate-y-1',
+            ]}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  <div
+    class="flex flex-col gap-4 card:flex-row card:items-start card:justify-between card:gap-10"
+  >
+    <div class="flex min-w-0 flex-1 flex-col gap-3">
+      <Typography variant="heading2">
+        {data.title}
+        {/* The row is the link, so the arrow is decoration only. */}
+        <span
+          class="inline-block transition-transform duration-200 ease-orbit group-hover:translate-x-1 group-hover:text-violet"
+          aria-hidden="true">&nbsp;→</span
+        >
+      </Typography>
+
+      {
+        data.description && (
+          <Typography variant="body" class="max-w-[46ch] text-muted">
+            {data.description}
+          </Typography>
+        )
+      }
+
+      {
+        preview && (
+          <p class="font-mono text-note text-faint">
+            {preview}
+            {items.length > 3 && ' …'}
+          </p>
+        )
+      }
+    </div>
+
+    {
+      /* Mono, because each of these is a value and not a sentence. Stack and
+        right-align them when there is a second column to align to. */
+    }
+    <ul
+      class="flex shrink-0 flex-wrap gap-x-3 font-mono text-body tracking-[0.16em] text-faint uppercase card:flex-col card:gap-y-1 card:text-right"
+    >
+      <li>{plural(items.length, 'entry', 'entries')}</li>
+      {shape && <li>{shape}</li>}
+      <li>Updated {formatDay(data.updated)}</li>
+    </ul>
+  </div>
+</a>

@@ -1,0 +1,85 @@
+@utility text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-violet),
+    var(--color-cyan)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-block: 0.08em 0.2em;
+  margin-block: -0.08em -0.2em;
+}
+
+/* The system's one shadow, read at use time so it actually re-derives.
+
+   `--shadow-lift` lives in `@theme` and is overridden under
+   `:root[data-theme='dark']`, which looks like every other token here -- but
+   Tailwind compiles a theme shadow into a *literal*, not a `var()`:
+
+     .shadow-lift { --tw-shadow: 0 10px 34px rgb(24 18 60 / 0.08); ... }
+
+   so the dark override never reached anything wearing the class. Every object
+   in the system -- the portrait, images inside posts, the device frames, and
+   every button on hover -- kept its light shadow in dark mode, where a
+   near-transparent violet cast over a #16161F base is close to nothing at all.
+   Declaring the utility by hand is what makes the token behave the way the
+   rest of the system already does. Verify by reading computed `boxShadow` in
+   dark, not by reading this file. */
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
+}
+
+/* The active-state fill: the one spectrum, plus a label color that survives it
+   in both themes.
+
+   It exists because four surfaces wear this -- the primary Button, the header's
+   active nav pill, the dock's active tab and the pressed tag chip -- and only
+   the Button carried the label rule. The other three held `text-white` in both
+   themes, which in dark put white on a lifted violet-to-sky gradient: 2.22:1 at
+   the head of the word and 1.74:1 at the tail, against the 4.5:1 a 15px label
+   needs. Bundling the fill with its label color is what stops the fifth surface
+   from making the same mistake. */
+/* Known gap, deferred: in light mode white on the cyan end measures 3.4-4.0:1
+   under the tail of a label, against the 4.5 a 15px label needs. Dark mode is
+   already handled by `--color-on-spectrum`. Fixing light means a deeper end
+   stop, which changes every primary button -- a design call, not a patch. */
+@utility spectrum-fill {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-violet),
+    var(--color-cyan)
+  );
+  color: var(--color-on-spectrum);
+}
+
+/* Copy still waiting on Jason. Underlines the text rather than the block: a
+   border-bottom on a paragraph or list item draws a line across the whole
+   column instead of following the words. */
+@utility placeholder-copy {
+  text-decoration: underline dotted var(--color-violet);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+/* One radius, three shapes read from it, interpolating during the tab bar's
+   collapse. Registered because an unregistered custom property cannot be
+   transitioned, and registration is an at-rule with no utility form. Lives
+   here beside Tailwind's own registrations rather than in the component,
+   which is then free of a style block entirely. */
+@property --tab-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 18px;
+}
+
+/* The three-layer glow behind the page. A named utility rather than a
+   `bg-[…]` arbitrary value: three stacked gradients inline would need every
+   space underscore-escaped and would be unreadable. Position, layer and hit
+   testing stay in the class list. */
+@utility aurora-field {
+  background:
+    radial-gradient(38vw 38vw at 12% 8%, var(--color-glow-a), transparent 62%),
+    radial-gradient(34vw 34vw at 88% 22%, var(--color-glow-b), transparent 60%),
+    radial-gradient(40vw 40vw at 60% 92%, var(--color-glow-a), transparent 65%);
+}

@@ -1,0 +1,85 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Typography from './ui/Typography.astro';
+
+/**
+ * A post's sections. It is a panel at the top of the body on a narrow screen,
+ * and a sticky rail beside the body from `toc` up. `lib/toc.ts` marks the
+ * section the reader is in.
+ *
+ * One element serves both. Keep it to one: two elements duplicate every
+ * anchor, and a screen reader then offers each destination twice.
+ */
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+/** Top-level sections only; a two-level TOC on a 12-minute post is a sitemap. */
+const { headings } = Astro.props;
+const sections = headings.filter((heading) => heading.depth === 2);
+
+/* Scope the panel chrome to `max-toc`. Each style then applies in one range
+   only, and no two rules compete.
+
+   The panel sits on the measure, not on the grid track. The track is the full
+   shell, which is wider than the prose below it.
+
+   The rail spans both rows of the article. A sticky element needs that height
+   to travel through. */
+const shell = [
+  'max-toc:mx-auto max-toc:w-full max-toc:max-w-measure',
+  'max-toc:rounded-card max-toc:border max-toc:border-line',
+  'max-toc:bg-panel max-toc:px-6 max-toc:py-4',
+  'toc:col-start-2 toc:row-start-1 toc:row-end-3 toc:sticky toc:top-header',
+].join(' ');
+
+/**
+ * The marker is a gradient segment on the rail's hairline. It uses the same
+ * spectrum as the reading-progress bar, so both tell position the same way.
+ *
+ * Only the segment takes the gradient. Keep the label in ink: white on the
+ * cyan end of this gradient measures below 4.5:1 at this size.
+ */
+const marker = [
+  'toc:relative toc:before:absolute toc:before:-left-4 toc:before:top-1',
+  'toc:before:bottom-1 toc:before:w-0.5 toc:before:rounded-full',
+  "toc:before:bg-linear-100 toc:before:from-violet toc:before:to-cyan toc:before:content-['']",
+  'toc:before:opacity-0 aria-[current=location]:toc:before:opacity-100',
+  'aria-[current=location]:text-ink aria-[current=location]:font-medium',
+  'transition-colors duration-200',
+  'toc:before:transition-opacity toc:before:duration-200',
+].join(' ');
+---
+
+{
+  sections.length > 1 && (
+    <nav aria-label="Contents" class={shell} data-toc>
+      <Typography variant="caption" as="h2">
+        Contents
+      </Typography>
+
+      {/* Rows are 36px, below the system's 44px floor. A 19px list item is too
+        small to hit, and 44px around a 24px line reads as a menu. 36px stays
+        clear of the 24px minimum. */}
+      <Typography
+        variant="compact"
+        as="ol"
+        class="mt-2 text-muted max-toc:list-decimal max-toc:pl-[1.3em] toc:mt-3 toc:border-l toc:border-line toc:pl-4"
+      >
+        {sections.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              class:list={[
+                'flex min-h-9 items-center no-underline hover:text-violet',
+                marker,
+              ]}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </Typography>
+    </nav>
+  )
+}

@@ -1,0 +1,22 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+/**
+ * A flat translucent surface. Deliberately *not* blurred: panels sit over a
+ * static aurora, where a backdrop-filter costs GPU work every frame and buys
+ * nothing. Only the header and the mobile tab bar, which sit over scrolling content,
+ * keep a live blur.
+ */
+interface Props extends HTMLAttributes<'div'> {
+  as?: 'div' | 'nav' | 'aside' | 'section';
+}
+
+const { as: Tag = 'div', class: className, ...rest } = Astro.props as Props;
+---
+
+<Tag
+  class:list={['rounded-card border border-line bg-panel', className]}
+  {...rest}
+>
+  <slot />
+</Tag>

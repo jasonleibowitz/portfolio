@@ -1,0 +1,20 @@
+---
+import Panel from './Panel.astro';
+
+/**
+ * A panel of label/value rows. Put `Fact` children inside it.
+ *
+ * Used by the homepage's At a glance and by a project's spec rail. Those two
+ * sit in different places on the page, which is why this owns the panel and
+ * the list but not what wraps them.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className, ...rest } = Astro.props as Props;
+---
+
+<Panel class:list={['px-6 py-2', className]} {...rest}>
+  <dl><slot /></dl>
+</Panel>

@@ -1,49 +1,167 @@
 ---
 import { Image } from 'astro:assets';
-import aboutTwo from '@images/IMG_1374.jpg';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Section from '@components/layout/Section.astro';
+import Panel from '@components/ui/Panel.astro';
+import Button from '@components/ui/Button.astro';
+import Chip from '@components/ui/Chip.astro';
+import Timeline from '@components/Timeline.astro';
+import { EMAIL, RESUME_HREF } from '@lib/site';
+import { yearsShipping } from '@lib/career';
+import aboutPhoto from '@images/json-drinking-coffee.jpg';
+import Typography from '@components/ui/Typography.astro';
 
-const pageTitle = 'About Me';
+const BIO = [
+  "I grew up in Virginia Beach and moved to New York to attend NYU - I've called the city home ever since. Over the past decade, I've had the opportunity to build products across consumer, healthcare, and fintech, working on everything from Broadway ticket lotteries to real-time pharmacy delivery tracking and financial software used by thousands of businesses.",
+  "What I enjoy most about engineering isn't just writing code, it's turning ambitious, often ambiguous ideas into polished products that people genuinely enjoy using. I love collaborating with product managers, designers, and engineers to figure out what to build, breaking complex problems into achievable milestones, and shipping value early and often. Whether I'm building a thoughtful user experience, designing backend systems, or leading a cross-functional initiative, my goal is always the same: solve the right problems and leave the product better than I found it.",
+  "I'm especially passionate about building software that's elegant, intuitive, accessible, and maintainable. I believe users notice the details, performance is a feature, and the best products come from close collaboration, not silos. Along the way, I've found just as much satisfaction in mentoring engineers, strengthening teams, and helping the people around me do their best work.",
+  "Outside of work, you'll usually find me on a pickleball court, experimenting with the perfect cup of coffee, planning my next trip, exploring New York City, or making dad jokes that are only occasionally appreciated.",
+];
+
+/** The AI row is marked, because it is the one people scan for right now. */
+const STACK = [
+  { label: 'Languages', items: ['JavaScript', 'TypeScript', 'Python'] },
+  {
+    label: 'Frontend',
+    items: [
+      'React',
+      'React Native / Expo',
+      'Next.js',
+      'Astro',
+      'Remix',
+      'Tailwind',
+      'TanStack Query',
+      'Storybook',
+    ],
+  },
+  { label: 'Backend', items: ['Node', 'NestJS', 'Django', 'Flask'] },
+  { label: 'Data', items: ['PostgreSQL', 'MySQL', 'MongoDB', 'Supabase'] },
+  {
+    label: 'Testing',
+    items: ['Jest / Vitest', 'React Testing Library', 'Playwright', 'Cypress'],
+  },
+  {
+    label: 'Platform',
+    items: [
+      'AWS',
+      'Cloudflare Pages',
+      'Docker',
+      'Kubernetes',
+      'Terraform',
+      'Turborepo',
+      'Microservices',
+    ],
+  },
+  { label: 'Observability', items: ['Datadog', 'Grafana'] },
+  {
+    label: 'AI',
+    items: ['Claude Code', 'Codex', 'MCP', 'Agentic workflows'],
+    accent: true,
+  },
+];
+
+const STATS = [
+  { value: '15', label: 'Countries visited' },
+  { value: '50', label: 'Podcasts subscribed' },
+  { value: '2', label: 'Apps in TestFlight' },
+  // Derived from the career start rather than typed, so it never goes stale.
+  { value: String(yearsShipping()), label: 'Years shipping' },
+];
 ---
 
 <BaseLayout
-  pageTitle={pageTitle}
-  description="Jason Leibowitz -- full-stack software engineer, technology evangelist, and technical mentor in NYC."
+  pageTitle="About"
+  page="about"
+  description="Jason Leibowitz - full-stack software engineer, technology evangelist and technical mentor in NYC."
 >
-  <article class="mt-20">
-    <h1 class="my-8 italic">About Me</h1>
-    <div class="float-right w-full lg:w-1/3 pb-16 lg:ml-16">
-      <Image
-        class="rounded"
-        alt="Picture of Jason"
-        src={aboutTwo}
-        width={600}
-        densities={[1, 2]}
-      />
-    </div>
-    <div>
-      <p class="text-xl leading-relaxed mb-8">
-        I'm a full-stack software engineer, technology evangelist, and technical
-        mentor living in NYC. I'm currently working at <a
-          href="https://carta.com/">Carta</a
-        >, working to unlock the power of equity ownership for more people in
-        more places. Prior to Carta I previously worked at <a
-          href="https://capsule.com/">Capsule Pharmacy</a
-        >, <a href="https://www.invitae.com/en">Invitae</a>, <a
-          href="https://www.todaytix.com/">TodayTix</a
-        >, and more.
-      </p>
-      <p class="text-xl leading-relaxed mb-8">
-        Originally from Virginia Beach, VA, I graduated <a
-          href="https://www.nyu.edu/">New York University</a
-        > with a degree in History.
-      </p>
-      <p class="text-xl leading-relaxed mb-8">
-        I am most excited about delivering exceptional experiences to customers
-        and driving innovation and best practices.
-      </p>
-    </div>
+  <PageHead eyebrow="About" title="The longer version" />
 
-    <!-- <h2 class="text-center">Technologies</h2> -->
-  </article>
+  <Section>
+    {
+      /*
+      The bio wraps around its photo. A float is the right tool: the text
+      reflows around it rather than sitting in a rigid column. Below 56rem it
+      unfloats and goes full width, which is what killed the old page.
+    */
+    }
+    {
+      /* The after: clearfix clears the floated photo, so the CTA below it does
+        not ride up alongside. */
+    }
+    <Typography
+      variant="longform"
+      class="max-w-bio after:block after:clear-both after:content-['']"
+    >
+      <figure class="mb-8 bio:float-right bio:ml-12 bio:w-[360px]">
+        <Image
+          src={aboutPhoto}
+          alt="Jason in front of a painted brick wall"
+          width={720}
+          densities={[1, 2]}
+          class="aspect-4/5 w-full rounded-card object-cover shadow-lift"
+        />
+        <Typography variant="data" as="figcaption" class="text-center mt-2">
+          Drinking coffee, what else
+        </Typography>
+      </figure>
+
+      {BIO.map((paragraph) => <p class="mb-6 block">{paragraph}</p>)}
+    </Typography>
+
+    <div class="mt-8 flex max-w-bio flex-wrap justify-center gap-2">
+      <Button href={RESUME_HREF} variant="primary" icon="lucide:file-down">
+        Download resume
+      </Button>
+      <Button href={`mailto:${EMAIL}`} icon="lucide:mail">Email me</Button>
+    </div>
+  </Section>
+
+  <Section id="experience" title="Experience">
+    <Timeline />
+  </Section>
+
+  <Section title="Stack">
+    {
+      /*
+      One line per category rather than one long row: scannable by someone
+      hunting for a specific technology.
+    */
+    }
+    <dl class="grid gap-4">
+      {
+        STACK.map((group) => (
+          <div class="grid gap-2 card:grid-cols-[132px_minmax(0,1fr)] card:items-baseline card:gap-4">
+            <Typography variant="caption" as="dt">
+              {group.label}
+            </Typography>
+            <dd class="m-0 flex flex-wrap gap-1.5">
+              {group.items.map((item) => (
+                <Chip accent={group.accent ? 'violet' : 'none'}>{item}</Chip>
+              ))}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </Section>
+
+  <Section title="Beyond the CV">
+    <div
+      class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(142px,1fr))]"
+    >
+      {
+        STATS.map((stat) => (
+          <Panel class="p-6">
+            <b class="text-gradient block font-display text-[2rem] leading-none font-bold tracking-[-0.04em]">
+              {stat.value}
+            </b>
+            <Typography variant="caption" as="span" class="mt-2 block">
+              {stat.label}
+            </Typography>
+          </Panel>
+        ))
+      }
+    </div>
+  </Section>
 </BaseLayout>

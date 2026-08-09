@@ -1,0 +1,66 @@
+---
+import Typography from './ui/Typography.astro';
+/**
+ * Sticky filter rail. On mobile it becomes a horizontally scrolling chip row
+ * above the list, which is where a filter belongs when the list is below it.
+ *
+ * It is rendered *before* the list in the DOM and moved right by `order` on
+ * desktop. Rendering it after and pulling it up with `order-first` put it first
+ * for a sighted phone user and last for a keyboard one -- every row of the list
+ * had to be tabbed through to reach the control that filters them.
+ */
+interface Props {
+  tags: { tag: string; count: number }[];
+  total: number;
+  heading?: string;
+}
+
+const { tags, total, heading = 'Filter by tag' } = Astro.props;
+
+/*
+ * `All` and a tag chip differ only in their label, so the styling is named once
+ * rather than written out beside each.
+ *
+ * A string and not a `tv`: nothing here varies and no caller passes a class, so
+ * there is no conflict for a merger to resolve. Local and not folded into
+ * `Chip`: that one is an inline `<span>` marker at 11px, and these are 44px
+ * pressable buttons.
+ */
+const chip = [
+  'inline-flex min-h-11 flex-none cursor-pointer items-center justify-between gap-2',
+  'rounded-full border border-line bg-panel px-[14px] text-ui whitespace-nowrap text-muted',
+  'hover:border-line-strong hover:text-ink',
+  /* The count is data beside a label that is prose, so it sets in mono. */
+  '[&>b]:font-mono [&>b]:text-meta [&>b]:font-normal [&>b]:text-faint',
+  'aria-pressed:spectrum-fill aria-pressed:border-transparent',
+  'aria-pressed:[&>b]:text-on-spectrum/75',
+].join(' ');
+---
+
+<aside class="rail:order-last rail:sticky rail:top-header">
+  <Typography variant="caption" as="h2" class="mb-3">
+    {heading}
+  </Typography>
+
+  {
+    /*
+    A flex row of chips in an auto-sized grid track sizes to max-content and
+    pushes the whole page ~400px wide at 320px. The grid parent constrains the
+    track; `overflow-x-auto` lets the row scroll inside it.
+  */
+  }
+  <div
+    class="flex gap-2 overflow-x-auto pb-2 rail:flex-col rail:overflow-visible"
+  >
+    <button type="button" data-tag="" aria-pressed="true" class={chip}>
+      All <b>{total}</b>
+    </button>
+    {
+      tags.map(({ tag, count }) => (
+        <button type="button" data-tag={tag} aria-pressed="false" class={chip}>
+          {tag} <b>{count}</b>
+        </button>
+      ))
+    }
+  </div>
+</aside>

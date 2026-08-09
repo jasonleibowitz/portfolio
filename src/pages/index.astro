@@ -1,20 +1,61 @@
 ---
-// Component Imports
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { HeadshotSocialLinks } from '@components/HeadshotSocialLinks';
+import Hero from '@components/Hero.astro';
+import ProjectBrief from '@components/ProjectBrief.astro';
+import Section from '@components/layout/Section.astro';
+import FactBox from '@components/ui/FactBox.astro';
+import Fact from '@components/ui/Fact.astro';
+import { getPublished } from '@lib/content';
+import { currentRole, pastEmployers, yearsShipping } from '@lib/career';
 
-// Full Astro Component Syntax:
-// https://docs.astro.build/core-concepts/astro-components/
+const featured = (await getPublished('projects')).filter(
+  (project) => project.data.is_featured
+);
+
+/**
+ * At a glance is scanned, not read, so Before names the three most recent
+ * employers and says in words that there are more. The section already links to
+ * About, which is where the full timeline lives.
+ *
+ * Assembled here rather than in the markup: two expressions on their own lines
+ * put a space between them, which an ellipsis wants and a comma does not.
+ */
+const BEFORE_SHOWN = 3;
+const before = pastEmployers();
+const beforeLine =
+  before.slice(0, BEFORE_SHOWN).join(' · ') +
+  (before.length > BEFORE_SHOWN ? ', among others' : '');
 ---
 
-<BaseLayout pageTitle="Home">
-  <div class="grid place-items-center h-full content-center">
-    <HeadshotSocialLinks client:load />
-    <h1
-      class="bg-linear-to-r from-orange-500 to-rose-600 bg-clip-text text-transparent"
-    >
-      Jason Leibowitz
-    </h1>
-    <p>web developer passionate about design, creativity and soccer.</p>
-  </div>
+<BaseLayout
+  pageTitle="Home"
+  page="home"
+  description={`Jason Leibowitz - full-stack engineer in New York. ${yearsShipping()} years of products people use every day, plus two mobile apps of my own.`}
+>
+  <Hero />
+
+  <Section title="At a glance" more={{ label: 'About me', href: '/about/' }}>
+    <FactBox>
+      <Fact label="Now">{currentRole()}</Fact>
+      <Fact label="Focus">
+        Product engineering across web and mobile, design systems, developer
+        experience
+      </Fact>
+      <Fact label="Before">{beforeLine}</Fact>
+      <Fact label="Studied">
+        New York University · Hebrew University · General Assembly
+      </Fact>
+      <Fact label="Based">New York City · Eastern Time</Fact>
+      <Fact label="Outside work">
+        Coffee, English football, pickleball, dad jokes
+      </Fact>
+    </FactBox>
+  </Section>
+
+  <Section
+    title="What I'm building"
+    more={{ label: 'All projects', href: '/projects/' }}
+  >
+    {featured.map((project) => <ProjectBrief project={project} />)}
+  </Section>
 </BaseLayout>

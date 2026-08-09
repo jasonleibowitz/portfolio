@@ -1,8 +1,0 @@
----
-import ContentListLayout from '@layouts/ContentListLayout.astro';
-import { getPublished } from '../../lib/content';
-
-const posts = await getPublished('blog');
----
-
-<ContentListLayout pageTitle="Blog" items={posts} baseUrl="/blog" />

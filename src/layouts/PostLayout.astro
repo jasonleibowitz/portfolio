@@ -1,0 +1,169 @@
+---
+import type { MarkdownHeading } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import { Icon } from 'astro-icon/components';
+import { formatDay, isoDay } from '@lib/dates';
+import BaseLayout from './BaseLayout.astro';
+import Section from '@components/layout/Section.astro';
+import Typography from '@components/ui/Typography.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import Toc from '@components/Toc.astro';
+import { readingMinutes, wordCount } from '@lib/reading';
+import Link from '@components/ui/Link.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  headings: MarkdownHeading[];
+  next?: CollectionEntry<'blog'>;
+}
+
+const { post, headings, next } = Astro.props;
+const { title, pubDate, description, tags, image } = post.data;
+
+const minutes = readingMinutes(post.body);
+const words = wordCount(post.body);
+
+/**
+ * A 46rem measure — 40rem read too narrow.
+ *
+ * Centered only while it owns the whole width. Once the contents rail appears
+ * the measure sits at the start of its column instead, so a post's title lands
+ * exactly where the row you clicked on `/writing` was: centering it inside the
+ * column left it 24px to the right of that row and the jump was visible on
+ * navigation. `max-toc` rather than a `toc:mx-0` twin, so one rule applies per
+ * range instead of two racing to set the same margin.
+ */
+const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
+---
+
+<BaseLayout
+  pageTitle={title}
+  page="post"
+  description={description}
+  image={image?.url}
+  imageAlt={image?.alt}
+>
+  <Section as="article" flush={false}>
+    {
+      /* Three grid children rather than two, the same shape a project page
+        uses for its spec rail: it is what lets the contents sit between the
+        title and the body once the columns collapse. As two children they
+        would have to sit either side of the whole article, which on a phone
+        put a table of contents above the headline it belongs to.
+
+        The header shares the body's column rather than the full shell, or the
+        title would center on the page while the prose beneath it sat left of
+        that, and the two would visibly disagree the moment the rail appears. */
+    }
+    <div
+      class="grid gap-8 toc:grid-cols-[minmax(0,1fr)_200px] toc:items-start toc:gap-x-16 [&>*]:min-w-0"
+    >
+      <header class:list={[measure, 'toc:row-start-1']}>
+        {
+          /* Plain text until now: a label that looks like a section marker and
+            does nothing when clicked is the same dead slot the footer had. */
+        }
+        <Breadcrumb href="/writing/">Writing</Breadcrumb>
+        <Typography variant="heading1" class="mb-4 leading-[1.04]">
+          {title}
+        </Typography>
+
+        {
+          /* Promoted from small print at the bottom to chips under the title. */
+        }
+        <div class="mb-4 flex flex-wrap gap-2">
+          {
+            tags.map((tag) => (
+              <Link
+                variant="data"
+                class="text-muted hover:text-violet rounded-full border border-line bg-panel px-3.5 before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
+                href={`/writing/tags/${tag}/`}
+              >
+                {tag}
+              </Link>
+            ))
+          }
+        </div>
+
+        <Typography
+          variant="caption"
+          as="div"
+          class="flex flex-wrap gap-4 border-b border-line pb-6"
+        >
+          <time datetime={isoDay(pubDate)}>{formatDay(pubDate)}</time>
+          <span>{minutes} min read</span>
+          <span>{words.toLocaleString('en-US')} words</span>
+        </Typography>
+      </header>
+
+      <Toc headings={headings} />
+
+      <div class:list={[measure, 'toc:row-start-2']}>
+        {
+          image?.url && (
+            <figure class="mb-12">
+              <img
+                src={image.url}
+                alt={image.alt}
+                class="aspect-video w-full rounded-card object-cover shadow-lift"
+                loading="eager"
+              />
+            </figure>
+          )
+        }
+
+        <Typography variant="longform" class="markdown"><slot /></Typography>
+
+        {
+          /* Closes the way a list does, and for the same reason: a post is
+            routinely the first page of the site anyone sees, so it ends by
+            pointing further in rather than stopping.
+
+            This slot used to reprint the tags as plain text. They already sit
+            under the title as links to their archives, so the second copy said
+            the same thing less usefully and spent the one place a way out
+            belongs. */
+        }
+        <Typography
+          variant="compact"
+          as="nav"
+          aria-label="More writing"
+          class="mt-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-line pt-6 text-muted"
+        >
+          <Link
+            variant="compact"
+            class="text-muted hover:text-violet gap-2"
+            href="/writing/"
+          >
+            <Icon name="lucide:arrow-left" class="size-3.5" />
+            All writing
+          </Link>
+
+          {
+            next && (
+              <a
+                href={`/writing/${next.id}/`}
+                class="group inline-flex min-h-11 items-center gap-2 font-semibold text-ink no-underline hover:text-violet"
+              >
+                <Typography variant="data">Next</Typography>
+                {next.data.title}
+                <Icon
+                  name="lucide:arrow-right"
+                  class="size-3.5 opacity-45 transition-transform duration-150 group-hover:translate-x-px"
+                />
+              </a>
+            )
+          }
+        </Typography>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { initFootnotes } from '@lib/footnotes';
+  import { initToc } from '@lib/toc';
+
+  initFootnotes();
+  initToc();
+</script>

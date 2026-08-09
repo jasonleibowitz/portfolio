@@ -1,0 +1,55 @@
+---
+import { Icon } from 'astro-icon/components';
+import { tv } from '@lib/tv';
+
+const button = tv({
+  base: [
+    'inline-flex items-center gap-2 rounded-full no-underline',
+    'transition-[transform,box-shadow] duration-200 ease-orbit',
+    'hover:-translate-y-0.5 hover:shadow-lift',
+  ],
+  variants: {
+    variant: {
+      default: 'border border-line bg-panel text-ink',
+      primary: 'border border-transparent spectrum-fill',
+    },
+    size: {
+      default: 'min-h-[50px] px-[22px] text-ui font-semibold',
+      // Still on the 44px target floor -- this is the smallest a control in
+      // this system is allowed to be, not a free-form small button.
+      sm: 'min-h-11 px-4 text-ui font-medium',
+    },
+  },
+  defaultVariants: { variant: 'default', size: 'default' },
+});
+
+interface Props {
+  href: string;
+  variant?: 'default' | 'primary';
+  size?: 'default' | 'sm';
+  icon?: string;
+  class?: string;
+  'data-astro-prefetch'?: boolean;
+}
+
+const {
+  href,
+  variant,
+  size = 'default',
+  icon,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<a href={href} class={button({ variant, size, class: className })} {...rest}>
+  {
+    icon && (
+      <Icon
+        name={icon}
+        class:list={[size === 'sm' ? 'size-4' : 'size-5', 'shrink-0']}
+      />
+    )
+  }
+  <slot />
+</a>

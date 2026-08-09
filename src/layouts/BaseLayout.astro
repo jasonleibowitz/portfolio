@@ -1,27 +1,148 @@
 ---
+import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
-import '@fontsource/noto-sans';
+import MobileTabNav from '@components/MobileTabNav.astro';
+import Footer from '@components/Footer.astro';
+import { FEED_TITLE, type PageKey } from '@lib/site';
+
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/inter';
+import '@fontsource/jetbrains-mono';
 import '@styles/global.css';
 
 interface Props {
   pageTitle: string;
   description?: string;
+  /** Drives the active nav state and the reading-progress bar. */
+  page: PageKey;
+  /**
+   * The share card's picture. Only pages holding a real image pass one; the
+   * rest share as a text card rather than as an invented graphic.
+   */
+  image?: string;
+  imageAlt?: string;
 }
 
-const { pageTitle, description } = Astro.props;
+const { pageTitle, description, page, image, imageAlt } = Astro.props;
+
+/**
+ * The homepage states a role where the interior pages state a section.
+ *
+ * A bare name is the convention for a personal site, but it assumes the name
+ * is already unambiguous. A search for this one returns a page of Miami ENT
+ * surgeons, so the title has to say which Jason Leibowitz this is, and the
+ * city separates him from the other doctor as well. This restates the hero's
+ * eyebrow in prose deliberately: the two are the same claim, and a searcher
+ * scanning results reads this one before any of the page.
+ */
+const HOME_TITLE = 'Jason Leibowitz · Full-stack engineer in New York';
+
+const isHome = pageTitle === 'Home';
+const title = isHome ? HOME_TITLE : `${pageTitle} · Jason Leibowitz`;
+const showProgress = page === 'post' || page === 'project';
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/* Absolute, because every scraper resolves these against its own host and not
+   against the page. A post's frontmatter image may already be absolute, which
+   `URL` leaves alone. */
+const share = image ? new URL(image, Astro.site).href : undefined;
+
+/* The card's headline drops the site suffix that `<title>` carries, since
+   `og:site_name` is already saying it one line below. The homepage keeps its
+   full title: without the role it would repeat `og:site_name` word for word. */
+const shareTitle = isHome ? HOME_TITLE : pageTitle;
 ---
 
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={FEED_TITLE}
+      href="/rss.xml"
+    />
+    <link rel="canonical" href={canonical} />
     {description && <meta name="description" content={description} />}
-    <title>{pageTitle}</title>
+    <title>{title}</title>
+
+    {
+      /*
+      Visitors mostly arrive from somewhere else, so the card a link renders as
+      is a real entry surface rather than a nicety. X reads the `og:` tags when
+      it has no `twitter:` twin, so only the two it has no equivalent for are
+      spelled out here; a second copy of the title is a second thing to drift.
+    */
+    }
+    <meta
+      property="og:type"
+      content={page === 'post' ? 'article' : 'website'}
+    />
+    <meta property="og:site_name" content="Jason Leibowitz" />
+    <meta property="og:title" content={shareTitle} />
+    <meta property="og:url" content={canonical} />
+    {description && <meta property="og:description" content={description} />}
+    {share && <meta property="og:image" content={share} />}
+    {share && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    <meta
+      name="twitter:card"
+      content={share ? 'summary_large_image' : 'summary'}
+    />
+    <meta name="twitter:creator" content="@jasonleibowitz" />
+    {
+      /*
+      Blocking on purpose. Every page of a static site is a fresh document, so
+      deferring this flashes white on each navigation.
+
+      Storage is read only for an override; with none, the device decides --
+      including when storage throws.
+    */
+    }
+    <script is:inline>
+      (function () {
+        let saved = null;
+        try {
+          saved = localStorage.getItem('theme');
+        } catch {
+          /* private mode, or storage blocked */
+        }
+        document.documentElement.dataset.theme =
+          saved === 'dark' || saved === 'light'
+            ? saved
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+      })();
+    </script>
   </head>
-  <body class="max-w-7xl mx-auto my-0 p-4">
-    <Header />
-    <slot />
+
+  {
+    /* The tab bar floats over the end of the page, so the body reserves its height. */
+  }
+  <body
+    class="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom,0px))] nav:pb-0"
+    data-page={page}
+  >
+    <Aurora />
+    <a
+      href="#main"
+      class="absolute -left-[9999px] z-60 bg-ink px-4 py-3 text-canvas focus:top-4 focus:left-4"
+      >Skip to content</a
+    >
+
+    <Header page={page} progress={showProgress} />
+    <main id="main" class="flex-1"><slot /></main>
+    <Footer />
+    <MobileTabNav page={page} />
   </body>
 </html>
+
+<script>
+  import { initChrome } from '@lib/chrome';
+
+  initChrome();
+</script>

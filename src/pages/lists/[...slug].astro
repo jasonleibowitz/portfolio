@@ -1,22 +1,192 @@
 ---
-import readingTime from 'reading-time';
+import { formatDay } from '@lib/dates';
 import { render } from 'astro:content';
-import MarkdownPostLayout from '@layouts/MarkdownPostLayout.astro';
-import { getPublished } from '../../lib/content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Breadcrumb from '@components/ui/Breadcrumb.astro';
+import Section from '@components/layout/Section.astro';
+import Typography from '@components/ui/Typography.astro';
+import Heading2 from '@components/markdown/Heading2.astro';
+import Heading3 from '@components/markdown/Heading3.astro';
+import TextLink from '@components/markdown/TextLink.astro';
+import SidebarLayout from '@components/layout/SidebarLayout.astro';
+import ListEntry from '@components/ListEntry.astro';
+import TagRail from '@components/TagRail.astro';
+import ListFooter from '@components/ListFooter.astro';
+import Ph from '@components/ui/Ph.astro';
+import { getPublished } from '@lib/content';
+import { allItems, listTags, groupId } from '@lib/lists';
 
 export async function getStaticPaths() {
-  const entries = await getPublished('lists');
-  return entries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
+  const lists = await getPublished('lists');
+
+  return lists.map((list) => ({
+    params: { slug: list.id },
+    props: {
+      list,
+      others: lists
+        .filter((other) => other.id !== list.id)
+        .map((other) => ({
+          title: other.data.title,
+          href: `/lists/${other.id}/`,
+          count: allItems(other.data).length,
+        })),
+    },
   }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await render(entry);
-const stats = readingTime(entry.body ?? '');
+const { list, others } = Astro.props;
+const { data } = list;
+const { Content } = await render(list);
+
+const items = allItems(data);
+
+/**
+ * Every list with tags gets a filter, grouped ones included. The rail used to
+ * be withheld below full tag coverage, on the grounds that a filter which
+ * cannot see the untagged entries is a hidden delete; `All` is always one click
+ * away, so nothing is actually unreachable.
+ */
+const tags = listTags(data);
+const showRail = tags.length > 0;
+
+/**
+ * Ranks are assigned here, over the full list, and written into the markup.
+ * Filtering only hides rows, so an entry keeps its real position.
+ */
+let rank = 0;
+
+/** The body is optional, and an empty `.markdown` div still renders its margin. */
+const hasBody = Boolean(list.body?.trim());
 ---
 
-<MarkdownPostLayout frontmatter={entry.data} readingTime={stats}>
-  <Content />
-</MarkdownPostLayout>
+<BaseLayout pageTitle={data.title} page="list" description={data.description}>
+  <PageHead title={data.title} intro={data.description}>
+    {
+      /* `-mb-3` cancels the title's own top margin, which is sized for a 15px
+        caption line rather than for a 44px tap target. Without it this page's
+        breadcrumb sits 12px further off its title than a post's does. */
+    }
+    <Breadcrumb href="/lists/" slot="eyebrow" class="-mb-3">Lists</Breadcrumb>
+    <Typography
+      variant="caption"
+      as="div"
+      class="mt-4 flex flex-wrap gap-x-4 gap-y-2"
+    >
+      <span>Updated {formatDay(data.updated)}</span>
+      {
+        /*
+        Announced politely because filtering hides rows with no other signal
+        that anything happened; without it a screen-reader user gets silence.
+      */
+      }
+      <span data-filter-count aria-live="polite">{items.length} entries</span>
+      {
+        !data.ranked && (
+          /* Live for the same reason the entry count is: filtering empties
+            sections, and a masthead still reporting six of them beside one on
+            screen is the stale-count bug one level up. */
+          <span data-filter-sections>
+            {data.groups.length}{' '}
+            {data.groups.length === 1 ? 'section' : 'sections'}
+          </span>
+        )
+      }
+    </Typography>
+  </PageHead>
+
+  <Section>
+    <SidebarLayout data-filter-root data-unit="entries" data-unit-one="entry">
+      {showRail && <TagRail tags={tags} total={items.length} />}
+
+      <div>
+        {
+          data.ranked ? (
+            /*
+              A ranked list is an argument, so the numbers run down the page as
+              its spine and each row is ruled off like a ledger. The reader's
+              question is what is at the top and whether they agree.
+            */
+            <ul class="grid">
+              {data.items.map((item) => (
+                <ListEntry item={item} rank={++rank} shape={data.thumb} />
+              ))}
+            </ul>
+          ) : (
+            /*
+              A grouped list is a directory. The reader's question is which
+              section they want, so the sections are the structure and the
+              headings are the thing to navigate between.
+            */
+            data.groups.map((group) => (
+              <section
+                id={groupId(group.name)}
+                class="mb-12 scroll-mt-24"
+                data-filter-group
+              >
+                {/*
+                  The rule sits under the whole header rather than under the
+                  heading alone, so an optional blurb reads as part of the
+                  section's title block instead of as the first entry in it.
+                  With no blurb this renders exactly as a bare heading did.
+                */}
+                <header class="mb-4 border-b border-line pb-2">
+                  <Typography
+                    variant="heading3"
+                    as="h2"
+                    class="flex items-baseline gap-3"
+                  >
+                    {group.name}
+                    <Typography variant="data" data-group-count>
+                      {group.items.length}
+                    </Typography>
+                  </Typography>
+
+                  {group.description && (
+                    <Ph
+                      as="p"
+                      when={group.placeholder.includes('description')}
+                      variant="compact"
+                      class="mt-1.5 max-w-[68ch] text-muted"
+                    >
+                      {group.description}
+                    </Ph>
+                  )}
+                </header>
+                <ul class="grid">
+                  {group.items.map((item) => (
+                    <ListEntry item={item} shape={data.thumb} />
+                  ))}
+                </ul>
+              </section>
+            ))
+          )
+        }
+
+        {
+          showRail && (
+            <p class="py-8 text-muted" data-filter-empty hidden>
+              Nothing tagged that yet.
+            </p>
+          )
+        }
+
+        {
+          hasBody && (
+            <Typography
+              variant="body"
+              as="div"
+              class="markdown mt-10 max-w-measure border-t border-line pt-8"
+            >
+              <Content
+                components={{ h2: Heading2, h3: Heading3, a: TextLink }}
+              />
+            </Typography>
+          )
+        }
+      </div>
+    </SidebarLayout>
+  </Section>
+
+  <ListFooter others={others} />
+</BaseLayout>

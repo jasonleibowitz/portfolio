@@ -1,0 +1,15 @@
+---
+/**
+ * The drifting glow behind the page. Fixed, so it never scrolls and every
+ * panel above it can use a flat translucent fill instead of a live blur.
+ *
+ * The gradient stack lives in `aurora-field` in utilities.css; everything else
+ * about where it sits is here.
+ */
+---
+
+<div
+  class="aurora-field animate-drift pointer-events-none fixed inset-x-[-10vw] inset-y-[-20vh] z-[-1]"
+  aria-hidden="true"
+>
+</div>
