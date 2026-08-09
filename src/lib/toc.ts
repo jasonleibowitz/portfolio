@@ -10,8 +10,16 @@
  * which one you are inside.
  */
 
-/** The sticky header's underside. Matches the headings' own `scroll-mt`. */
-const HEADER = 88;
+/**
+ * The sticky header's underside, read from the token the headings' own
+ * `scroll-mt-header` and every sticky rail resolve against, so this cannot
+ * hold a number the stylesheet has since moved on from.
+ */
+const HEADER = parseFloat(
+  getComputedStyle(document.documentElement).getPropertyValue(
+    '--spacing-header'
+  )
+);
 
 /**
  * How far past the header a heading has to travel before its section counts as

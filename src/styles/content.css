@@ -21,7 +21,7 @@
     margin: 2rem 0 0.5rem;
     /* Cleared for the sticky header, so a TOC jump doesn't land under it.
        `h2` and `h3` carry the same offset from their own components. */
-    scroll-margin-top: 88px;
+    scroll-margin-top: var(--spacing-header);
   }
 
   & :is(ul, ol) {

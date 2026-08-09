@@ -130,6 +130,16 @@
      all clear the gutters. */
   --breakpoint-toc: 68rem;
 
+  /* The sticky header's underside. Anything that scrolls to a position clears
+     it: a heading jumped to from the contents, and every sticky rail that
+     parks beneath it.
+
+     In the `--spacing` namespace so it generates `scroll-mt-header` and
+     `top-header` rather than needing `var()` at each site. Adding a key here
+     is safe; it is *clearing* a namespace that deletes utilities, which is
+     what `--radius-*: initial` above does deliberately. */
+  --spacing-header: 88px;
+
   --animate-drift: drift 34s ease-in-out infinite alternate;
   --animate-orbit: orbit 26s linear infinite;
   --animate-status: status 2.6s ease-in-out infinite;
