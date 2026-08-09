@@ -11,5 +11,12 @@ import { writeFileSync } from 'node:fs';
  * `_headers` is generated here rather than committed to `public/`, because a
  * committed copy would ship to production too and quietly suppress the real
  * site. Cloudflare reads the file as configuration and never serves it.
+ *
+ * The two directives are written on separate lines because Cloudflare joins
+ * repeated header names with a comma, while a comma written inline is dropped:
+ * `noindex, nofollow` on one line served as bare `noindex`.
  */
-writeFileSync('dist/_headers', '/*\n  X-Robots-Tag: noindex, nofollow\n');
+writeFileSync(
+  'dist/_headers',
+  '/*\n  X-Robots-Tag: noindex\n  X-Robots-Tag: nofollow\n'
+);
