@@ -1,7 +1,7 @@
 ---
 import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
-import MobileTabNav from '@components/MobileTabNav.astro';
+import MobileNav from '@components/MobileNav.astro';
 import Footer from '@components/Footer.astro';
 import { FEED_TITLE, type PageKey } from '@lib/site';
 
@@ -121,10 +121,11 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
   </head>
 
   {
-    /* The tab bar floats over the end of the page, so the body reserves its height. */
+    /* The nav control floats over the end of the page, so the body reserves
+       its height. */
   }
   <body
-    class="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom,0px))] nav:pb-0"
+    class="flex min-h-screen flex-col pb-[calc(72px+env(safe-area-inset-bottom,0px))] nav:pb-0"
     data-page={page}
   >
     <Aurora />
@@ -137,7 +138,7 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     <Header page={page} progress={showProgress} />
     <main id="main" class="flex-1"><slot /></main>
     <Footer />
-    <MobileTabNav page={page} />
+    <MobileNav page={page} />
   </body>
 </html>
 

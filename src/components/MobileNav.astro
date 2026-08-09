@@ -1,0 +1,112 @@
+---
+import { Icon } from 'astro-icon/components';
+import Button from './ui/Button.astro';
+import { EMAIL, NAV, NAV_FOR_PAGE, RESUME_HREF, type PageKey } from '@lib/site';
+
+/**
+ * The mobile nav below `nav:`: a corner control that raises the destinations
+ * and the two contact CTAs.
+ *
+ * It is a corner control and not a full-width bar because Safari keeps its own
+ * capsule at the foot of the viewport, and a second one above it reads as
+ * browser chrome.
+ *
+ * The panel is a native popover, and the whole control hides where that API
+ * is missing: the footer carries the same links and CTAs on every page, so
+ * those visitors lose a shortcut rather than the navigation. `chrome.ts` owns
+ * `data-open` and the scroll collapse.
+ */
+interface Props {
+  page: PageKey;
+}
+
+const { page } = Astro.props;
+const active = NAV_FOR_PAGE[page];
+const current = NAV.find((item) => item.key === active)!;
+---
+
+<div
+  class="group/nav mobile-nav fixed right-(--gutter) bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-40 not-supports-[selector(:popover-open)]:hidden nav:hidden"
+>
+  {
+    /*
+    `hidden` + `open:block` rather than the UA's own display rule, because
+    without the Popover API there is no UA rule and the panel would render
+    open. The 76px offset clears the 50px control and its 12px inset.
+  */
+  }
+  <div
+    id="navPanel"
+    popover="auto"
+    class="fixed inset-auto right-(--gutter) bottom-[calc(76px+env(safe-area-inset-bottom,0px))] m-0 hidden max-h-[min(70vh,32rem)] w-[min(17.5rem,calc(100vw_-_2*var(--gutter)))] origin-bottom-right translate-y-2 scale-95 overflow-y-auto rounded-card border border-line-strong bg-canvas p-2 opacity-0 transition-[opacity,transform,display,overlay] transition-discrete duration-300 ease-orbit backdrop:bg-ink/25 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:block open:translate-y-0 open:scale-100 open:opacity-100 open:backdrop:opacity-100 starting:open:translate-y-2 starting:open:scale-95 starting:open:opacity-0 dark:backdrop:bg-black/50"
+  >
+    <nav class="grid gap-0.5" aria-label="Primary">
+      {
+        NAV.map((item) => (
+          <a
+            href={item.href}
+            aria-current={item.key === active ? 'page' : undefined}
+            class:list={[
+              'flex min-h-11 items-center gap-3 rounded-md px-3 text-ui no-underline transition-colors duration-200 ease-orbit',
+              item.key === active
+                ? 'spectrum-fill font-semibold'
+                : 'text-muted hover:text-ink',
+            ]}
+          >
+            <Icon name={item.icon} class="size-[18px] shrink-0" />
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="mt-2 grid gap-2 border-t border-line pt-2">
+      <Button
+        href={`mailto:${EMAIL}`}
+        size="sm"
+        variant="primary"
+        icon="lucide:mail"
+        class="w-full justify-center">Email me</Button
+      >
+      <Button
+        href={RESUME_HREF}
+        size="sm"
+        icon="lucide:file-down"
+        class="w-full justify-center">Download resume</Button
+      >
+    </div>
+  </div>
+
+  {
+    /*
+    `aria-label` would replace the visible section name rather than include
+    it, so the accessible name is an sr-only prefix plus the label itself.
+
+    Scrolling down collapses this to its node. It must not hide: reaching the
+    CTAs from anywhere is why this replaced the tab bar.
+  */
+  }
+  <button
+    id="navBtn"
+    type="button"
+    popovertarget="navPanel"
+    aria-expanded="false"
+    class="flex h-[50px] cursor-pointer items-center gap-2.5 rounded-full border border-line-strong bg-canvas py-1.5 pr-4 pl-1.5 text-meta tracking-label text-ink uppercase transition-[gap,padding,scale] duration-300 ease-orbit active:scale-[0.94] group-data-[collapsed]/nav:gap-0 group-data-[collapsed]/nav:pr-1.5"
+  >
+    <span class="sr-only">Menu, current section: </span>
+    <span
+      class="grid size-9 shrink-0 place-items-center rounded-full spectrum-fill"
+      aria-hidden="true"
+    >
+      <Icon name={current.icon} class="size-[18px]" />
+    </span>
+    <span
+      class="max-w-24 overflow-hidden whitespace-nowrap opacity-100 transition-[max-width,opacity] duration-300 ease-orbit group-data-[collapsed]/nav:max-w-0 group-data-[collapsed]/nav:opacity-0"
+      >{current.label}</span
+    >
+    <Icon
+      name="lucide:chevron-up"
+      class="size-4 shrink-0 text-faint transition-[rotate,max-width,opacity] duration-300 ease-orbit group-data-[collapsed]/nav:max-w-0 group-data-[collapsed]/nav:opacity-0 group-data-[open]/nav:rotate-180"
+    />
+  </button>
+</div>

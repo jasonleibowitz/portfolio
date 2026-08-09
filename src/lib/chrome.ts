@@ -1,6 +1,6 @@
 /**
- * Chrome behavior that every page gets: the theme toggle, the tab bar's
- * scroll collapse, and the reading-progress bar.
+ * Chrome behavior that every page gets: the theme toggle, the mobile nav
+ * control, and the reading-progress bar.
  *
  * Vanilla, no framework — the site ships zero JS islands.
  */
@@ -84,18 +84,46 @@ function initThemeToggle() {
   });
 }
 
-/** Collapses to icons as you scroll down, expands again on the way up. */
-function initMobileTabNav() {
-  const nav = document.querySelector('.mobile-tab-nav');
-  if (!nav || reduced) return;
+/**
+ * Mirrors the nav panel's open state onto the control, and collapses the
+ * control to its node on scroll down.
+ *
+ * The panel is a native popover, so the open state is already in CSS as
+ * `:popover-open`. What CSS cannot reach from there is the control: it is a
+ * sibling of the panel, and a top-layer element gives its invoker nothing to
+ * select on. `data-open` on the wrapper is what turns the chevron and drives
+ * `aria-expanded`.
+ */
+function initMobileNav() {
+  const root = document.querySelector<HTMLElement>('.mobile-nav');
+  const btn = document.getElementById('navBtn');
+  const panel = document.getElementById('navPanel');
+  if (!root || !btn || !panel) return;
+
+  const setOpen = (open: boolean) => {
+    root.toggleAttribute('data-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+  };
+
+  panel.addEventListener('toggle', () =>
+    setOpen(panel.matches(':popover-open'))
+  );
+
+  if (reduced) return;
 
   let lastY = window.scrollY;
   window.addEventListener(
     'scroll',
     () => {
       const y = window.scrollY;
-      if (y > lastY + 4 && y > 140) nav.setAttribute('data-collapsed', '');
-      else if (y < lastY - 4) nav.removeAttribute('data-collapsed');
+      // Collapsing the control out from under an open panel would leave the
+      // panel pointing at nothing.
+      if (root.hasAttribute('data-open')) {
+        lastY = y;
+        return;
+      }
+      if (y > lastY + 4 && y > 140) root.setAttribute('data-collapsed', '');
+      else if (y < lastY - 4) root.removeAttribute('data-collapsed');
       lastY = y;
     },
     { passive: true }
@@ -123,7 +151,7 @@ function initProgress() {
 export function initChrome() {
   initThemeSync();
   initThemeToggle();
-  initMobileTabNav();
+  initMobileNav();
   initProgress();
   initFilters();
 }

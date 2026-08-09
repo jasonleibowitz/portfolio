@@ -34,8 +34,8 @@
    in both themes.
 
    It exists because four surfaces wear this -- the primary Button, the header's
-   active nav pill, the dock's active tab and the pressed tag chip -- and only
-   the Button carried the label rule. The other three held `text-white` in both
+   active nav pill, the mobile nav's active row and the pressed tag chip -- and
+   only the Button carried the label rule. The other three held `text-white` in both
    themes, which in dark put white on a lifted violet-to-sky gradient: 2.22:1 at
    the head of the word and 1.74:1 at the tail, against the 4.5:1 a 15px label
    needs. Bundling the fill with its label color is what stops the fifth surface
@@ -60,17 +60,6 @@
   text-decoration: underline dotted var(--color-violet);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-}
-
-/* One radius, three shapes read from it, interpolating during the tab bar's
-   collapse. Registered because an unregistered custom property cannot be
-   transitioned, and registration is an at-rule with no utility form. Lives
-   here beside Tailwind's own registrations rather than in the component,
-   which is then free of a style block entirely. */
-@property --tab-radius {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 18px;
 }
 
 /* The three-layer glow behind the page. A named utility rather than a
