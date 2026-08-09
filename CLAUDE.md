@@ -240,8 +240,10 @@ Two things that will bite:
 ## Placeholder content
 
 App pitches and case-study bodies are placeholder, marked with a dotted underline by `Ph`.
-**Do not invent replacements** — Jason fills these in. The project page carries a note
-saying its copy is placeholder; `PhNote` was deleted, so that note is now written inline.
+**Do not invent replacements** — Jason fills these in. The mark on each paragraph is the
+whole signal: `PhNote` was deleted, and so was the page-level note that summarised them.
+Do not reinstate a summary. It can only repeat what the underlines already show, or
+contradict them the day a real paragraph is written.
 
 **The two `Started` dates in project frontmatter are still provisional, and are the one
 placeholder the page does not mark.** `Fact` has no `ph` prop and `specs[]` has no
