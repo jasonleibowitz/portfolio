@@ -28,9 +28,9 @@ const current = NAV.find((item) => item.key === active)!;
 >
   {
     /*
-    `hidden` plus `open:block` rather than the UA's own display rule: without
-    the Popover API there is no UA rule, and the panel would render open on
-    arrival. `data-[open]` is the fallback's half of the same pair.
+    Without the Popover API there is no UA rule hiding the panel, so it would
+    render open: `hidden` + `open:block` and the `data-[open]` twins cover
+    both paths. The 76px offset clears the 50px control and its 12px inset.
   */
   }
   <div
@@ -77,16 +77,11 @@ const current = NAV.find((item) => item.key === active)!;
 
   {
     /*
-    The visible section name stays inside the accessible name, so the two
-    never disagree. `aria-label` would replace it and break that match.
+    `aria-label` would replace the visible section name rather than include
+    it, so the accessible name is an sr-only prefix plus the label itself.
 
-    Scrolling down drops the label and the chevron, leaving the node inside
-    its own end caps: a 48px circle. The control never leaves. Reaching the
-    CTAs from anywhere is the reason this replaced the tab bar, and a control
-    that hides on the way down would take that back on the one gesture a
-    phone makes most. It rests over the last line of text for as long as that
-    line is at the foot of the viewport, which is the ordinary cost of a
-    floating control and cheaper than the alternative.
+    Scrolling down collapses this to its node. It must not hide: reaching the
+    CTAs from anywhere is why this replaced the tab bar.
   */
   }
   <button
