@@ -414,8 +414,16 @@ the single element most responsible for the system's character.
 ### Signature: The Orbit Ring
 
 A dashed `line-strong` circle around the homepage portrait, rotating once every
-26 seconds. The portrait inside it cross-fades to the profile picture of whichever
-social chip is hovered, focused, or tapped.
+26 seconds. The portrait inside it cross-fades to a social profile picture, and
+the chip for that platform fills with the spectrum.
+
+**The portrait is the control; the chips are the display.** Tapping the portrait
+cycles through the four platforms and back to Jason. Pointing at a chip, by
+mouse or by keyboard, previews that platform and leaving it returns to whatever
+the portrait was last set to. The chips themselves are never intercepted: they
+are ordinary links on every device, which is the point. A chip's tap is spoken
+for permanently, so the interaction belongs on the one element in the group that
+owns no gesture, and nothing has to be cancelled to make room for it.
 
 ## Do's and Don'ts
 

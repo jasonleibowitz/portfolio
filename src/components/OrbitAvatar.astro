@@ -10,9 +10,15 @@ import twitter from '@images/twitterprofile.png';
 import instagram from '@images/instagramprofile.png';
 
 /**
- * The headshot, ringed by an orbiting dot, that swaps to the profile picture
- * for whichever social chip you are on. Hover and focus on pointer devices, tap
- * on touch, where the chip stays lit until you tap another.
+ * The headshot, ringed by an orbiting dot, that swaps to a social profile
+ * picture and lights that platform's chip.
+ *
+ * The portrait is the control and the chips are the display, which is the
+ * whole reason this works on a phone. The chips are links, so their tap is
+ * spoken for on every device forever; the portrait owns no gesture, so a tap
+ * on it can mean exactly one thing without anything being cancelled to make
+ * room. Tapping cycles; the cycle returns to Jason so the hero is never left
+ * showing someone else's avatar.
  *
  * The images are imported rather than referenced from public/ so they go
  * through astro:assets: five 500px PNGs is ~900kB of source for something that
@@ -30,21 +36,21 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
 
 <div class="relative aspect-square w-[200px] shrink-0 nav:w-[250px]">
   <div
-    class="animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong after:absolute after:top-[-4px] after:left-1/2 after:-ml-1 after:size-2 after:rounded-full after:shadow-[0_0_12px_var(--color-glow-a)] after:content-[''] after:spectrum-fill"
+    class="motion-safe:animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong after:absolute after:top-[-4px] after:left-1/2 after:-ml-1 after:size-2 after:rounded-full after:shadow-[0_0_12px_var(--color-glow-a)] after:content-[''] after:spectrum-fill"
     aria-hidden="true"
   >
   </div>
 
   <div
     id="orbit-avatar"
-    class="absolute inset-3.5 overflow-hidden rounded-full shadow-lift"
+    class="absolute inset-3.5 cursor-pointer overflow-hidden rounded-full shadow-lift select-none"
   >
     <Image
       src={headshot}
       alt="Jason Leibowitz"
       width={250}
       densities={[1, 2]}
-      class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100"
+      class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100 motion-reduce:scale-100 motion-reduce:transition-opacity"
       data-active
       data-key="default"
     />
@@ -58,7 +64,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
               alt=""
               width={250}
               densities={[1, 2]}
-              class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100"
+              class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100 motion-reduce:scale-100 motion-reduce:transition-opacity"
               data-key={social.key}
               aria-hidden="true"
             />
@@ -70,39 +76,52 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
 </div>
 
 <script>
+  const avatar = document.getElementById('orbit-avatar');
   const shots = document.querySelectorAll<HTMLElement>(
     '#orbit-avatar .avatar-shot'
   );
   const chips = document.querySelectorAll<HTMLElement>('[data-swap]');
 
-  if (shots.length && chips.length) {
-    const canHover = window.matchMedia('(hover: hover)').matches;
+  if (avatar && shots.length && chips.length) {
+    /* State zero is Jason, and the cycle wraps back to him. */
+    const keys = [
+      'default',
+      ...Array.from(chips, (chip) => chip.dataset.swap!),
+    ];
+    let committed = 0;
 
     const show = (key: string) => {
       shots.forEach((shot) =>
         shot.toggleAttribute('data-active', shot.dataset.key === key)
       );
       chips.forEach((chip) =>
-        chip.setAttribute('aria-current', String(chip.dataset.swap === key))
+        chip.toggleAttribute('data-showing', chip.dataset.swap === key)
       );
     };
 
-    chips.forEach((chip) => {
-      const key = chip.dataset.swap!;
+    /* Tapping the portrait commits; pointing at a chip only previews, so
+       leaving one returns to what was committed rather than to the headshot.
+       That is what lets both inputs coexist without either overriding the
+       other. */
+    avatar.addEventListener('click', () => {
+      committed = (committed + 1) % keys.length;
+      show(keys[committed]);
+    });
 
-      if (canHover) {
-        chip.addEventListener('mouseenter', () => show(key));
-        chip.addEventListener('mouseleave', () => show('default'));
-        chip.addEventListener('focus', () => show(key));
-        chip.addEventListener('blur', () => show('default'));
-      }
-
-      // On touch the chip is the only affordance, so tapping toggles it and
-      // the picture stays put until another chip is tapped.
-      chip.addEventListener('click', (event) => {
-        event.preventDefault();
-        show(chip.getAttribute('aria-current') === 'true' ? 'default' : key);
+    if (window.matchMedia('(hover: hover)').matches) {
+      chips.forEach((chip) => {
+        chip.addEventListener('mouseenter', () => show(chip.dataset.swap!));
+        chip.addEventListener('mouseleave', () => show(keys[committed]));
       });
+    }
+
+    /* Focus is not gated on hover capability: a keyboard reaches these chips
+       on any device, and it is also why the portrait is not a button. Every
+       state a tap can reach is already reachable by tabbing the chips, so a
+       focusable portrait would add a tab stop that leads nowhere new. */
+    chips.forEach((chip) => {
+      chip.addEventListener('focus', () => show(chip.dataset.swap!));
+      chip.addEventListener('blur', () => show(keys[committed]));
     });
   }
 </script>
