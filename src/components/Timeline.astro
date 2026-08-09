@@ -7,11 +7,15 @@ import Typography from './ui/Typography.astro';
  * dates are the whole of it on purpose — accomplishments live in the resume,
  * which is where a recruiter reads them. `bullets` still renders if a role
  * ever carries any. Every date string comes from `lib/career.ts`.
+ *
+ * The pulse hides under reduced motion rather than freezing: its keyframe
+ * animates `top`, so it has a path but no resting position, and stopping it
+ * parks a blurred violet bar at the top of the spine.
  */
 ---
 
 <ul
-  class="relative m-0 list-none p-0 pl-6 before:absolute before:top-2 before:bottom-2 before:left-1 before:w-0.5 before:rounded-full before:opacity-45 before:content-[''] before:spectrum-fill after:absolute after:left-[3px] after:h-16 after:w-1 after:animate-travel after:rounded-full after:bg-[linear-gradient(to_bottom,transparent,var(--color-violet),transparent)] after:opacity-85 after:blur-[1px] after:content-['']"
+  class="relative m-0 list-none p-0 pl-6 before:absolute before:top-2 before:bottom-2 before:left-1 before:w-0.5 before:rounded-full before:opacity-45 before:content-[''] before:spectrum-fill after:absolute after:left-[3px] after:h-16 after:w-1 after:rounded-full after:bg-[linear-gradient(to_bottom,transparent,var(--color-violet),transparent)] after:opacity-85 after:blur-[1px] after:content-[''] motion-safe:after:animate-travel motion-reduce:after:opacity-0"
 >
   {
     CAREER.map((employer) => (
