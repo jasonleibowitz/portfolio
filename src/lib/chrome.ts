@@ -105,31 +105,9 @@ function initMobileNav() {
     btn.setAttribute('aria-expanded', String(open));
   };
 
-  if (Object.hasOwn(HTMLElement.prototype, 'popover')) {
-    panel.addEventListener('toggle', () =>
-      setOpen(panel.matches(':popover-open'))
-    );
-  } else {
-    // Below Safari 17 / Chrome 114 / Firefox 125 the attribute is inert: the
-    // button does nothing and the panel has no UA rule hiding it. `data-open`
-    // stands in for `:popover-open` in the class list, so the same styles
-    // apply; dismissal and Esc are what have to be rebuilt.
-    const close = () => {
-      panel.removeAttribute('data-open');
-      setOpen(false);
-    };
-    btn.addEventListener('click', () => {
-      const open = !panel.hasAttribute('data-open');
-      panel.toggleAttribute('data-open', open);
-      setOpen(open);
-    });
-    document.addEventListener('click', (e) => {
-      if (!root.contains(e.target as Node)) close();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
-    });
-  }
+  panel.addEventListener('toggle', () =>
+    setOpen(panel.matches(':popover-open'))
+  );
 
   if (reduced) return;
 

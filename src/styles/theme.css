@@ -1,11 +1,5 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* The nav panel is open. Two selectors because the Popover API supplies
-   `:popover-open` and the fallback in `chrome.ts` supplies `data-open`; one
-   variant is what stops a property being added to one path and not the
-   other. */
-@custom-variant nav-open (&:is(:popover-open, [data-open]));
-
 /* ---------------------------------------------------------------------------
    Design tokens. These generate utilities -- `--color-ink` gives `text-ink`,
    `bg-ink`, `border-ink`; `--text-h1` gives `text-h1`. Nothing below should be

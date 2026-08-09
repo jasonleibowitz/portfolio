@@ -11,8 +11,10 @@ import { EMAIL, NAV, NAV_FOR_PAGE, RESUME_HREF, type PageKey } from '@lib/site';
  * capsule at the foot of the viewport, and a second one above it reads as
  * browser chrome.
  *
- * The panel is a native popover. `chrome.ts` owns `data-open`, the scroll
- * collapse, and the fallback for browsers without the API.
+ * The panel is a native popover, and the whole control hides where that API
+ * is missing: the footer carries the same links and CTAs on every page, so
+ * those visitors lose a shortcut rather than the navigation. `chrome.ts` owns
+ * `data-open` and the scroll collapse.
  */
 interface Props {
   page: PageKey;
@@ -24,19 +26,19 @@ const current = NAV.find((item) => item.key === active)!;
 ---
 
 <div
-  class="group/nav mobile-nav fixed right-(--gutter) bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-40 nav:hidden"
+  class="group/nav mobile-nav fixed right-(--gutter) bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-40 not-supports-[selector(:popover-open)]:hidden nav:hidden"
 >
   {
     /*
-    Without the Popover API there is no UA rule hiding the panel, so it would
-    render open: `hidden` + `nav-open:block` covers both paths. The 76px
-    offset clears the 50px control and its 12px inset.
+    `hidden` + `open:block` rather than the UA's own display rule, because
+    without the Popover API there is no UA rule and the panel would render
+    open. The 76px offset clears the 50px control and its 12px inset.
   */
   }
   <div
     id="navPanel"
     popover="auto"
-    class="fixed inset-auto right-(--gutter) bottom-[calc(76px+env(safe-area-inset-bottom,0px))] m-0 hidden max-h-[min(70vh,32rem)] w-[min(17.5rem,calc(100vw_-_2*var(--gutter)))] origin-bottom-right translate-y-2 scale-95 overflow-y-auto rounded-card border border-line-strong bg-canvas p-2 opacity-0 transition-[opacity,transform,display,overlay] transition-discrete duration-300 ease-orbit backdrop:bg-ink/25 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 nav-open:block nav-open:translate-y-0 nav-open:scale-100 nav-open:opacity-100 nav-open:backdrop:opacity-100 starting:nav-open:translate-y-2 starting:nav-open:scale-95 starting:nav-open:opacity-0 dark:backdrop:bg-black/50"
+    class="fixed inset-auto right-(--gutter) bottom-[calc(76px+env(safe-area-inset-bottom,0px))] m-0 hidden max-h-[min(70vh,32rem)] w-[min(17.5rem,calc(100vw_-_2*var(--gutter)))] origin-bottom-right translate-y-2 scale-95 overflow-y-auto rounded-card border border-line-strong bg-canvas p-2 opacity-0 transition-[opacity,transform,display,overlay] transition-discrete duration-300 ease-orbit backdrop:bg-ink/25 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:block open:translate-y-0 open:scale-100 open:opacity-100 open:backdrop:opacity-100 starting:open:translate-y-2 starting:open:scale-95 starting:open:opacity-0 dark:backdrop:bg-black/50"
   >
     <nav class="grid gap-0.5" aria-label="Primary">
       {
