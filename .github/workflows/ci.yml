@@ -59,7 +59,7 @@ jobs:
   # `verify`, because they set SITE_URL, and `preview` also sets SHOW_DRAFTS.
   # Both jobs need `verify`, so a failed gate publishes no URL.
   preview:
-    name: Preview
+    name: Publish preview
     needs: verify
     # GitHub gives no repository secrets to a pull request from a fork. Without
     # this condition, the upload fails on a missing token and looks like a break.
@@ -124,7 +124,7 @@ jobs:
       # wrangler runs directly, not through `cloudflare/wrangler-action`. That
       # action takes its command as one string, so a commit subject could end
       # the quote and run other commands. A quoted variable cannot do this.
-      - name: Upload version
+      - name: Upload version to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -183,7 +183,7 @@ jobs:
   # separates this from production. Drafts stay hidden, so this shows the
   # published set.
   staging:
-    name: Staging
+    name: Deploy staging
     needs: verify
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
