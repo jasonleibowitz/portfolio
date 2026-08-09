@@ -135,6 +135,18 @@ export function currentRole(): string {
 }
 
 /**
+ * The employers before the current one, most recent first. `CAREER` is already
+ * in that order, so the one dropped is the employer `currentRole()` names.
+ *
+ * Returned whole rather than pre-truncated: how many a surface has room for is
+ * that surface's decision, and the homepage is not the only caller it could
+ * have.
+ */
+export function pastEmployers(): string[] {
+  return CAREER.slice(1).map(({ company }) => company);
+}
+
+/**
  * The earliest month in the record. Derived, because a second copy of a date
  * in this file is a date that can disagree with the first one.
  */
