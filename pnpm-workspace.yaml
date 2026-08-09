@@ -5,6 +5,11 @@
 allowBuilds:
   esbuild: true
   sharp: true
+  # workerd is wrangler's local runtime, needed only by `wrangler dev`. Deploys
+  # and version uploads talk to the API, so skipping its build avoids a ~100MB
+  # download on every install. Flip to true if this site ever needs a Worker
+  # script to run locally.
+  workerd: false
 
 # Don't install packages published in the last 24h -- the window in which a
 # compromised release is most likely to still be up.

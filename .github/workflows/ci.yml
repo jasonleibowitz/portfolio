@@ -11,8 +11,15 @@ concurrency:
   cancel-in-progress: true
 
 # CI only reads the repo -- don't inherit whatever the repo default becomes.
+# `preview` widens this to comment on the pull request, scoped to that job.
 permissions:
   contents: read
+
+env:
+  # One Worker holds every build. A pull request's preview is a *version* of it
+  # reached through an alias, not a separate environment, so nothing is
+  # provisioned per branch and nothing needs tearing down.
+  WORKER_NAME: portfolio
 
 jobs:
   verify:
@@ -47,3 +54,137 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # `preview` and `staging` rebuild rather than reuse the `dist/` from `verify`.
+  # They set SITE_URL, and preview also sets SHOW_DRAFTS, so their output is
+  # deliberately not the bytes that gate produced. Both gate on `verify` anyway:
+  # a preview URL is what the design gets judged by, and one published from a
+  # red build would be judged as if it were finished.
+  preview:
+    name: Preview
+    needs: verify
+    # A pull request from a fork is denied repository secrets by design. Without
+    # this the upload fails on a missing token, which reads as the contributor
+    # having broken something.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `pr-<number>` is always a valid alias: it opens with a letter, contains
+      # nothing DNS rejects, and cannot collide the way `feat/x` and `feat-x`
+      # would once slashes are replaced. Alias plus Worker name must fit a
+      # 63-character DNS label, which this cannot approach.
+      #
+      # Resolving it here rather than reading it back from the upload is what
+      # lets the build below know its own URL.
+      - name: Resolve preview URL
+        id: preview
+        run: |
+          alias="pr-${{ github.event.pull_request.number }}"
+          echo "alias=$alias" >> "$GITHUB_OUTPUT"
+          echo "url=https://$alias-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          SITE_URL: ${{ steps.preview.outputs.url }}
+          SHOW_DRAFTS: 'true'
+        run: pnpm build
+
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      - name: Upload version
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --preview-alias ${{ steps.preview.outputs.alias }}
+
+      # One comment per pull request, rewritten in place. The alias is stable
+      # across pushes, so a comment per commit would repeat the same URL.
+      - name: Comment preview URL
+        uses: actions/github-script@v9
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        with:
+          script: |
+            const marker = '<!-- cloudflare-preview -->';
+            const body = [
+              marker,
+              `**Preview:** ${process.env.PREVIEW_URL}`,
+              '',
+              `Built from \`${context.sha.slice(0, 7)}\`. Drafts are rendered, and the deploy is noindexed.`,
+            ].join('\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.body?.startsWith(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # The integrated view of `main`, at a stable URL. This is a real deployment,
+  # but leibowitz.me still answers from GitHub Pages: no custom domain is
+  # attached here, so DNS remains the only thing standing between this and
+  # production. Drafts stay hidden, so this shows exactly the published set.
+  staging:
+    name: Staging
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          SITE_URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
+        run: pnpm build
+
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

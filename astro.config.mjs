@@ -1,4 +1,5 @@
 // @ts-check
+import process from 'node:process';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
@@ -6,7 +7,11 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://leibowitz.me',
+  // `site` feeds the canonical tag, the absolute og:image URL and the RSS item
+  // links. A preview build serves from a workers.dev host, so CI overrides this
+  // with that host: left at production those three would point at a domain
+  // still serving the old site, and an unfurl would render the wrong image.
+  site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), icon()],
   markdown: {
     shikiConfig: {

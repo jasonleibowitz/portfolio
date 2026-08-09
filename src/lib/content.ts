@@ -1,5 +1,12 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 
+/**
+ * Drafts render while developing, and in a preview build that opts in. A
+ * preview URL is where an unpublished post gets reviewed in the real design, so
+ * gating on `PROD` alone left `pnpm dev` as the only way to see one.
+ */
+const showDrafts = import.meta.env.DEV || process.env.SHOW_DRAFTS === 'true';
+
 /** Collections that hold draftable, publishable entries. */
 export type PublishableCollection = 'blog' | 'lists' | 'projects';
 export type PublishableEntry = CollectionEntry<PublishableCollection>;
@@ -40,7 +47,7 @@ export async function getPublished<C extends PublishableCollection>(
   collection: C
 ): Promise<CollectionEntry<C>[]> {
   const entries = await getCollection(collection, ({ data }) => {
-    return import.meta.env.PROD ? data.draft !== true : true;
+    return showDrafts ? true : data.draft !== true;
   });
 
   return (entries as PublishableEntry[]).sort(compare) as CollectionEntry<C>[];
