@@ -347,6 +347,11 @@ Both run `scripts/noindex.mjs`, which writes `dist/_headers` with
 `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/`
 on purpose: a committed copy would ship to production and suppress the real site.
 
+**A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.**
+Cloudflare sets its own header on preview URLs and it wins. The staging deployment does serve
+the full value, which is how the two were told apart. Nothing is broken and the file needs no
+"fix" — checking a preview's headers and finding one directive missing is expected.
+
 ### Why the preview build is not the production build
 
 Two env vars make a preview deliberately differ, which is why the deploy jobs rebuild instead
