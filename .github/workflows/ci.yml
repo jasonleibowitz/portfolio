@@ -16,9 +16,9 @@ permissions:
   contents: read
 
 env:
-  # One Worker holds every build. A pull request's preview is a *version* of it
-  # reached through an alias, not a separate environment, so nothing is
-  # provisioned per branch and nothing needs tearing down.
+  # One Worker holds every build. A preview is a version of that Worker, and an
+  # alias points to it. CI makes no new environment for each branch, and has
+  # nothing to remove.
   WORKER_NAME: portfolio
 
 jobs:
@@ -55,17 +55,14 @@ jobs:
       - name: Build
         run: pnpm build
 
-  # `preview` and `staging` rebuild rather than reuse the `dist/` from `verify`.
-  # They set SITE_URL, and preview also sets SHOW_DRAFTS, so their output is
-  # deliberately not the bytes that gate produced. Both gate on `verify` anyway:
-  # a preview URL is what the design gets judged by, and one published from a
-  # red build would be judged as if it were finished.
+  # `preview` and `staging` build again. They do not reuse the `dist/` from
+  # `verify`, because they set SITE_URL, and `preview` also sets SHOW_DRAFTS.
+  # Both jobs need `verify`, so a failed gate publishes no URL.
   preview:
     name: Preview
     needs: verify
-    # A pull request from a fork is denied repository secrets by design. Without
-    # this the upload fails on a missing token, which reads as the contributor
-    # having broken something.
+    # GitHub gives no repository secrets to a pull request from a fork. Without
+    # this condition, the upload fails on a missing token and looks like a break.
     if: >-
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -86,22 +83,16 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # `pr-<number>` is always a valid alias: it opens with a letter, contains
-      # nothing DNS rejects, and cannot collide the way `feat/x` and `feat-x`
-      # would once slashes are replaced. Alias plus Worker name must fit a
-      # 63-character DNS label, which this cannot approach.
+      # `pr-<number>` is always a valid alias. It starts with a letter, DNS
+      # accepts each character, and two branch names cannot collide. The alias
+      # and the Worker name must fit one 63-character DNS label.
       #
-      # Resolving it here rather than reading it back from the upload is what
-      # lets the build below know its own URL.
-      # The commit subject is read from the API rather than `git log`: the
-      # checkout above is a depth-1 clone of the pull request's *merge* ref, so
-      # the head commit's parents -- and its message -- are not in the clone.
+      # This step makes the URL, so the build below knows its own address.
       #
-      # It is also the one value here an author controls, so it never reaches a
-      # shell as anything but a quoted variable. `tr` strips newlines, which
-      # would otherwise let a crafted subject forge a second line in
-      # $GITHUB_OUTPUT, and the cut bounds a message length Cloudflare does not
-      # document a limit for.
+      # The commit subject comes from the API, not `git log`: the checkout is a
+      # depth-1 clone of the merge ref, which does not contain the head commit
+      # message. The author controls this value, so it stays quoted. `tr`
+      # removes newlines, which could add a false line to $GITHUB_OUTPUT.
       - name: Resolve preview URL
         id: preview
         env:
@@ -126,17 +117,13 @@ jobs:
       - name: Mark as noindex
         run: node scripts/noindex.mjs
 
-      # `--message` is what the dashboard's version history shows. Left unset,
-      # every row reads "Manually deployed" and traces back to nothing.
-      # Cloudflare populates branch and commit itself only for Workers Builds,
-      # its own CI -- a Worker built here has no build record, so these two
-      # flags are the only way to label a version.
+      # The dashboard shows `--message` in its version history. Without it, each
+      # row reads "Manually deployed". Cloudflare fills in the branch and the
+      # commit only for its own CI, so these two flags are the only labels.
       #
-      # wrangler runs directly rather than through `cloudflare/wrangler-action`,
-      # which takes its command as one string: the subject would be spliced into
-      # it and a commit message could then close the quote and run whatever
-      # followed. Quoted variable expansion does not re-tokenize, so this form
-      # cannot.
+      # wrangler runs directly, not through `cloudflare/wrangler-action`. That
+      # action takes its command as one string, so a commit subject could end
+      # the quote and run other commands. A quoted variable cannot do this.
       - name: Upload version
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -191,10 +178,10 @@ jobs:
               });
             }
 
-  # The integrated view of `main`, at a stable URL. This is a real deployment,
-  # but leibowitz.me still answers from GitHub Pages: no custom domain is
-  # attached here, so DNS remains the only thing standing between this and
-  # production. Drafts stay hidden, so this shows exactly the published set.
+  # `main` at a stable URL. This is a real deployment, but leibowitz.me still
+  # answers from GitHub Pages. No custom domain points here yet, so only DNS
+  # separates this from production. Drafts stay hidden, so this shows the
+  # published set.
   staging:
     name: Staging
     needs: verify
