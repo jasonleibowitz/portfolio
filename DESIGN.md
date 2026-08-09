@@ -295,10 +295,13 @@ leave the body and become a rail beside it).
 Per-block vertical padding is what made the gaps drift in the first revision;
 if a band needs more air, the value changes for every band or not at all.
 
-**The Never Touch `--spacing` Rule.** `--section` and `--gutter` live in plain
-`:root`, not in `@theme`. Defining any `--spacing-*` key inside `@theme` drops
-Tailwind's own `--spacing` base and every numeric `p-*`, `gap-*`, and `size-*`
-utility silently stops resolving — with an error that points at the wrong file.
+**The Add-Don't-Clear Rule.** A `--spacing-*` key may be added to `@theme`; the
+namespace may not be cleared. `--spacing-header: 88px` generates
+`scroll-mt-header` and `top-header` and leaves Tailwind's `--spacing` base
+intact, verified on 4.3.3. Clearing a namespace does silently delete utilities,
+which is what `--radius-*: initial` does on purpose. `--section` and `--gutter`
+stay in plain `:root` because they are page rhythm rather than a step on a
+scale: nothing should generate a `p-section`.
 
 **The Zero-Overflow Rule.** `document.documentElement.scrollWidth` must not
 exceed the viewport at 320/360/390/414/768/1280 in both themes on every page.
@@ -337,6 +340,21 @@ sticky header and the floating dock — because those are the only elements that
 composite against content that moves beneath them. Everywhere else it is
 forbidden: a dozen blurred elements per page is the single most likely thing to
 fail a performance audit, and over a static aurora it is invisible anyway.
+
+**The One Kill Switch Rule.** Reduced motion is handled once, globally:
+`transitions.css` stops every animation and transition in the system with a
+`*, *::before, *::after` block at `!important`. Do not gate an animation a
+second time with `motion-safe:`; a fifth perpetual loop is covered the moment it
+is written.
+
+What the switch cannot do is decide what a stopped animation should look like.
+Three of the four ambient loops — the aurora's 34s drift, the ring's 26s
+rotation, the status dot's 2.6s pulse — freeze into a legible resting state. The
+timeline's 6.5s travel does not: its keyframe animates `top`, so it has a path
+and no rest position, and stopping it parks a blurred bar at the head of the
+spine. It carries `motion-reduce:after:opacity-0` for that reason. **An
+animation whose resting frame is wrong needs its own rule; one whose resting
+frame is fine needs nothing.**
 
 ## Shapes
 

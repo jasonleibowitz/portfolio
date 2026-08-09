@@ -36,7 +36,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
 
 <div class="relative aspect-square w-[200px] shrink-0 nav:w-[250px]">
   <div
-    class="motion-safe:animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong after:absolute after:top-[-4px] after:left-1/2 after:-ml-1 after:size-2 after:rounded-full after:shadow-[0_0_12px_var(--color-glow-a)] after:content-[''] after:spectrum-fill"
+    class="animate-orbit absolute inset-0 rounded-full border border-dashed border-line-strong after:absolute after:top-[-4px] after:left-1/2 after:-ml-1 after:size-2 after:rounded-full after:shadow-[0_0_12px_var(--color-glow-a)] after:content-[''] after:spectrum-fill"
     aria-hidden="true"
   >
   </div>
@@ -50,7 +50,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
       alt="Jason Leibowitz"
       width={250}
       densities={[1, 2]}
-      class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100 motion-reduce:scale-100 motion-reduce:transition-opacity"
+      class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100"
       data-active
       data-key="default"
     />
@@ -64,7 +64,7 @@ const AVATARS: Record<SocialKey | 'default', ImageMetadata | null> = {
               alt=""
               width={250}
               densities={[1, 2]}
-              class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100 motion-reduce:scale-100 motion-reduce:transition-opacity"
+              class="avatar-shot absolute inset-0 size-full scale-[1.04] object-cover opacity-0 transition-[opacity,transform] duration-[320ms] data-[active]:scale-100 data-[active]:opacity-100 "
               data-key={social.key}
               aria-hidden="true"
             />

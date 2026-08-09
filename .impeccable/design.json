@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-08T21:00:00.000Z",
+  "generatedAt": "2026-08-09T00:45:00.000Z",
   "title": "Design System: Orbit — leibowitz.me",
   "extensions": {
     "colorMeta": {
@@ -434,8 +434,8 @@
         "section": "layout"
       },
       {
-        "name": "The Never Touch --spacing Rule",
-        "body": "--section and --gutter live in plain :root, not in @theme. Defining any --spacing-* key inside @theme drops Tailwind's own --spacing base and every numeric p-*, gap-*, and size-* utility silently stops resolving — with an error that points at the wrong file.",
+        "name": "The Add-Don't-Clear Rule",
+        "body": "A `--spacing-*` key may be added to `@theme`; the namespace may not be cleared. `--spacing-header: 88px` generates `scroll-mt-header` and `top-header` and leaves Tailwind's `--spacing` base intact, verified on 4.3.3. Clearing a namespace does silently delete utilities, which is what `--radius-*: initial` does on purpose. `--section` and `--gutter` stay in plain `:root` because they are page rhythm rather than a step on a scale: nothing should generate a `p-section`.",
         "section": "layout"
       },
       {
@@ -451,6 +451,11 @@
       {
         "name": "The Two Blurs Rule",
         "body": "backdrop-filter appears in exactly two places — the sticky header and the floating dock — because those are the only elements that composite against content that moves beneath them. Everywhere else it is forbidden: a dozen blurred elements per page is the single most likely thing to fail a performance audit, and over a static aurora it is invisible anyway.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Kill Switch Rule",
+        "body": "Reduced motion is handled once, globally: `transitions.css` stops every animation and transition in the system with a `*, *::before, *::after` block at `!important`. Do not gate an animation a second time with `motion-safe:`; a fifth perpetual loop is covered the moment it is written. What the switch cannot do is decide what a stopped animation should look like. Three of the four ambient loops — the aurora's 34s drift, the ring's 26s rotation, the status dot's 2.6s pulse — freeze into a legible resting state. The timeline's 6.5s travel does not: its keyframe animates `top`, so it has a path and no rest position, and stopping it parks a blurred bar at the head of the spine. It carries `motion-reduce:after:opacity-0` for that reason. **An animation whose resting frame is wrong needs its own rule; one whose resting frame is fine needs nothing.**",
         "section": "elevation"
       },
       {
@@ -474,10 +479,11 @@
       "Don't put a backdrop-filter on anything but the header and the dock.",
       "Don't give a Panel a shadow, or give a photograph none.",
       "Don't let Aurora Teal carry body text, or be the only signal that something is active.",
-      "Don't add a key to the --spacing namespace in @theme; it silently breaks every numeric spacing utility in the project.",
+      "Don't clear a @theme namespace unless you mean to delete its utilities; adding a key to --spacing is fine.",
       "Don't introduce a fourth type family, or set prose in monospace.",
       "Don't let a display headline break wherever the browser lands — set the breaks explicitly.",
-      "Don't renumber a ranked list when it is filtered; rank comes from the data, not from <ol> or a CSS counter."
+      "Don't renumber a ranked list when it is filtered; rank comes from the data, not from <ol> or a CSS counter.",
+      "Don't gate an animation with motion-safe:; the global prefers-reduced-motion block already stops it."
     ]
   }
 }
