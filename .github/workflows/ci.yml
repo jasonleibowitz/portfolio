@@ -125,11 +125,15 @@ jobs:
         with:
           script: |
             const marker = '<!-- cloudflare-preview -->';
+            // `context.sha` on a pull_request event is GitHub's ephemeral merge
+            // commit, which is not in the branch -- naming it defeats the point
+            // of saying what got built.
+            const sha = context.payload.pull_request.head.sha.slice(0, 7);
             const body = [
               marker,
               `**Preview:** ${process.env.PREVIEW_URL}`,
               '',
-              `Built from \`${context.sha.slice(0, 7)}\`. Drafts are rendered, and the deploy is noindexed.`,
+              `Built from \`${sha}\`. Drafts are rendered, and the deploy is noindexed.`,
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {
