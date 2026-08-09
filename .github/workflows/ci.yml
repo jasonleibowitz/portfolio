@@ -5,13 +5,13 @@ on:
   push:
     branches: [main]
 
-# A newer push supersedes the in-flight run for the same ref -- PR or main.
+# A new push cancels the run in progress for the same ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# CI only reads the repo -- don't inherit whatever the repo default becomes.
-# `preview` widens this to comment on the pull request, scoped to that job.
+# CI only reads the repo, and does not use the repository default, which can
+# change. The `preview` job adds `pull-requests: write` for its comment.
 permissions:
   contents: read
 
@@ -30,10 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Version comes from the `packageManager` field, so CI matches local.
+      # pnpm reads its version from the `packageManager` field, so CI matches
+      # local.
       - uses: pnpm/action-setup@v4
 
-      # Exact pin from .nvmrc -- `engines.node` is an open range and would float.
+      # .nvmrc gives the exact version. `engines.node` is a range, and floats.
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -42,7 +43,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Separate steps so a failure names which gate broke. Cheapest first.
+      # Each gate is a separate step, so a failure names the gate. Cheapest
+      # first.
       - name: Format
         run: pnpm format:check
 
@@ -181,8 +183,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # `git log` is enough here, unlike in `preview`: a push checks out the
-      # pushed commit itself, so its subject is in the depth-1 clone.
+      # `git log` is sufficient here. A push checks out the commit itself, so
+      # the depth-1 clone contains its subject.
       - name: Resolve revision
         id: rev
         env:
