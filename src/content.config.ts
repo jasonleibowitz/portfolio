@@ -173,13 +173,7 @@ const projects = defineCollection({
        * did, which on a solo project it does not.
        */
       specs: z
-        .array(
-          z.object({
-            label: z.string(),
-            value: z.string(),
-            placeholder: z.boolean().default(false),
-          })
-        )
+        .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
       cta: z.object({ label: z.string(), href: z.string() }).optional(),
       /**

@@ -21,10 +21,9 @@ interface Props {
 
 type ProjectData = CollectionEntry<'projects'>['data'];
 
-/** One spec value, skipping any still marked as awaiting real copy. */
+/** One spec value by label, or nothing if this project does not carry that row. */
 function spec(data: ProjectData, label: string): string | undefined {
-  const match = data.specs.find((entry) => entry.label === label);
-  return match && !match.placeholder ? match.value : undefined;
+  return data.specs.find((entry) => entry.label === label)?.value;
 }
 
 /**

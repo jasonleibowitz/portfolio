@@ -142,10 +142,15 @@ Confirmed and load-bearing:
   requirement above.
 
 **Placeholder policy — a product rule, not a styling one.** Copy Jason has not
-written yet is marked (`placeholder: []` in frontmatter, `placeholder-copy`,
-`PhNote`) and rendered with a dotted underline so the gap is visible on the page
-rather than buried in a document. **Nothing in that set may be invented or
-filled in on his behalf.**
+written yet is marked (`placeholder: []` in frontmatter, `placeholder-copy`)
+and rendered with a dotted underline so the gap is visible on the page rather
+than buried in a document. **Nothing in that set may be invented or filled in
+on his behalf.**
+
+One deliberate exception: the two `Started` dates on the app projects are
+provisional and are **not** marked, because per-row spec marking was removed in
+favour of fewer components. They render as fact, and correcting them before
+launch is a thing Jason remembers rather than a thing the page shows.
 
 ## Brand Commitments
 

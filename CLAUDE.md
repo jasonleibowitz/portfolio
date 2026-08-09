@@ -239,10 +239,15 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches, case-study bodies, two `Started` dates and two homepage facts are placeholder,
-marked with a dotted underline by `Ph`. **Do not invent replacements** — Jason fills these
-in. The project page carries a note saying its copy is placeholder; `PhNote` was deleted,
-so that note is now written inline.
+App pitches and case-study bodies are placeholder, marked with a dotted underline by `Ph`.
+**Do not invent replacements** — Jason fills these in. The project page carries a note
+saying its copy is placeholder; `PhNote` was deleted, so that note is now written inline.
+
+**The two `Started` dates in project frontmatter are still provisional, and are the one
+placeholder the page does not mark.** `Fact` has no `ph` prop and `specs[]` has no
+`placeholder` field, so those rows render as fact. This is deliberate: the marker was
+removed rather than the values corrected, and Jason corrects them before the site goes
+live. Do not reinstate the prop to flag them, and do not guess the real dates.
 
 List entries no longer carry a stub note. `note` is optional, and an entry without one
 renders as name, tags and artwork — so the way to add a note is to write a real one, not

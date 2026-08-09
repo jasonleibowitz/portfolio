@@ -6,7 +6,6 @@ import Section from '@components/layout/Section.astro';
 import Panel from '@components/ui/Panel.astro';
 import Button from '@components/ui/Button.astro';
 import Chip from '@components/ui/Chip.astro';
-import Ph from '@components/ui/Ph.astro';
 import Timeline from '@components/Timeline.astro';
 import { EMAIL, RESUME_HREF } from '@lib/site';
 import { yearsShipping } from '@lib/career';
@@ -63,11 +62,11 @@ const STACK = [
 ];
 
 const STATS = [
-  { value: '15', label: 'Countries visited', ph: false },
-  { value: '50', label: 'Podcasts subscribed', ph: false },
-  { value: '2', label: 'Apps in TestFlight', ph: false },
+  { value: '15', label: 'Countries visited' },
+  { value: '50', label: 'Podcasts subscribed' },
+  { value: '2', label: 'Apps in TestFlight' },
   // Derived from the career start rather than typed, so it never goes stale.
-  { value: String(yearsShipping()), label: 'Years shipping', ph: false },
+  { value: String(yearsShipping()), label: 'Years shipping' },
 ];
 ---
 
@@ -154,13 +153,9 @@ const STATS = [
       {
         STATS.map((stat) => (
           <Panel class="p-6">
-            <Ph
-              as="b"
-              when={stat.ph}
-              class="text-gradient block font-display text-[2rem] leading-none font-bold tracking-[-0.04em]"
-            >
+            <b class="text-gradient block font-display text-[2rem] leading-none font-bold tracking-[-0.04em]">
               {stat.value}
-            </Ph>
+            </b>
             <Typography variant="caption" as="span" class="mt-2 block">
               {stat.label}
             </Typography>

@@ -1,5 +1,4 @@
 ---
-import Ph from './Ph.astro';
 import Typography from './Typography.astro';
 
 /**
@@ -14,13 +13,11 @@ import Typography from './Typography.astro';
  */
 interface Props {
   label: string;
-  /** Marks the value as copy still waiting on Jason. */
-  ph?: boolean;
   /** The case-study rail is narrower, so its label column is too. */
   narrow?: boolean;
 }
 
-const { label, ph = false, narrow = false } = Astro.props;
+const { label, narrow = false } = Astro.props;
 ---
 
 <div
@@ -34,12 +31,11 @@ const { label, ph = false, narrow = false } = Astro.props;
   <Typography variant="caption" as="dt">
     {label}
   </Typography>
-  <Ph
+  <Typography
     as="dd"
-    when={ph}
     variant="compact"
     class="m-0 [&_a]:font-medium [&_a]:text-violet [&_a]:no-underline"
   >
     <slot />
-  </Ph>
+  </Typography>
 </div>
