@@ -6,7 +6,7 @@ import Section from '@components/layout/Section.astro';
 import FactBox from '@components/ui/FactBox.astro';
 import Fact from '@components/ui/Fact.astro';
 import { getPublished } from '@lib/content';
-import { currentRole } from '@lib/career';
+import { currentRole, yearsShipping } from '@lib/career';
 
 const featured = (await getPublished('projects')).filter(
   (project) => project.data.is_featured
@@ -16,7 +16,7 @@ const featured = (await getPublished('projects')).filter(
 <BaseLayout
   pageTitle="Home"
   page="home"
-  description="Jason Leibowitz - full-stack engineer in New York. Eleven years of products people use every day, plus two mobile apps of my own."
+  description={`Jason Leibowitz - full-stack engineer in New York. ${yearsShipping()} years of products people use every day, plus two mobile apps of my own.`}
 >
   <Hero />
 
