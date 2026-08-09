@@ -138,45 +138,26 @@ jobs:
             --tag "$SHA" \
             --message "PR #$PR_NUMBER $SHA: $SUBJECT"
 
-      # One comment per pull request, rewritten in place. The alias is stable
-      # across pushes, so a comment per commit would repeat the same URL.
+      # One comment per pull request. `header` identifies it, and `recreate`
+      # deletes the previous one, so the comment stays below the commits that
+      # produced it. The action is pinned to a commit, because a tag can move.
+      #
+      # The message holds only the URL and the short SHA. The commit subject
+      # stays out of it: an author controls that text, and a comment body is
+      # not a safe place for it.
       - name: Comment preview URL
-        uses: actions/github-script@v9
-        env:
-          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
-          script: |
-            const marker = '<!-- cloudflare-preview -->';
-            // `context.sha` on a pull_request event is GitHub's ephemeral merge
-            // commit, which is not in the branch -- naming it defeats the point
-            // of saying what got built.
-            const sha = context.payload.pull_request.head.sha.slice(0, 7);
-            const body = [
-              marker,
-              `**Preview:** ${process.env.PREVIEW_URL}`,
-              '',
-              `Built from \`${sha}\`. Drafts are rendered, and the deploy is noindexed.`,
-            ].join('\n');
+          header: cloudflare-preview
+          recreate: true
+          message: |
+            ### Preview
 
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              ...context.repo,
-              issue_number: context.issue.number,
-            });
-            const existing = comments.find((comment) => comment.body?.startsWith(marker));
+            **${{ steps.preview.outputs.url }}**
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                ...context.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                ...context.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
+            | Commit | Drafts | Indexing |
+            | :-- | :-- | :-- |
+            | [`${{ steps.preview.outputs.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}) | Rendered | Disabled |
 
   # `main` at a stable URL. This is a real deployment, but leibowitz.me still
   # answers from GitHub Pages. No custom domain points here yet, so only DNS
