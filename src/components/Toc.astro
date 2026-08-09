@@ -1,8 +1,16 @@
 ---
 import type { MarkdownHeading } from 'astro';
-import Panel from './ui/Panel.astro';
 import Typography from './ui/Typography.astro';
 
+/**
+ * A post's sections: a panel at the top of the body on narrow screens, a
+ * sticky rail beside it from `toc` up, where the reading measure finally has
+ * room for one. `lib/toc.ts` marks the section being read.
+ *
+ * One element in both cases rather than two rendered conditionally: a second
+ * copy would duplicate every anchor, and a screen reader would offer the same
+ * five destinations twice.
+ */
 interface Props {
   headings: MarkdownHeading[];
 }
@@ -10,35 +18,74 @@ interface Props {
 /** Top-level sections only; a two-level TOC on a 12-minute post is a sitemap. */
 const { headings } = Astro.props;
 const sections = headings.filter((heading) => heading.depth === 2);
+
+/* The panel chrome is scoped to `max-toc` rather than reset at `toc`, so each
+   style applies in exactly one range and no two rules race to win.
+
+   As a panel it sits on the measure, not on the grid track: the track is the
+   full shell, and between 46rem and the rail's breakpoint that left the
+   contents visibly wider than the prose underneath them.
+
+   As a rail it spans both of the article's rows, which is what gives a sticky
+   element room to travel; pinned to a single row it has exactly its own height
+   and never moves. */
+const shell = [
+  'max-toc:mx-auto max-toc:w-full max-toc:max-w-measure',
+  'max-toc:rounded-card max-toc:border max-toc:border-line',
+  'max-toc:bg-panel max-toc:px-6 max-toc:py-4',
+  'toc:col-start-2 toc:row-start-1 toc:row-end-3 toc:sticky toc:top-[88px]',
+].join(' ');
+
+/**
+ * The marker: a gradient segment sitting on the rail's hairline, the same
+ * spectrum the reading-progress bar uses, so position in the post is told the
+ * same way in both places. Only the segment carries the gradient; the label
+ * stays ink, because white on the cyan end of this gradient measures under
+ * 4.5:1 at this size.
+ */
+const marker = [
+  'toc:relative toc:before:absolute toc:before:-left-4 toc:before:top-1',
+  'toc:before:bottom-1 toc:before:w-0.5 toc:before:rounded-full',
+  "toc:before:bg-linear-100 toc:before:from-violet toc:before:to-cyan toc:before:content-['']",
+  'toc:before:opacity-0 aria-[current=location]:toc:before:opacity-100',
+  'aria-[current=location]:text-ink aria-[current=location]:font-medium',
+  'motion-safe:transition-colors motion-safe:duration-200',
+  'motion-safe:toc:before:transition-opacity motion-safe:toc:before:duration-200',
+].join(' ');
 ---
 
 {
   sections.length > 1 && (
-    <Panel as="nav" class="my-8 px-6 py-4" aria-label="Contents">
-      <Typography variant="caption" as="span">
+    <nav aria-label="Contents" class={shell} data-toc>
+      <Typography variant="caption" as="h2">
         Contents
       </Typography>
+
       {/*
-        These are navigation, not links inside a sentence, so the inline
-        exception to the target-size rule doesn't apply to them: each row is a
-        full 44px rather than the 19px a bare list item comes out at.
+        Rows are 36px rather than the system's 44px floor: a bare list item
+        comes out at 19px, which is too small to hit, and a full 44px around a
+        24px line made a five-item list read as a menu. Still well clear of the
+        24px minimum.
       */}
       <Typography
         variant="compact"
         as="ol"
-        class="mt-2 list-decimal pl-[1.3em] text-muted"
+        class="mt-2 text-muted max-toc:list-decimal max-toc:pl-[1.3em] toc:mt-3 toc:border-l toc:border-line toc:pl-4"
       >
         {sections.map((heading) => (
           <li>
             <a
               href={`#${heading.slug}`}
-              class="flex min-h-11 items-center no-underline hover:text-violet"
+              class:list={[
+                'flex min-h-9 items-center no-underline hover:text-violet',
+                marker,
+              ]}
             >
               {heading.text}
             </a>
           </li>
         ))}
       </Typography>
-    </Panel>
+    </nav>
   )
 }

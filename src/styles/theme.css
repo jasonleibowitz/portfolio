@@ -123,6 +123,12 @@
   --breakpoint-rail: 52rem;
   --breakpoint-spec: 54rem;
   --breakpoint-bio: 56rem;
+  /* Where a post's contents move out of the body and become a rail beside it.
+     Much higher than `rail` (52rem) on purpose: that one narrows a list, which
+     costs nothing, while this one would narrow the 46rem reading measure. The
+     measure wins, so the rail waits until 46rem + a 64px gap + the rail itself
+     all clear the gutters. */
+  --breakpoint-toc: 68rem;
 
   --animate-drift: drift 34s ease-in-out infinite alternate;
   --animate-orbit: orbit 26s linear infinite;

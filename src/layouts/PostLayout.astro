@@ -20,87 +20,108 @@ const { title, pubDate, description, tags, image } = post.data;
 
 const minutes = readingMinutes(post.body);
 const words = wordCount(post.body);
+
+/** One centered column at a 46rem measure — 40rem read too narrow. */
+const measure = 'mx-auto w-full max-w-measure toc:col-start-1';
 ---
 
 <BaseLayout pageTitle={title} page="post" description={description}>
   <Section as="article" flush={false}>
-    {/* One centered column at a 46rem measure — 40rem read too narrow. */}
-    <header class="mx-auto max-w-measure">
-      <Typography variant="caption">Writing</Typography>
-      <Typography variant="heading1" class="mt-3 mb-4 leading-[1.04]">
-        {title}
-      </Typography>
+    {
+      /* Three grid children rather than two, the same shape a project page
+        uses for its spec rail: it is what lets the contents sit between the
+        title and the body once the columns collapse. As two children they
+        would have to sit either side of the whole article, which on a phone
+        put a table of contents above the headline it belongs to.
 
-      {/* Promoted from small print at the bottom to chips under the title. */}
-      <div class="mb-4 flex flex-wrap gap-2">
+        The header shares the body's column rather than the full shell, or the
+        title would center on the page while the prose beneath it sat left of
+        that, and the two would visibly disagree the moment the rail appears. */
+    }
+    <div
+      class="grid gap-8 toc:grid-cols-[minmax(0,1fr)_200px] toc:items-start toc:gap-x-16 [&>*]:min-w-0"
+    >
+      <header class:list={[measure, 'toc:row-start-1']}>
+        <Typography variant="caption">Writing</Typography>
+        <Typography variant="heading1" class="mt-3 mb-4 leading-[1.04]">
+          {title}
+        </Typography>
+
         {
-          tags.map((tag) => (
-            <Link
-              variant="data"
-              class="text-muted hover:text-violet rounded-full border border-line bg-panel px-3.5 before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
-              href={`/writing/tags/${tag}/`}
-            >
-              {tag}
-            </Link>
-          ))
+          /* Promoted from small print at the bottom to chips under the title. */
         }
-      </div>
+        <div class="mb-4 flex flex-wrap gap-2">
+          {
+            tags.map((tag) => (
+              <Link
+                variant="data"
+                class="text-muted hover:text-violet rounded-full border border-line bg-panel px-3.5 before:opacity-55 before:content-['#'] hover:border-violet hover:text-ink"
+                href={`/writing/tags/${tag}/`}
+              >
+                {tag}
+              </Link>
+            ))
+          }
+        </div>
 
-      <Typography
-        variant="caption"
-        as="div"
-        class="flex flex-wrap gap-4 border-b border-line pb-6"
-      >
-        <time datetime={isoDay(pubDate)}>{formatDay(pubDate)}</time>
-        <span>{minutes} min read</span>
-        <span>{words.toLocaleString('en-US')} words</span>
-      </Typography>
-    </header>
+        <Typography
+          variant="caption"
+          as="div"
+          class="flex flex-wrap gap-4 border-b border-line pb-6"
+        >
+          <time datetime={isoDay(pubDate)}>{formatDay(pubDate)}</time>
+          <span>{minutes} min read</span>
+          <span>{words.toLocaleString('en-US')} words</span>
+        </Typography>
+      </header>
 
-    <div class="mx-auto max-w-measure">
       <Toc headings={headings} />
 
-      {
-        image?.url && (
-          <figure class="my-12">
-            <img
-              src={image.url}
-              alt={image.alt}
-              class="aspect-video w-full rounded-card object-cover shadow-lift"
-              loading="eager"
-            />
-          </figure>
-        )
-      }
-
-      <Typography variant="longform" class="markdown"><slot /></Typography>
-
-      <Typography
-        variant="compact"
-        as="div"
-        class="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-muted"
-      >
-        <span>Filed under {tags.join(' · ')}</span>
+      <div class:list={[measure, 'toc:row-start-2']}>
         {
-          next && (
-            <span>
-              Next:{' '}
-              <a
-                href={`/writing/${next.id}/`}
-                class="inline-flex min-h-11 items-center text-ink no-underline hover:text-violet"
-              >
-                {next.data.title}
-              </a>
-            </span>
+          image?.url && (
+            <figure class="mb-12">
+              <img
+                src={image.url}
+                alt={image.alt}
+                class="aspect-video w-full rounded-card object-cover shadow-lift"
+                loading="eager"
+              />
+            </figure>
           )
         }
-      </Typography>
+
+        <Typography variant="longform" class="markdown"><slot /></Typography>
+
+        <Typography
+          variant="compact"
+          as="div"
+          class="mt-12 flex flex-wrap justify-between gap-4 border-t border-line pt-6 text-muted"
+        >
+          <span>Filed under {tags.join(' · ')}</span>
+          {
+            next && (
+              <span>
+                Next:{' '}
+                <a
+                  href={`/writing/${next.id}/`}
+                  class="inline-flex min-h-11 items-center text-ink no-underline hover:text-violet"
+                >
+                  {next.data.title}
+                </a>
+              </span>
+            )
+          }
+        </Typography>
+      </div>
     </div>
   </Section>
 </BaseLayout>
 
 <script>
   import { initFootnotes } from '@lib/footnotes';
+  import { initToc } from '@lib/toc';
 
   initFootnotes();
+  initToc();
 </script>
