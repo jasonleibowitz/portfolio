@@ -7,10 +7,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  // `site` feeds the canonical tag, the absolute og:image URL and the RSS item
-  // links. A preview build serves from a workers.dev host, so CI overrides this
-  // with that host: left at production those three would point at a domain
-  // still serving the old site, and an unfurl would render the wrong image.
+  // `site` sets the canonical tag, the og:image URL and the RSS links. CI
+  // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), icon()],
   markdown: {

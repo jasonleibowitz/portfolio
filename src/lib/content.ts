@@ -1,9 +1,9 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 /**
- * Drafts render while developing, and in a preview build that opts in. A
- * preview URL is where an unpublished post gets reviewed in the real design, so
- * gating on `PROD` alone left `pnpm dev` as the only way to see one.
+ * Drafts render in development, and in a preview build that sets SHOW_DRAFTS.
+ * A preview URL shows an unpublished post in the real design. `PROD` alone
+ * limited this to `pnpm dev`.
  */
 const showDrafts = import.meta.env.DEV || process.env.SHOW_DRAFTS === 'true';
 
