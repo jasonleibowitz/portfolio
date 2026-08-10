@@ -4,6 +4,7 @@ import Heading3 from '@components/markdown/Heading3.astro';
 import CaptionedImage from '@components/CaptionedImage.astro';
 import Spans from '@components/Spans.astro';
 import { imageUrl } from '@lib/sanity';
+import type { PortableBlock } from '@lib/portable-text';
 
 /**
  * Renders a Sanity Portable Text body using this site's own components.
@@ -17,14 +18,14 @@ import { imageUrl } from '@lib/sanity';
  * blocks render moves every post at once.
  */
 interface Props {
-  value: any[];
+  value: PortableBlock[];
 }
 
 const { value = [] } = Astro.props;
 
 /** The plain text of a block, used for heading ids and their TOC entries. */
-export function blockText(node: any) {
-  return (node.children ?? []).map((c: any) => c.text ?? '').join('');
+function blockText(node: PortableBlock) {
+  return (node.children ?? []).map((c) => c.text ?? '').join('');
 }
 
 /**
@@ -34,12 +35,21 @@ export function blockText(node: any) {
  * exist, which breaks both jump-to-section and the scroll spy that highlights
  * the section currently in view.
  */
-export function headingId(node: any) {
+function headingId(node: PortableBlock) {
   return blockText(node)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 }
+
+/** Consecutive items of one kind, gathered so they render as a single list. */
+type ListGroup = { list: string; items: PortableBlock[] };
+
+/** What the markup below walks: a block, or a run of them wrapped as a list. */
+type RenderNode = PortableBlock | ListGroup;
+
+const isListGroup = (node: RenderNode | undefined): node is ListGroup =>
+  !!node && 'list' in node;
 
 /**
  * Groups runs of consecutive list items into a single list.
@@ -48,12 +58,13 @@ export function headingId(node: any) {
  * rendering blocks one at a time puts every bullet in its own `<ul>` and the
  * gaps between them read as separate lists.
  */
-function groupBlocks(nodes: any[]) {
-  const out: any[] = [];
+function groupBlocks(nodes: PortableBlock[]) {
+  const out: RenderNode[] = [];
   for (const node of nodes) {
     const listType = node._type === 'block' ? node.listItem : undefined;
     const previous = out[out.length - 1];
-    if (listType && previous?.list === listType) previous.items.push(node);
+    if (listType && isListGroup(previous) && previous.list === listType)
+      previous.items.push(node);
     else if (listType) out.push({ list: listType, items: [node] });
     else out.push(node);
   }
@@ -64,42 +75,43 @@ const blocks = groupBlocks(value);
 ---
 
 {
-  blocks.map((node: any) => {
-    if (node.list === 'bullet')
+  blocks.map((node) => {
+    // The two list kinds are the only wrapped nodes, so every branch below
+    // this one is a plain block.
+    if (isListGroup(node)) {
+      if (node.list !== 'bullet' && node.list !== 'number') return null;
+      const Tag = node.list === 'bullet' ? 'ul' : 'ol';
       return (
-        <ul>
-          {node.items.map((item: any) => (
+        <Tag>
+          {node.items.map((item) => (
             <li>
               <Spans node={item} />
             </li>
           ))}
-        </ul>
+        </Tag>
       );
+    }
 
-    if (node.list === 'number')
-      return (
-        <ol>
-          {node.items.map((item: any) => (
-            <li>
-              <Spans node={item} />
-            </li>
-          ))}
-        </ol>
-      );
-
-    if (node._type === 'image')
+    // An image block with no asset yet renders nothing rather than an <img>
+    // with an empty src, which every browser reports as a broken image.
+    if (node._type === 'image') {
+      const src = imageUrl(node, { width: 1400 });
+      if (!src) return null;
       return (
         <CaptionedImage
-          src={imageUrl(node, { width: 1400 })}
+          src={src}
           alt={node.alt}
           caption={node.caption}
           attribution={
-            node.attribution?.href
+            // An attribution needs both halves: a credit with no text renders
+            // as a bare link, and text with no link is not an attribution.
+            node.attribution?.href && node.attribution.text
               ? { src: node.attribution.href, text: node.attribution.text }
               : undefined
           }
         />
       );
+    }
 
     if (node._type === 'code')
       return (

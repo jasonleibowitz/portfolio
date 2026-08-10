@@ -69,11 +69,30 @@ export type ArtworkSource = {
 };
 
 /**
+ * The fields this file reads off an iTunes result, all optional because which
+ * ones come back depends on the entity searched: an album has a
+ * `collectionName`, a film has a `trackName`, and neither promises artwork.
+ */
+type ItunesResult = {
+  collectionName?: string;
+  trackName?: string;
+  artistName?: string;
+  collectionViewUrl?: string;
+  trackViewUrl?: string;
+  artworkUrl600?: string;
+  artworkUrl100?: string;
+  releaseDate?: string;
+};
+
+/** The window a JSONP callback is hung off, which is not in the DOM types. */
+type JsonpWindow = Record<string, unknown>;
+
+/**
  * The iTunes Search API sends no CORS header, so requests go through JSONP.
  * Its artwork CDN does send one, which is what lets the browser upload the
  * image without a proxy.
  */
-function itunesSearch(term: string, entity: string): Promise<any[]> {
+function itunesSearch(term: string, entity: string): Promise<ItunesResult[]> {
   return new Promise((resolve, reject) => {
     const callback = `itunes_cb_${Math.floor(Math.random() * 1e9)}`;
     const script = document.createElement('script');
@@ -84,11 +103,13 @@ function itunesSearch(term: string, entity: string): Promise<any[]> {
 
     function cleanup() {
       clearTimeout(timer);
-      delete (window as any)[callback];
+      delete (window as unknown as JsonpWindow)[callback];
       script.remove();
     }
 
-    (window as any)[callback] = (data: { results?: any[] }) => {
+    (window as unknown as JsonpWindow)[callback] = (data: {
+      results?: ItunesResult[];
+    }) => {
       cleanup();
       resolve(data.results ?? []);
     };
@@ -103,19 +124,45 @@ function itunesSearch(term: string, entity: string): Promise<any[]> {
   });
 }
 
+/**
+ * What to show an editor when a source throws.
+ *
+ * `catch` binds `unknown`, because anything can be thrown, and every source
+ * above throws an `Error` with a sentence written for this purpose. The
+ * fallback is for the one that gets thrown by a library instead.
+ */
+export function sourceErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Drops results the provider named nothing.
+ *
+ * A picker row *is* its name, so one without renders as a blank line, and
+ * choosing it writes an item with no name. Every field a provider returns is
+ * optional; this is what makes `ArtworkResult.name` the `string` it claims.
+ */
+function named<T extends { name?: string }>(
+  results: T[]
+): (T & { name: string })[] {
+  return results.filter((r): r is T & { name: string } => !!r.name);
+}
+
 const podcasts: ArtworkSource = {
   id: 'podcasts',
   label: 'Apple Podcasts',
   placeholder: 'Search for a podcast…',
   providesArtwork: true,
   search: async (term) =>
-    (await itunesSearch(term, 'podcast')).map((r) => ({
-      name: r.collectionName ?? r.trackName,
-      subtitle: r.artistName,
-      href: r.collectionViewUrl ?? r.trackViewUrl,
-      imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
-      hint: r.artistName,
-    })),
+    named(
+      (await itunesSearch(term, 'podcast')).map((r) => ({
+        name: r.collectionName ?? r.trackName,
+        subtitle: r.artistName,
+        href: r.collectionViewUrl ?? r.trackViewUrl,
+        imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
+        hint: r.artistName,
+      }))
+    ),
 };
 
 const albums: ArtworkSource = {
@@ -124,13 +171,15 @@ const albums: ArtworkSource = {
   placeholder: 'Search for an album…',
   providesArtwork: true,
   search: async (term) =>
-    (await itunesSearch(term, 'album')).map((r) => ({
-      name: r.collectionName,
-      subtitle: r.artistName,
-      href: r.collectionViewUrl,
-      imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
-      hint: r.artistName,
-    })),
+    named(
+      (await itunesSearch(term, 'album')).map((r) => ({
+        name: r.collectionName,
+        subtitle: r.artistName,
+        href: r.collectionViewUrl,
+        imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
+        hint: r.artistName,
+      }))
+    ),
 };
 
 /**
@@ -147,22 +196,39 @@ const films: ArtworkSource = {
   placeholder: 'Search for a film…',
   providesArtwork: true,
   search: async (term) =>
-    (await itunesSearch(term, 'movie')).map((r) => ({
-      name: r.trackName,
-      subtitle: r.releaseDate?.slice(0, 4),
-      href: r.trackViewUrl,
-      imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
-      hint: r.releaseDate?.slice(0, 4),
-    })),
+    named(
+      (await itunesSearch(term, 'movie')).map((r) => ({
+        name: r.trackName,
+        subtitle: r.releaseDate?.slice(0, 4),
+        href: r.trackViewUrl,
+        imageUrl: r.artworkUrl600 ?? r.artworkUrl100,
+        hint: r.releaseDate?.slice(0, 4),
+      }))
+    ),
+};
+
+/**
+ * The fields asked for in the Google `X-Goog-FieldMask` below, and no others.
+ * Every one is optional: the mask says what to return if present, not what the
+ * place has, and a venue with no website or no photographs is ordinary.
+ */
+type GooglePlace = {
+  displayName?: { text?: string };
+  websiteUri?: string;
+  googleMapsUri?: string;
+  shortFormattedAddress?: string;
+  primaryTypeDisplayName?: { text?: string };
+  addressComponents?: { types?: string[]; longText?: string }[];
+  photos?: { name: string }[];
 };
 
 /**
  * Places from Google, which is the same set of venues but with photographs.
  *
- * Needs `SANITY_STUDIO_GOOGLE_MAPS_KEY`. Anything prefixed `SANITY_STUDIO_` is
- * compiled into the studio bundle, so that key is readable by anyone who opens
+ * Needs `PUBLIC_SANITY_GOOGLE_MAPS_KEY`. Anything prefixed `PUBLIC_` is
+ * compiled into the browser bundle, so that key is readable by anyone who opens
  * the page: restrict it by HTTP referrer in Google Cloud, to localhost and the
- * deployed studio host, or it can be spent by strangers.
+ * deployed site, or it can be spent by strangers.
  *
  * Two requests per photo, not one. The media endpoint answers with a redirect
  * to googleusercontent, and `skipHttpRedirect` turns that into a JSON body
@@ -177,10 +243,10 @@ const googlePlaces: ArtworkSource = {
   placeholder: 'Search a shop, bar or restaurant…',
   providesArtwork: true,
   search: async (term) => {
-    const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
+    const key = import.meta.env.PUBLIC_SANITY_GOOGLE_MAPS_KEY;
     if (!key) {
       throw new Error(
-        'Set SANITY_STUDIO_GOOGLE_MAPS_KEY in .env, then restart the studio'
+        'Set PUBLIC_SANITY_GOOGLE_MAPS_KEY in .env, then restart the dev server'
       );
     }
 
@@ -207,51 +273,60 @@ const googlePlaces: ArtworkSource = {
 
     if (!response.ok) {
       const detail = await response.json().catch(() => null);
-      throw new Error(detail?.error?.message ?? `Place search failed (${response.status})`);
+      throw new Error(
+        detail?.error?.message ?? `Place search failed (${response.status})`
+      );
     }
 
-    const { places: found = [] } = await response.json();
+    const { places: found = [] }: { places?: GooglePlace[] } =
+      await response.json();
 
-    return found.map((place: any) => {
-      /*
-       * "Williamsburg" identifies a coffee shop to a reader; "Manhattan" does
-       * not. Ordered rather than matched against a set, because a place often
-       * carries several of these and the first match wins: a set would let the
-       * borough beat the neighbourhood whenever Google listed it first.
-       */
-      const component = (type: string) =>
-        (place.addressComponents ?? []).find((c: any) =>
-          c.types?.includes(type)
-        )?.longText;
-
-      // Narrowest first, which is the usual preference, but all of them are
-      // offered because Google carries no neighbourhood for many Manhattan
-      // addresses and the right answer is then a borough or a typed word.
-      const areas = [
-        component('neighborhood'),
-        component('sublocality_level_1'),
-        component('locality'),
-        component('administrative_area_level_2'),
-      ].filter((value, i, all) => value && all.indexOf(value) === i) as string[];
-
-      return {
-        name: place.displayName?.text,
-        subtitle: areas[0],
-        subtitleOptions: areas,
-        address: place.shortFormattedAddress,
-        href: place.websiteUri ?? place.googleMapsUri,
-        photoRefs: (place.photos ?? []).map((photo: any) => photo.name),
+    return named(
+      found.map((place) => {
         /*
-         * The street address, not the area, because a search for a chain
-         * returns several branches in one neighbourhood and the area alone
-         * cannot tell them apart. The area is still what the site shows: it
-         * reads better as a credit than a street number does.
+         * "Williamsburg" identifies a coffee shop to a reader; "Manhattan" does
+         * not. Ordered rather than matched against a set, because a place often
+         * carries several of these and the first match wins: a set would let the
+         * borough beat the neighbourhood whenever Google listed it first.
          */
-        hint: [place.primaryTypeDisplayName?.text, place.shortFormattedAddress]
-          .filter(Boolean)
-          .join(' · '),
-      };
-    });
+        const component = (type: string) =>
+          (place.addressComponents ?? []).find((c) => c.types?.includes(type))
+            ?.longText;
+
+        // Narrowest first, which is the usual preference, but all of them are
+        // offered because Google carries no neighbourhood for many Manhattan
+        // addresses and the right answer is then a borough or a typed word.
+        const areas = [
+          component('neighborhood'),
+          component('sublocality_level_1'),
+          component('locality'),
+          component('administrative_area_level_2'),
+        ].filter(
+          (value, i, all) => value && all.indexOf(value) === i
+        ) as string[];
+
+        return {
+          name: place.displayName?.text,
+          subtitle: areas[0],
+          subtitleOptions: areas,
+          address: place.shortFormattedAddress,
+          href: place.websiteUri ?? place.googleMapsUri,
+          photoRefs: (place.photos ?? []).map((photo) => photo.name),
+          /*
+           * The street address, not the area, because a search for a chain
+           * returns several branches in one neighbourhood and the area alone
+           * cannot tell them apart. The area is still what the site shows: it
+           * reads better as a credit than a street number does.
+           */
+          hint: [
+            place.primaryTypeDisplayName?.text,
+            place.shortFormattedAddress,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+        };
+      })
+    );
   },
 
   /**
@@ -305,7 +380,7 @@ const googlePlaces: ArtworkSource = {
   },
 
   listImages: async (result) => {
-    const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
+    const key = import.meta.env.PUBLIC_SANITY_GOOGLE_MAPS_KEY;
 
     /*
      * The venue's own logo first, then its photographs.
@@ -351,6 +426,19 @@ const googlePlaces: ArtworkSource = {
 };
 
 /**
+ * A Nominatim result. `address` and `extratags` arrive because the search asks
+ * for them; which keys they carry varies by country and by how the place was
+ * mapped, so every one is read defensively.
+ */
+type NominatimPlace = {
+  name?: string;
+  display_name?: string;
+  type?: string;
+  address?: Record<string, string | undefined>;
+  extratags?: Record<string, string | undefined>;
+};
+
+/**
  * The same venues without a key, an account or a card.
  *
  * Kept beside the Google source as the fallback: it returns no photograph, but
@@ -380,27 +468,34 @@ const places: ArtworkSource = {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?${params}`
     );
-    if (!response.ok) throw new Error(`Place search failed (${response.status})`);
+    if (!response.ok)
+      throw new Error(`Place search failed (${response.status})`);
 
-    return (await response.json()).map((place: any) => {
-      const address = place.address ?? {};
-      const extra = place.extratags ?? {};
-      // Neighborhood first: "Williamsburg" identifies a coffee shop to a
-      // reader in a way "Kings County" does not.
-      const area =
-        address.neighbourhood ??
-        address.suburb ??
-        address.town ??
-        address.city ??
-        address.state;
+    const found: NominatimPlace[] = await response.json();
 
-      return {
-        name: place.name || place.display_name?.split(',')[0],
-        subtitle: area,
-        href: extra.website ?? extra['contact:website'],
-        hint: [place.type?.replace(/_/g, ' '), area].filter(Boolean).join(' · '),
-      };
-    });
+    return named(
+      found.map((place) => {
+        const address = place.address ?? {};
+        const extra = place.extratags ?? {};
+        // Neighborhood first: "Williamsburg" identifies a coffee shop to a
+        // reader in a way "Kings County" does not.
+        const area =
+          address.neighbourhood ??
+          address.suburb ??
+          address.town ??
+          address.city ??
+          address.state;
+
+        return {
+          name: place.name || place.display_name?.split(',')[0],
+          subtitle: area,
+          href: extra.website ?? extra['contact:website'],
+          hint: [place.type?.replace(/_/g, ' '), area]
+            .filter(Boolean)
+            .join(' · '),
+        };
+      })
+    );
   },
 };
 

@@ -64,8 +64,13 @@ jobs:
           CONTENT_SOURCE: sanity
           SANITY_PERSPECTIVE: drafts
           SHOW_DRAFTS: 'true'
-          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
-          SANITY_DATASET: ${{ secrets.SANITY_DATASET || 'production' }}
+          # `PUBLIC_` is Astro's prefix for a value the browser may see, and
+          # the studio at /admin is browser code. Both values are variables
+          # rather than secrets for the same reason CF_WORKERS_SUBDOMAIN is:
+          # they are compiled into the build and shipped. The read token is a
+          # real secret, keeps its bare name, and stays on the server.
+          PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
           SANITY_READ_TOKEN: ${{ secrets.SANITY_READ_TOKEN }}
         run: pnpm build
 

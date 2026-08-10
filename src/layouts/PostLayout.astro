@@ -8,7 +8,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import Toc from '@components/Toc.astro';
-import { readingMinutes, wordCount } from '@lib/reading';
+import { postProse, readingMinutes, wordCount } from '@lib/reading';
 import Link from '@components/ui/Link.astro';
 
 interface Props {
@@ -20,8 +20,9 @@ interface Props {
 const { post, headings, next } = Astro.props;
 const { title, pubDate, description, tags, image } = post.data;
 
-const minutes = readingMinutes(post.body);
-const words = wordCount(post.body);
+const prose = postProse(post);
+const minutes = readingMinutes(prose);
+const words = wordCount(prose);
 
 /**
  * A 46rem measure — 40rem read too narrow.

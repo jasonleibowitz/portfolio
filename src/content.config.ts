@@ -1,5 +1,5 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, type LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 import { imageUrl, queries, sanityClient, usingSanity } from './lib/sanity';
@@ -14,7 +14,7 @@ import { imageUrl, queries, sanityClient, usingSanity } from './lib/sanity';
  */
 const sanityLoader = (query: string) => ({
   name: 'sanity',
-  load: async ({ store, parseData, logger, generateDigest }: any) => {
+  load: async ({ store, parseData, logger, generateDigest }: LoaderContext) => {
     const entries = await sanityClient().fetch(query);
 
     /*
@@ -130,7 +130,10 @@ const blog = defineCollection({
 });
 
 const blogCollection = usingSanity
-  ? defineCollection({ loader: sanityLoader(queries.posts), schema: sanityBlogSchema })
+  ? defineCollection({
+      loader: sanityLoader(queries.posts),
+      schema: sanityBlogSchema,
+    })
   : blog;
 
 const lists = defineCollection({
@@ -242,7 +245,6 @@ const lists = defineCollection({
   },
 });
 
-
 /**
  * A list from Sanity.
  *
@@ -254,41 +256,77 @@ const lists = defineCollection({
  */
 const sanityListItem = z.object({
   name: z.string(),
-  href: z.string().nullish().transform((v) => v ?? undefined),
+  href: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
   image: z
     .object({ asset: z.object({ _ref: z.string() }).optional() })
     .nullish()
     .transform((v) => imageUrl(v, { width: 168 })),
-  subtitle: z.string().nullish().transform((v) => v ?? undefined),
-  note: z.string().nullish().transform((v) => v ?? undefined),
-  tags: z.array(z.string()).nullish().transform((v) => v ?? []),
+  subtitle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  note: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  tags: z
+    .array(z.string())
+    .nullish()
+    .transform((v) => v ?? []),
   placeholder: z.array(z.string()).default([]),
 });
 
 const sanityListSchema = z.object({
   title: z.string(),
-  description: z.string().nullish().transform((v) => v ?? undefined),
+  description: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
   updated: z.coerce.date(),
-  ranked: z.boolean().nullish().transform((v) => v ?? false),
-  thumb: z.enum(['square', 'poster']).nullish().transform((v) => v ?? 'square'),
-  items: z.array(sanityListItem).nullish().transform((v) => v ?? []),
+  ranked: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+  thumb: z
+    .enum(['square', 'poster'])
+    .nullish()
+    .transform((v) => v ?? 'square'),
+  items: z
+    .array(sanityListItem)
+    .nullish()
+    .transform((v) => v ?? []),
   groups: z
     .array(
       z.object({
         name: z.string(),
-        description: z.string().nullish().transform((v) => v ?? undefined),
+        description: z
+          .string()
+          .nullish()
+          .transform((v) => v ?? undefined),
         placeholder: z.array(z.string()).default([]),
-        items: z.array(sanityListItem).nullish().transform((v) => v ?? []),
+        items: z
+          .array(sanityListItem)
+          .nullish()
+          .transform((v) => v ?? []),
       })
     )
     .nullish()
     .transform((v) => v ?? []),
-  draft: z.boolean().nullish().transform((v) => v ?? false),
+  draft: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
   placeholder: z.array(z.string()).default([]),
 });
 
 const listsCollection = usingSanity
-  ? defineCollection({ loader: sanityLoader(queries.lists), schema: sanityListSchema })
+  ? defineCollection({
+      loader: sanityLoader(queries.lists),
+      schema: sanityListSchema,
+    })
   : lists;
 
 const projects = defineCollection({
@@ -351,4 +389,8 @@ const projects = defineCollection({
     }),
 });
 
-export const collections = { blog: blogCollection, lists: listsCollection, projects };
+export const collections = {
+  blog: blogCollection,
+  lists: listsCollection,
+  projects,
+};

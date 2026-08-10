@@ -11,9 +11,18 @@ import {
   TextInput,
 } from '@sanity/ui';
 import { useCallback, useState } from 'react';
-import { insert, useClient, useFormValue, type ArrayOfObjectsInputProps } from 'sanity';
+import {
+  insert,
+  useClient,
+  useFormValue,
+  type ArrayOfObjectsInputProps,
+} from 'sanity';
 
-import { SOURCES, type ArtworkResult } from './artwork-sources';
+import {
+  SOURCES,
+  sourceErrorMessage,
+  type ArtworkResult,
+} from './artwork-sources';
 import { uploadFromUrl } from './upload';
 
 /**
@@ -49,9 +58,11 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   const [adding, setAdding] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Set once a place is picked and it has several pictures to choose between.
-  const [choosing, setChoosing] = useState<
-    { result: ArtworkResult; images: string[]; credits: string[] } | null
-  >(null);
+  const [choosing, setChoosing] = useState<{
+    result: ArtworkResult;
+    images: string[];
+    credits: string[];
+  } | null>(null);
   const [manualUrl, setManualUrl] = useState('');
   const [credit, setCredit] = useState('');
 
@@ -62,8 +73,8 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
     setResults([]);
     try {
       setResults(await source.search(query));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(sourceErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -115,8 +126,8 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
         setManualUrl('');
         setCredit('');
         setQuery('');
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(sourceErrorMessage(err));
       } finally {
         setAdding(null);
       }
@@ -145,13 +156,14 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
       try {
         const [images, credits] = await Promise.all([
           source.listImages?.(result) ?? Promise.resolve([]),
-          source.listCredits?.(result) ?? Promise.resolve(result.subtitleOptions ?? []),
+          source.listCredits?.(result) ??
+            Promise.resolve(result.subtitleOptions ?? []),
         ]);
         setCredit(credits[0] ?? result.subtitle ?? '');
         setChoosing({ result, images, credits });
         setResults([]);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(sourceErrorMessage(err));
       } finally {
         setAdding(null);
       }
@@ -235,32 +247,38 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
               </Stack>
 
               {choosing.images.length > 0 && (
-              <Grid columns={4} gap={2}>
-                {choosing.images.map((url, i) => (
-                  <Card
-                    key={i}
-                    padding={0}
-                    radius={2}
-                    overflow="hidden"
-                    border
-                    as="button"
-                    onClick={() => commit(choosing.result, url, credit, choosing.credits)}
-                    disabled={adding !== null}
-                    style={{ cursor: 'pointer', aspectRatio: '1', padding: 0 }}
-                  >
-                    <img
-                      src={url}
-                      alt=""
+                <Grid columns={4} gap={2}>
+                  {choosing.images.map((url, i) => (
+                    <Card
+                      key={i}
+                      padding={0}
+                      radius={2}
+                      overflow="hidden"
+                      border
+                      as="button"
+                      onClick={() =>
+                        commit(choosing.result, url, credit, choosing.credits)
+                      }
+                      disabled={adding !== null}
                       style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
+                        cursor: 'pointer',
+                        aspectRatio: '1',
+                        padding: 0,
                       }}
-                    />
-                  </Card>
-                ))}
-              </Grid>
+                    >
+                      <img
+                        src={url}
+                        alt=""
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                    </Card>
+                  ))}
+                </Grid>
               )}
               <Flex gap={2}>
                 <Box flex={1}>
@@ -271,7 +289,12 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && manualUrl.trim()) {
                         e.preventDefault();
-                        commit(choosing.result, manualUrl.trim(), credit, choosing.credits);
+                        commit(
+                          choosing.result,
+                          manualUrl.trim(),
+                          credit,
+                          choosing.credits
+                        );
                       }
                     }}
                   />
@@ -280,16 +303,27 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   text="Use URL"
                   mode="default"
                   disabled={adding !== null || !manualUrl.trim()}
-                  onClick={() => commit(choosing.result, manualUrl.trim(), credit, choosing.credits)}
+                  onClick={() =>
+                    commit(
+                      choosing.result,
+                      manualUrl.trim(),
+                      credit,
+                      choosing.credits
+                    )
+                  }
                 />
               </Flex>
 
               <Flex gap={2}>
                 <Button
-                  text={choosing.images.length ? "Add without a picture" : "Add"}
+                  text={
+                    choosing.images.length ? 'Add without a picture' : 'Add'
+                  }
                   mode="ghost"
                   disabled={adding !== null}
-                  onClick={() => commit(choosing.result, undefined, credit, choosing.credits)}
+                  onClick={() =>
+                    commit(choosing.result, undefined, credit, choosing.credits)
+                  }
                 />
                 <Button
                   text="Cancel"
@@ -312,7 +346,11 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   as="button"
                   onClick={() => pick(result)}
                   disabled={adding !== null}
-                  style={{ cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                  style={{
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
                 >
                   <Flex align="center" gap={3}>
                     {result.imageUrl && (

@@ -23,8 +23,8 @@ let client: ReturnType<typeof createClient> | undefined;
  */
 export function sanityClient() {
   client ??= createClient({
-    projectId: process.env.SANITY_PROJECT_ID ?? '',
-    dataset: process.env.SANITY_DATASET ?? 'production',
+    projectId: process.env.PUBLIC_SANITY_PROJECT_ID ?? '',
+    dataset: process.env.PUBLIC_SANITY_DATASET ?? 'production',
     apiVersion: '2025-08-15',
     useCdn: false,
     token: process.env.SANITY_READ_TOKEN,
@@ -52,7 +52,9 @@ export const usingSanity = process.env.CONTENT_SOURCE === 'sanity';
  * 1200px original, which is the job `astro:assets` did before.
  */
 export function imageUrl(
-  source: { asset?: { _ref?: string } } | undefined,
+  // `null` as well as `undefined`: GROQ answers with null for a field a
+  // document does not have, and the schemas pass that through untouched.
+  source: { asset?: { _ref?: string } } | null | undefined,
   { width, height }: { width?: number; height?: number } = {}
 ) {
   const ref = source?.asset?._ref;
@@ -61,8 +63,8 @@ export function imageUrl(
   const [, id, dimensions, format] = ref.split('-');
   if (!id || !format) return undefined;
 
-  const projectId = process.env.SANITY_PROJECT_ID ?? '';
-  const dataset = process.env.SANITY_DATASET ?? 'production';
+  const projectId = process.env.PUBLIC_SANITY_PROJECT_ID ?? '';
+  const dataset = process.env.PUBLIC_SANITY_DATASET ?? 'production';
   const params = new URLSearchParams({ auto: 'format', fit: 'max' });
   if (width) params.set('w', String(width));
   if (height) params.set('h', String(height));

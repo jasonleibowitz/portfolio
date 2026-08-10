@@ -1,4 +1,10 @@
 ---
+import type {
+  PortableBlock,
+  PortableMarkDef,
+  PortableSpan,
+} from '@lib/portable-text';
+
 /**
  * The inline content of one Portable Text block, with its marks applied.
  *
@@ -8,32 +14,34 @@
  * this is how they share it.
  */
 interface Props {
-  node: any;
+  node: PortableBlock;
 }
 
 const { node } = Astro.props;
 
 /** A span's marks are either decorators (`strong`) or keys into `markDefs`. */
-function marksFor(span: any, markDefs: any[] = []) {
-  const defs = (span.marks ?? []).map(
-    (mark: string) => markDefs.find((d) => d._key === mark) ?? mark
+function marksFor(span: PortableSpan, markDefs: PortableMarkDef[] = []) {
+  const defs: (PortableMarkDef | string)[] = (span.marks ?? []).map(
+    (mark) => markDefs.find((d) => d._key === mark) ?? mark
   );
   return {
     strong: defs.includes('strong'),
     em: defs.includes('em'),
     code: defs.includes('code'),
-    link: defs.find((d: any) => d && d._type === 'link'),
+    link: defs.find(
+      (d): d is PortableMarkDef => typeof d !== 'string' && d._type === 'link'
+    ),
   };
 }
 
-const spans = (node.children ?? []).map((span: any) => ({
+const spans = (node.children ?? []).map((span) => ({
   text: span.text,
   ...marksFor(span, node.markDefs),
 }));
 ---
 
 {
-  spans.map((span: any) => {
+  spans.map((span) => {
     const inner = span.code ? <code>{span.text}</code> : span.text;
     const emphasised = span.em ? <em>{inner}</em> : inner;
     const bold = span.strong ? <strong>{emphasised}</strong> : emphasised;

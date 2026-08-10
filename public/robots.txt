@@ -1,0 +1,6 @@
+# The studio is a route on this site, not a separate host. It is a login wall
+# with nothing to read, so it is worth no crawl budget and belongs in no index.
+# Previews and staging are covered instead by the header scripts/noindex.mjs
+# writes, which applies to the whole site and is not shipped to production.
+User-agent: *
+Disallow: /admin

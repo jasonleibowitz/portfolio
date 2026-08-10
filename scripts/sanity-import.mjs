@@ -47,7 +47,8 @@ const key = () => `k${(keyCounter++).toString(36)}`;
 function toSpans(text) {
   const spans = [];
   const markDefs = [];
-  const pattern = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|(?<!\w)_([^_]+)_(?!\w)|`([^`]+)`/g;
+  const pattern =
+    /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|(?<!\w)_([^_]+)_(?!\w)|`([^`]+)`/g;
   let last = 0;
   let m;
 
@@ -121,7 +122,8 @@ function toPortableText(body) {
     if (fence) {
       const code = [];
       i += 1;
-      while (i < lines.length && !lines[i].startsWith('```')) code.push(lines[i++]);
+      while (i < lines.length && !lines[i].startsWith('```'))
+        code.push(lines[i++]);
       out.push({
         _type: 'code',
         _key: key(),
@@ -156,7 +158,11 @@ function toPortableText(body) {
 
     const numbered = line.match(/^\s*\d+\.\s+(.*)$/);
     if (numbered) {
-      out.push({ ...block('normal', numbered[1]), listItem: 'number', level: 1 });
+      out.push({
+        ...block('normal', numbered[1]),
+        listItem: 'number',
+        level: 1,
+      });
       continue;
     }
 
@@ -189,7 +195,9 @@ const slug = (current) => ({ _type: 'slug', current });
 
 /** A date field wants `YYYY-MM-DD`; yaml hands back a Date at UTC midnight. */
 const day = (value) =>
-  value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '');
+  value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : String(value ?? '');
 
 /** Every tag seen across the content, so the vocabulary is created once. */
 const tags = new Set();
@@ -257,7 +265,9 @@ const listItem = (item, dir) => ({
   subtitle: item.subtitle,
   note: item.note,
   tags: tagRefs(item.tags),
-  ...(item.image ? { image: { _sanityAsset: relativeAsset(dir, item.image) } } : {}),
+  ...(item.image
+    ? { image: { _sanityAsset: relativeAsset(dir, item.image) } }
+    : {}),
 });
 
 async function main() {
@@ -323,7 +333,11 @@ async function main() {
       draft: project.data.draft ?? false,
       specs: toSpecs(project.data.specs),
       ...(project.data.icon
-        ? { icon: { _sanityAsset: relativeAsset(project.dir, project.data.icon) } }
+        ? {
+            icon: {
+              _sanityAsset: relativeAsset(project.dir, project.data.icon),
+            },
+          }
         : {}),
       ...splitSections(project.body),
     });

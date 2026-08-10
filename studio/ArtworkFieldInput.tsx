@@ -12,7 +12,11 @@ import {
 import { useCallback, useState } from 'react';
 import { set, useClient, useFormValue, type ObjectInputProps } from 'sanity';
 
-import { SOURCES, type ArtworkResult } from './artwork-sources';
+import {
+  SOURCES,
+  sourceErrorMessage,
+  type ArtworkResult,
+} from './artwork-sources';
 import { uploadFromUrl } from './upload';
 
 /**
@@ -53,8 +57,8 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
       const found = await source.search(name);
       setResults(found);
       if (!found.length) setError(`Nothing found for “${name}”`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(sourceErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -70,8 +74,8 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
         setResults([]);
         setImages([]);
         setManualUrl('');
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(sourceErrorMessage(err));
       } finally {
         setBusy(false);
       }
@@ -96,8 +100,8 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
         if (!found.length) throw new Error('That result has no picture');
         setImages(found);
         setResults([]);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(sourceErrorMessage(err));
       } finally {
         setBusy(false);
       }
@@ -143,7 +147,11 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
                   as="button"
                   onClick={() => choose(result)}
                   disabled={busy}
-                  style={{ cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                  style={{
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
                 >
                   <Flex align="center" gap={3}>
                     {result.imageUrl && (

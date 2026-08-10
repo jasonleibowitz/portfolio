@@ -31,14 +31,13 @@ document and keeps the draft. Recoverable, but a different operation.
 - **Fetch-artwork input.** A search row on every list: type a name, pick a
   result, and the item lands with name, credit, link and artwork, the image
   uploaded to Sanity as a real asset. Verified end to end with Hard Fork.
+- **Content edits appear without a restart.** `integrations/sanity-live.mjs`
+  listens for mutations and calls `refreshContent`, so the content layer no
+  longer holds the result of one loader run for the life of the server. Astro's
+  live content collections would solve it the other way, per request, and need
+  an adapter this site has no other reason to carry.
 
 ## Still to build
-
-- **Content edits do not appear until the dev server restarts.** Astro's content
-  layer runs a loader once and keeps the result in `.astro/data-store.json`, so
-  nothing re-fetches when a document changes in the studio. Astro's live content
-  collections run the loader per request and are meant for this; check whether
-  they are stable in Astro 7 before relying on them.
 
 - **Films are untested.** The picker searches Apple for both, but a `poster`
   list queries the `movie` entity and only podcasts have been tried. TMDB may
@@ -70,8 +69,11 @@ image can be pasted as a URL.
 
 ## Needs an account, so cannot be done from here
 
-- Repo secrets: `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_READ_TOKEN`.
+- Repo variables `SANITY_PROJECT_ID` and `SANITY_DATASET`, and the repo secret
+  `SANITY_READ_TOKEN`. The first two are variables because they are compiled
+  into the studio bundle a visitor downloads, so they are not secret.
+- CORS origins in Sanity for each host the studio is served from: the staging
+  and content-preview `workers.dev` URLs, and leibowitz.me at cutover. A
+  per-pull-request URL is a new host each time and will not be worth adding.
 - Sanity webhook posting `repository_dispatch` to GitHub, so a content change
   triggers the preview build.
-- `pnpm studio:deploy` to publish the studio to `<project>.sanity.studio`, which
-  is what makes editing work from a phone.

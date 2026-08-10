@@ -17,6 +17,8 @@ import { addLogoProxy } from './logo-proxy.mjs';
  *
  * `astro:server:setup` only fires under `astro dev`, so none of this exists in
  * a build.
+ *
+ * @returns {import('astro').AstroIntegration}
  */
 export default function sanityLive() {
   return {
@@ -27,16 +29,18 @@ export default function sanityLive() {
 
         if (process.env.CONTENT_SOURCE !== 'sanity') return;
 
-        const projectId = process.env.SANITY_PROJECT_ID;
+        const projectId = process.env.PUBLIC_SANITY_PROJECT_ID;
         if (!projectId) {
-          logger.warn('SANITY_PROJECT_ID is not set, so live refresh is off');
+          logger.warn(
+            'PUBLIC_SANITY_PROJECT_ID is not set, so live refresh is off'
+          );
           return;
         }
 
         const { createClient } = await import('@sanity/client');
         const client = createClient({
           projectId,
-          dataset: process.env.SANITY_DATASET ?? 'production',
+          dataset: process.env.PUBLIC_SANITY_DATASET ?? 'production',
           apiVersion: '2025-08-15',
           useCdn: false,
           token: process.env.SANITY_READ_TOKEN,
@@ -63,10 +67,14 @@ export default function sanityLive() {
         // `visibility: 'query'` waits until a mutation is readable, so the
         // refresh does not fetch the state from just before the edit.
         const subscription = client
-          .listen('*[_type in ["post", "list", "project", "tag"]]', {}, {
-            visibility: 'query',
-            includeResult: false,
-          })
+          .listen(
+            '*[_type in ["post", "list", "project", "tag"]]',
+            {},
+            {
+              visibility: 'query',
+              includeResult: false,
+            }
+          )
           .subscribe({
             next: (event) => {
               if (event.type === 'mutation') scheduleRefresh(event.documentId);

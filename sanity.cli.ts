@@ -1,18 +1,26 @@
+import process from 'node:process';
+
 import { defineCliConfig } from 'sanity/cli';
 
+// The CLI is a plain Node program and reads no .env of its own, so the project
+// id has to be put on `process.env` first. Same one file the site reads.
+try {
+  process.loadEnvFile();
+} catch {
+  /* no .env; the commands below will say what is missing */
+}
+
 /**
- * CLI config for `sanity dev` and `sanity deploy`.
+ * Config for the `sanity` CLI: `sanity login`, and the dataset import that
+ * scripts/sanity-import.mjs writes for.
  *
- * Separate from `sanity.config.ts` on purpose: that one configures the running
- * studio, this one tells the CLI which project it is operating on. Both read
- * the same environment variables, so there is still one place to change.
+ * The studio itself is not here. It runs as a route on the site and is
+ * configured by `sanity.config.ts` plus `studioBasePath` in `astro.config.mjs`,
+ * so there is no `sanity dev` and no `sanity deploy`.
  */
 export default defineCliConfig({
   api: {
-    projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? '9f0148tu',
-    dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
+    projectId: process.env.PUBLIC_SANITY_PROJECT_ID,
+    dataset: process.env.PUBLIC_SANITY_DATASET ?? 'production',
   },
-  // The studio is deployed by hand, so leave dependency updates to the repo's
-  // normal upgrade flow rather than letting the hosted build move them.
-  deployment: { autoUpdates: false },
 });

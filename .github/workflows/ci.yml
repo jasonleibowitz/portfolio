@@ -21,6 +21,14 @@ env:
   # nothing to remove.
   WORKER_NAME: portfolio
 
+  # The studio is a route on the site, built only when there is a project for
+  # it to open. Every build below sets these, so /admin ships with the site and
+  # `Build` gates the studio bundle rather than skipping it. A variable, not a
+  # secret: both values are compiled into the page a visitor downloads. Unset,
+  # the builds still pass and simply carry no /admin.
+  PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+  PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
+
 jobs:
   verify:
     name: Verify

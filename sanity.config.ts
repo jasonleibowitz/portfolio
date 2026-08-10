@@ -8,19 +8,19 @@ import { schemaTypes } from './studio/schemas';
 /**
  * Sanity Studio for leibowitz.me.
  *
- * Runs at localhost:3333 with `pnpm studio`, and deploys to
- * <project>.sanity.studio with `pnpm studio:deploy`, which is the URL that
- * makes editing work from a phone.
+ * Served by the site at /admin, so it starts with `pnpm dev` and deploys with
+ * the site. `astro.config.mjs` mounts it and owns `basePath`.
  *
- * The project id is read from the environment rather than committed, so the
- * same config serves a local run and a deployed studio.
+ * This file is bundled into the browser, so it reads `import.meta.env` and the
+ * values carry the `PUBLIC_` prefix that Astro requires to expose them. A
+ * `process.env` read here compiles to `{}` and silently yields undefined.
  */
 export default defineConfig({
   name: 'leibowitz',
   title: 'leibowitz.me',
 
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? 'REPLACE_ME',
-  dataset: process.env.SANITY_STUDIO_DATASET ?? 'production',
+  projectId: import.meta.env.PUBLIC_SANITY_PROJECT_ID,
+  dataset: import.meta.env.PUBLIC_SANITY_DATASET ?? 'production',
 
   plugins: [structureTool(), visionTool()],
 

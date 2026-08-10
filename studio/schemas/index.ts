@@ -82,7 +82,8 @@ const list = defineType({
       title: 'Ranked',
       type: 'boolean',
       initialValue: false,
-      description: 'A ranked list is one numbered sequence, so it cannot be grouped.',
+      description:
+        'A ranked list is one numbered sequence, so it cannot be grouped.',
     }),
     thumbField,
     /*
@@ -253,7 +254,9 @@ const project = defineType({
       type: 'richText',
     }),
   ],
-  preview: { select: { title: 'title', subtitle: 'status_text', media: 'icon' } },
+  preview: {
+    select: { title: 'title', subtitle: 'status_text', media: 'icon' },
+  },
 });
 
 export const schemaTypes = [post, list, project, listItem, tag, richText];

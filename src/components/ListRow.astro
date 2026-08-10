@@ -134,11 +134,13 @@ const shape = data.ranked
       <li>{plural(items.length, 'entry', 'entries')}</li>
       {shape && <li>{shape}</li>}
       <li>Updated {formatDay(data.updated)}</li>
-      {data.draft && (
-        <li>
-          <DraftBadge draft={data.draft} />
-        </li>
-      )}
+      {
+        data.draft && (
+          <li>
+            <DraftBadge draft={data.draft} />
+          </li>
+        )
+      }
     </ul>
   </div>
 </a>

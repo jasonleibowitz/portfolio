@@ -28,18 +28,21 @@ export default defineConfig([
     rules: jsxA11y.configs.recommended.rules,
   },
   {
-    // Build-time scripts run in Node, not the browser. The globals are listed
-    // by hand rather than pulled from the `globals` package, which is not a
-    // direct dependency here and is not worth becoming one for one directory.
-    files: ['scripts/**/*.{js,mjs}'],
+    // Build-time scripts and dev-server integrations run in Node, not the
+    // browser. The globals are listed by hand rather than pulled from the
+    // `globals` package, which is not a direct dependency here and is not worth
+    // becoming one for two directories.
+    files: ['scripts/**/*.{js,mjs}', 'integrations/**/*.{js,mjs}'],
     languageOptions: {
       globals: {
         process: 'readonly',
         console: 'readonly',
         fetch: 'readonly',
+        URL: 'readonly',
         URLSearchParams: 'readonly',
         Buffer: 'readonly',
         setTimeout: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
   },
