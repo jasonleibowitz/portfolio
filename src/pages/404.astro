@@ -1,0 +1,45 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Section from '@components/layout/Section.astro';
+import Link from '@components/ui/Link.astro';
+
+/**
+ * Placeholder. The copy is real, the layout is not designed yet.
+ *
+ * It exists now because the site has a decade of inbound links. The redirects
+ * in `astro.config.mjs` cover the `/blog/*` addresses that still resolve, and
+ * anything else used to land on Cloudflare's own page: no header, no way back.
+ *
+ * One link out, and no button. A gradient button is the shape this site gives
+ * to an action that a reader came to do, and nobody comes here to do anything.
+ *
+ * `not_found_handling` in `wrangler.jsonc` must stay `404-page`, or this file
+ * builds and nobody ever sees it.
+ */
+---
+
+<BaseLayout
+  pageTitle="Page not found"
+  page="missing"
+  description="Nothing lives at this address."
+>
+  <PageHead
+    eyebrow="404"
+    title="That address does not resolve"
+    intro="Nothing lives here. The link may be wrong, or the page may never have existed."
+  />
+
+  <Section>
+    {
+      /* The arrow of `ListRow`: it moves and takes the accent color when the
+        link has the pointer. It is decoration, thus it is hidden. */
+    }
+    <Link href="/" variant="body" class="group text-ink hover:text-violet">
+      Back home<span
+        class="inline-block transition-transform duration-200 ease-orbit group-hover:translate-x-1 group-hover:text-violet"
+        aria-hidden="true">&nbsp;→</span
+      >
+    </Link>
+  </Section>
+</BaseLayout>

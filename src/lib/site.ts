@@ -12,12 +12,17 @@ export type PageKey =
   | 'writing'
   | 'post'
   | 'lists'
-  | 'list';
+  | 'list'
+  | 'missing';
 
 export type NavKey = 'home' | 'about' | 'projects' | 'writing' | 'lists';
 
-/** Which nav item lights up for a given page. */
-export const NAV_FOR_PAGE: Record<PageKey, NavKey> = {
+/**
+ * Which nav item lights up for a given page. `null` for a page that is in no
+ * section: the 404 belongs to none of them, and lighting one would tell the
+ * reader they are somewhere they are not.
+ */
+export const NAV_FOR_PAGE: Record<PageKey, NavKey | null> = {
   home: 'home',
   about: 'about',
   projects: 'projects',
@@ -26,6 +31,7 @@ export const NAV_FOR_PAGE: Record<PageKey, NavKey> = {
   post: 'writing',
   lists: 'lists',
   list: 'lists',
+  missing: null,
 };
 
 /** Order is fixed: Home · About · Projects · Writing · Lists. */
