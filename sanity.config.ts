@@ -2,6 +2,7 @@ import { visionTool } from '@sanity/vision';
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 
+import { documentActions } from './studio/preview';
 import { schemaTypes } from './studio/schemas';
 
 /**
@@ -24,4 +25,6 @@ export default defineConfig({
   plugins: [structureTool(), visionTool()],
 
   schema: { types: schemaTypes },
+
+  document: { actions: documentActions },
 });

@@ -38,9 +38,20 @@ const sanityImage = z
     asset: z.object({ _ref: z.string() }).optional(),
     alt: z.string().optional(),
   })
+  /*
+   * Optional, unlike the file-backed schema which requires a cover.
+   *
+   * A draft is written before it is illustrated, and the preview build reads
+   * drafts. Requiring the image would fail that build at exactly the moment it
+   * is most wanted -- mid-draft -- so the missing case is modelled as an empty
+   * url instead of an error.
+   */
+  // `nullish`, not `optional`: GROQ returns null for a field a document does
+  // not have, and null is not undefined as far as zod is concerned.
+  .nullish()
   .transform((value) => ({
     url: imageUrl(value, { width: 1600 }) ?? '',
-    alt: value.alt ?? '',
+    alt: value?.alt ?? '',
   }));
 
 /**
