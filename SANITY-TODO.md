@@ -69,11 +69,32 @@ image can be pasted as a URL.
 
 ## Needs an account, so cannot be done from here
 
+- **Make the `production` dataset private**, in Manage > Datasets. It is public
+  today: an unauthenticated request for `count(*)` answers 101, and the project
+  id that request needs is compiled into the site. Drafts are already
+  protected, so what this closes is bulk reads of published documents.
+
+  Assets are not affected either way. Sanity serves them from cdn.sanity.io
+  whatever the dataset visibility, and the built site holds those URLs, so no
+  image breaks: "Asset files are not private, so even images uploaded to a
+  private dataset can be viewed by unauthenticated users."
+
 - Repo variables `SANITY_PROJECT_ID` and `SANITY_DATASET`, and the repo secret
-  `SANITY_READ_TOKEN`. The first two are variables because they are compiled
-  into the studio bundle a visitor downloads, so they are not secret.
+  `SANITY_READ_TOKEN` (a Viewer token, from Manage > API > Tokens). The first
+  two are variables because they are compiled into the studio bundle a visitor
+  downloads, so they are not secret. Once the dataset is private the token is
+  no longer optional: every build that sets `CONTENT_SOURCE=sanity` needs it.
 - CORS origins in Sanity for each host the studio is served from: the staging
   and content-preview `workers.dev` URLs, and leibowitz.me at cutover. A
   per-pull-request URL is a new host each time and will not be worth adding.
 - Sanity webhook posting `repository_dispatch` to GitHub, so a content change
   triggers the preview build.
+
+## Due at launch, not before
+
+- **Restrict `PUBLIC_SANITY_GOOGLE_MAPS_KEY` by HTTP referrer**, in Google
+  Cloud, to the hosts that serve `/admin`. The key reaches the browser by
+  design, so an unrestricted one can be spent by anyone who reads the bundle.
+  Not urgent yet: no deployed build carries `/admin`, because the studio is
+  only built when `PUBLIC_SANITY_PROJECT_ID` is set and no CI variable sets it.
+  It becomes urgent the moment one does.
