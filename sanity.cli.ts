@@ -14,5 +14,5 @@ export default defineCliConfig({
   },
   // The studio is deployed by hand, so leave dependency updates to the repo's
   // normal upgrade flow rather than letting the hosted build move them.
-  autoUpdates: false,
+  deployment: { autoUpdates: false },
 });
