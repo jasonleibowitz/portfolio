@@ -608,7 +608,10 @@ async function shootBatch(batch: Card[]) {
     sheet,
     `<!doctype html><meta charset="utf-8" />
 <style>
-  html, body { margin: 0; padding: 0; background: #000; }
+  /* Every pixel of this sheet is covered by an iframe, so the backing colour
+     is never cropped into a card. It takes the canvas anyway: if a crop ever
+     misaligned, the seam should be the site's colour and not a black band. */
+  html, body { margin: 0; padding: 0; background: ${CANVAS}; }
   iframe { display: block; width: ${WIDTH}px; height: ${HEIGHT}px; border: 0; }
 </style>
 ${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
