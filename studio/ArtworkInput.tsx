@@ -64,7 +64,10 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
       setAdding(name);
       setError(null);
       try {
-        const artwork = result.imageUrl;
+        // Google hands out a photo reference rather than a URL, so the second
+        // request happens here, once, for the one result actually chosen.
+        const artwork =
+          result.imageUrl ?? (await source.resolveImage?.(result));
         let image;
 
         if (artwork) {
@@ -103,7 +106,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
         setAdding(null);
       }
     },
-    [client, onChange]
+    [client, onChange, source]
   );
 
   // A list with no catalogue behind it gets the plain array editor, with no

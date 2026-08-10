@@ -25,6 +25,12 @@ export type ArtworkResult = {
   imageUrl?: string;
   /** Shown in the result row, where it helps tell two matches apart. */
   hint?: string;
+  /**
+   * An opaque handle for a picture that needs a second request to resolve,
+   * which is how Google hands out place photos. Sources that return a usable
+   * `imageUrl` outright leave this alone.
+   */
+  photoRef?: string;
 };
 
 export type ArtworkSource = {
@@ -34,6 +40,12 @@ export type ArtworkSource = {
   /** Absent images are fine: filling in name, link and credit is most of the work. */
   providesArtwork: boolean;
   search(term: string): Promise<ArtworkResult[]>;
+  /**
+   * Optional second step for sources whose search results only point at a
+   * picture. Called just before upload, so a list of ten results costs one
+   * request rather than ten.
+   */
+  resolveImage?(result: ArtworkResult): Promise<string | undefined>;
 };
 
 /**
@@ -125,19 +137,101 @@ const films: ArtworkSource = {
 };
 
 /**
- * Anywhere with a street address: coffee shops, pizza, restaurants, bars.
+ * Places from Google, which is the same set of venues but with photographs.
  *
- * OpenStreetMap's Nominatim, chosen over Google Places and Foursquare for one
- * reason each. Google needs a billing account with a card attached even inside
- * its free tier. Foursquare's current API refuses cross-origin requests
- * outright, its preflight answering 400, so only their legacy v3 works from a
- * browser and that is an API they are migrating off. Nominatim needs no key,
- * no account and no card, and it answers the browser directly.
+ * Needs `SANITY_STUDIO_GOOGLE_MAPS_KEY`. Anything prefixed `SANITY_STUDIO_` is
+ * compiled into the studio bundle, so that key is readable by anyone who opens
+ * the page: restrict it by HTTP referrer in Google Cloud, to localhost and the
+ * deployed studio host, or it can be spent by strangers.
  *
- * It returns no photograph, which is the honest trade and probably the right
- * one: your own picture of a coffee shop beats a stock exterior, and licensing
- * someone else's venue photos on a personal site is a question worth not
- * having. Each item's own upload field is where the photo goes.
+ * Two requests per photo, not one. The media endpoint answers with a redirect
+ * to googleusercontent, and `skipHttpRedirect` turns that into a JSON body
+ * naming the real URL, which is steadier than asking fetch to follow a
+ * cross-origin redirect and hope the final host allows the read. It does allow
+ * it -- `lh3.googleusercontent.com` returns `access-control-allow-origin: *`,
+ * which is what makes uploading a place photo possible at all.
+ */
+const googlePlaces: ArtworkSource = {
+  id: 'google-places',
+  label: 'Places (Google)',
+  placeholder: 'Search a shop, bar or restaurant…',
+  providesArtwork: true,
+  search: async (term) => {
+    const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
+    if (!key) {
+      throw new Error(
+        'Set SANITY_STUDIO_GOOGLE_MAPS_KEY in .env, then restart the studio'
+      );
+    }
+
+    const response = await fetch(
+      'https://places.googleapis.com/v1/places:searchText',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': key,
+          'X-Goog-FieldMask': [
+            'places.displayName',
+            'places.websiteUri',
+            'places.googleMapsUri',
+            'places.addressComponents',
+            'places.primaryTypeDisplayName',
+            'places.photos',
+          ].join(','),
+        },
+        body: JSON.stringify({ textQuery: term, maxResultCount: 8 }),
+      }
+    );
+
+    if (!response.ok) {
+      const detail = await response.json().catch(() => null);
+      throw new Error(detail?.error?.message ?? `Place search failed (${response.status})`);
+    }
+
+    const { places: found = [] } = await response.json();
+
+    return found.map((place: any) => {
+      // "Williamsburg" identifies a coffee shop to a reader; the borough does
+      // not, and the full formatted address is too long for a credit line.
+      const area = (place.addressComponents ?? []).find((c: any) =>
+        c.types?.some((t: string) =>
+          ['neighborhood', 'sublocality', 'locality'].includes(t)
+        )
+      )?.longText;
+
+      return {
+        name: place.displayName?.text,
+        subtitle: area,
+        href: place.websiteUri ?? place.googleMapsUri,
+        photoRef: place.photos?.[0]?.name,
+        hint: [place.primaryTypeDisplayName?.text, area].filter(Boolean).join(' · '),
+      };
+    });
+  },
+
+  /** Resolves a photo reference into a URL the browser is allowed to read. */
+  resolveImage: async (result) => {
+    const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
+    if (!key || !result.photoRef) return undefined;
+
+    const response = await fetch(
+      `https://places.googleapis.com/v1/${result.photoRef}/media` +
+        `?maxWidthPx=1200&skipHttpRedirect=true&key=${key}`
+    );
+    if (!response.ok) return undefined;
+    return (await response.json()).photoUri;
+  },
+};
+
+/**
+ * The same venues without a key, an account or a card.
+ *
+ * Kept beside the Google source as the fallback: it returns no photograph, but
+ * it needs nothing to run and is not subject to anyone's terms about storing
+ * their pictures. Foursquare is absent from both because its current API
+ * refuses cross-origin requests outright, its preflight answering 400, leaving
+ * only a legacy version they are migrating off.
  *
  * Nominatim's usage policy caps callers at one request a second and asks them
  * to identify themselves. A human clicking Search cannot outrun that, and a
@@ -146,7 +240,7 @@ const films: ArtworkSource = {
  */
 const places: ArtworkSource = {
   id: 'places',
-  label: 'Places (OpenStreetMap)',
+  label: 'Places (OpenStreetMap, no key)',
   placeholder: 'Search a shop, bar or restaurant…',
   providesArtwork: false,
   search: async (term) => {
