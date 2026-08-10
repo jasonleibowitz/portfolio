@@ -194,12 +194,22 @@ that a card exists, but only during a build, and it is a disagreement detector r
 reminder: the generator and `getPublished` decide separately what is published, and if they
 ever part company a page would ship an `og:image` that 404s.
 
-All the cards are drawn in **one Chrome launch**, stacked as iframes in one tall page and cut
-apart with sharp afterwards. Launching Chrome costs ~2.5s and rendering a card costs almost
-nothing, so ten cards one at a time took 28 seconds and ten in one launch take four. Iframes
-rather than ten divs, because each card brings its own CSS written against bare `h1` and short
-class names. The batch is capped at 12 cards per launch: Chrome stops rendering somewhere past
-16384px of viewport, and a longer sheet comes back part black.
+All the cards come out of **one Chrome**, driven by `puppeteer-core`. Launching Chrome costs
+~2.5s and rendering a card costs almost nothing, so ten cards one launch each took 28 seconds
+and ten through one browser take three. Each card is `page.setContent()` then
+`page.screenshot()`, after `document.fonts.ready` — `load` does not wait for a font, and a
+card shot too early sets in a fallback face.
+
+`puppeteer-core`, not `puppeteer`: it ships no Chromium and drives the one `findChrome()`
+already locates.
+
+Chrome returns a PNG and sharp writes the JPEG. Letting Chrome write the JPEG hands it the
+chroma subsampling, and 4:2:0 puts colour fringes on letter edges.
+
+**`--disable-gpu` and `--force-device-scale-factor=1` are load-bearing.** Without them the GPU
+rasterizer changes glyph antialiasing and gradient dithering, so the same HTML renders
+differently on a different machine. Dropping `--disable-gpu` during the puppeteer move moved
+418,871 subpixels on one card; restoring it made all ten byte-identical again.
 
 The GitHub runner ships Chrome, so CI installs nothing. `findChrome()` walks the usual paths
 and honours `CHROME_PATH`; it fails with the list it tried rather than with a spawn error.

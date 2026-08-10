@@ -1,17 +1,14 @@
-import { execFileSync } from 'node:child_process';
 import {
   existsSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
-  writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import sharp from 'sharp';
+import { launch } from 'puppeteer-core';
 import { parse as parseYaml } from 'yaml';
 /* Node 24 removes the types when it reads this file. Thus the script can read
    the page headings from the same file as the pages, and no person must type
@@ -637,96 +634,65 @@ const listCard = (list: Entry<ListData>) =>
 
 /* ------------------------------------------------------------------ render */
 
-const scratch = mkdtempSync(join(tmpdir(), 'og-card-'));
-
-/**
- * Makes an image of a group of cards with one Chrome, and writes each card as a
- * JPEG file.
- *
- * The script puts the cards in one tall page, as iframes, and cuts the image
- * into parts after. Chrome needs approximately 2.5 seconds to start, but it
- * needs almost no time to show a card. Ten cards, one at a time, needed 28
- * seconds. The same ten cards in one Chrome need approximately four seconds. A
- * build can include a step of four seconds, but not a step of 28 seconds.
- *
- * Use iframes, and not ten `div` elements in one page. Each card has its own
- * CSS, and that CSS uses `h1` and short class names. In one page, the CSS of
- * one card would change the other cards. An iframe is a different page, thus
- * each card is the same as when it is alone.
- *
- * Each card is JPEG because every one carries a photograph, which PNG stores
- * losslessly at four times the weight. At quality 92 with no chroma subsampling
- * the difference is invisible on the headline, the only part a lossy codec
- * could hurt.
- */
 /** The path of the file to write, and the HTML that makes it. */
 type Card = [out: string, html: string];
 
-async function shootBatch(batch: Card[]) {
-  const pages = batch.map(([out], i) => {
-    const file = join(scratch, `card-${i}.html`);
-    writeFileSync(file, batch[i][1]);
-    mkdirSync(dirname(out), { recursive: true });
-    return file;
+/**
+ * Makes an image of each card and writes it as a JPEG file.
+ *
+ * Chrome needs approximately 2.5 seconds to start, but it needs almost no time
+ * to show a card. Thus the script starts one Chrome, and gives each card to the
+ * same page. Ten cards, one Chrome at a time for each, needed 28 seconds. Ten
+ * cards in one Chrome need approximately four seconds.
+ *
+ * Chrome makes a PNG image, and sharp writes the JPEG file. Do not let Chrome
+ * write the JPEG file: Chrome selects the chroma subsampling, and 4:2:0 puts
+ * color errors on the edges of the letters. sharp uses 4:4:4, which does not.
+ *
+ * The file is a JPEG because each card contains a photograph. A PNG file keeps
+ * all of the data and is four times larger. At quality 92 a person cannot see
+ * the difference in the heading, which is the only part that a lossy format can
+ * make worse.
+ */
+async function shoot(cards: Card[]) {
+  const browser = await launch({
+    executablePath: CHROME,
+    args: [
+      /* The sandbox of Chrome is off, because CI runs this script also, and
+         Chrome opens only HTML that this script made. On some CI computers
+         `/dev/shm` is small, and Chrome stops instead of using a different
+         memory area. */
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      /* Keep both of these. The GPU makes the edges of the letters and the
+         steps of a gradient different, thus a computer with a different GPU
+         makes a different card. With software rendering, each computer makes
+         the same image. */
+      '--disable-gpu',
+      '--force-device-scale-factor=1',
+    ],
   });
 
-  const sheet = join(scratch, 'sheet.html');
-  writeFileSync(
-    sheet,
-    `<!doctype html><meta charset="utf-8" />
-<style>
-  /* An iframe covers all of this page, thus no part of this background is in a
-     card. Use the background color of the site. If a cut is not in the correct
-     position, the line is the color of the site and not black. */
-  html, body { margin: 0; padding: 0; background: ${CANVAS}; }
-  iframe { display: block; width: ${WIDTH}px; height: ${HEIGHT}px; border: 0; }
-</style>
-${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
-  );
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({
+      width: WIDTH,
+      height: HEIGHT,
+      deviceScaleFactor: 1,
+    });
 
-  const shot = join(scratch, 'sheet.png');
-  execFileSync(CHROME, [
-    '--headless=new',
-    '--disable-gpu',
-    '--hide-scrollbars',
-    '--force-device-scale-factor=1',
-    /* The sandbox of Chrome is off, because CI runs this script also, and
-       Chrome opens only a page that this script wrote. On some CI computers
-       `/dev/shm` is small, and Chrome stops instead of using a different
-       memory area. */
-    '--no-sandbox',
-    '--disable-dev-shm-usage',
-    `--window-size=${WIDTH},${HEIGHT * batch.length}`,
-    `--screenshot=${shot}`,
-    `file://${sheet}`,
-  ]);
+    for (const [out, html] of cards) {
+      await page.setContent(html, { waitUntil: 'load' });
+      /* Wait for the fonts. `load` does not wait for a font, and a card made
+         too early shows a fallback font. */
+      await page.evaluate(() => document.fonts.ready);
 
-  /* Read the image one time, then cut each card from it. If the script reads
-     the file again for each card, it decodes a PNG of 12000px each time. */
-  const sheetPixels = await sharp(shot)
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  for (const [i, [out]] of batch.entries()) {
-    await sharp(sheetPixels.data, { raw: sheetPixels.info })
-      .extract({ left: 0, top: i * HEIGHT, width: WIDTH, height: HEIGHT })
-      .jpeg(JPEG)
-      .toFile(out);
-  }
-}
-
-/**
- * The maximum number of cards in one image.
- *
- * Chrome does not show a page that is more than approximately 16384px high, and
- * part of the image is black. Twelve cards are 7560px, which is less than the
- * limit. This site has fewer cards than this, thus it uses one Chrome.
- */
-const BATCH = 12;
-
-async function shoot(cards: Card[]) {
-  for (let i = 0; i < cards.length; i += BATCH) {
-    await shootBatch(cards.slice(i, i + BATCH));
+      const shot = await page.screenshot({ type: 'png' });
+      mkdirSync(dirname(out), { recursive: true });
+      await sharp(shot).jpeg(JPEG).toFile(out);
+    }
+  } finally {
+    await browser.close();
   }
 }
 
