@@ -35,14 +35,38 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
  * which is where they are owned.
  */
 const CANVAS = '#16161f';
-const PANEL = 'rgb(255 255 255 / 0.07)';
-const LINE = 'rgb(255 255 255 / 0.13)';
+const LINE_STRONG = 'rgb(255 255 255 / 0.22)';
+const LIFT = '0 12px 38px rgb(0 0 0 / 0.42)';
 const INK = '#f4f2fb';
 const MUTED = '#c2becf';
 const VIOLET = '#a99bff';
 const CYAN = '#5fdff2';
 const GLOW_A = 'rgb(125 95 255 / 0.2)';
 const GLOW_B = 'rgb(70 205 235 / 0.14)';
+
+/**
+ * The orbit avatar, measured off the running hero and scaled up. Every value
+ * below is a ratio of the hero's 250px ring, so the card cannot drift from
+ * `OrbitAvatar.astro` by a rounding decision made twice.
+ */
+const RING = 360;
+const SCALE = RING / 250;
+const INSET = Math.round(14 * SCALE);
+const DOT = Math.round(8 * SCALE);
+
+/**
+ * Where the dot rests, read as a clock face.
+ *
+ * The hero's dot never stops, so no angle is the true one. This one avoids the
+ * two that read as something other than an orbit: 12 looks like a deliberate
+ * mark on the crown, and 3 lines up with the role line and becomes a bullet
+ * pointing at it.
+ */
+const DOT_OCLOCK = 2;
+const dotAngle = (DOT_OCLOCK / 12) * 2 * Math.PI;
+const radius = RING / 2;
+const dotLeft = Math.round(radius + radius * Math.sin(dotAngle) - DOT / 2);
+const dotTop = Math.round(radius - radius * Math.cos(dotAngle) - DOT / 2);
 
 /** The same two lines the homepage `<title>` states, so a card cannot drift. */
 const NAME = 'Jason Leibowitz';
@@ -60,75 +84,7 @@ const inter = dataUri(
   'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
   'font/woff2'
 );
-/**
- * The headshot with its white studio background made transparent.
- *
- * The photo is shot on white, which disappears into the light page but becomes
- * a bright disc on this canvas. A flood fill from the border finds the
- * background: it walks inward through pale pixels, so the teeth and the white
- * squares of the shirt stay opaque because neither one touches an edge. A
- * sub-pixel blur on the alpha channel alone keeps the hair from stepping.
- */
-async function cutBackground(file) {
-  /** At or above this, a pixel the fill reaches counts as background. */
-  const PALE = 225;
-
-  const { data, info } = await sharp(file)
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const { width, height, channels } = info;
-
-  const background = new Uint8Array(width * height);
-  const pending = [];
-
-  const visit = (x, y) => {
-    const pixel = y * width + x;
-    if (background[pixel]) return;
-    const i = pixel * channels;
-    if (Math.min(data[i], data[i + 1], data[i + 2]) < PALE) return;
-    background[pixel] = 1;
-    pending.push(pixel);
-  };
-
-  for (let x = 0; x < width; x++) {
-    visit(x, 0);
-    visit(x, height - 1);
-  }
-  for (let y = 0; y < height; y++) {
-    visit(0, y);
-    visit(width - 1, y);
-  }
-
-  while (pending.length) {
-    const pixel = pending.pop();
-    const x = pixel % width;
-    const y = (pixel - x) / width;
-    if (x > 0) visit(x - 1, y);
-    if (x < width - 1) visit(x + 1, y);
-    if (y > 0) visit(x, y - 1);
-    if (y < height - 1) visit(x, y + 1);
-  }
-
-  for (let pixel = 0; pixel < width * height; pixel++) {
-    if (background[pixel]) data[pixel * channels + 3] = 0;
-  }
-
-  const raw = { width, height, channels };
-  const cut = sharp(data, { raw });
-  const alpha = await cut.clone().extractChannel(3).blur(0.7).toBuffer();
-
-  return sharp(await cut.clone().removeAlpha().toBuffer(), {
-    raw: { width, height, channels: 3 },
-  })
-    .joinChannel(alpha, { raw: { width, height, channels: 1 } })
-    .png()
-    .toBuffer();
-}
-
-const headshot = `data:image/png;base64,${(
-  await cutBackground('src/images/headshot.png')
-).toString('base64')}`;
+const headshot = dataUri('src/images/headshot.png', 'image/png');
 
 const html = `<!doctype html>
 <meta charset="utf-8" />
@@ -158,16 +114,38 @@ const html = `<!doctype html>
       radial-gradient(410px 410px at 88% 22%, ${GLOW_B}, transparent 60%),
       radial-gradient(480px 480px at 60% 92%, ${GLOW_A}, transparent 65%);
   }
-  /* The circle is a panel behind the cutout, not a crop of the photo, so the
-     surround takes the page's own raised surface instead of white. */
-  img {
-    width: 340px;
-    height: 340px;
+  /* The hero's OrbitAvatar, held still. The ring and the dot are the shape a
+     reader already associates with the site, so the card and the page it opens
+     are recognisably the same object. */
+  .orbit {
+    position: relative;
+    width: ${RING}px;
+    height: ${RING}px;
     flex: none;
+    border: 1px dashed ${LINE_STRONG};
+    border-radius: 50%;
+  }
+  .orbit::after {
+    content: '';
+    position: absolute;
+    top: ${dotTop}px;
+    left: ${dotLeft}px;
+    width: ${DOT}px;
+    height: ${DOT}px;
+    border-radius: 50%;
+    background-image: linear-gradient(100deg, ${VIOLET}, ${CYAN});
+    box-shadow: 0 0 ${Math.round(12 * SCALE)}px ${GLOW_A};
+  }
+  /* Sized, not just inset: an absolutely positioned replaced element falls
+     back to its intrinsic 500px if width and height are left to the insets. */
+  .orbit img {
+    position: absolute;
+    inset: ${INSET}px;
+    width: ${RING - 2 * INSET}px;
+    height: ${RING - 2 * INSET}px;
     border-radius: 50%;
     object-fit: cover;
-    background: ${PANEL};
-    box-shadow: inset 0 0 0 1px ${LINE};
+    box-shadow: ${LIFT};
   }
   h1 {
     font: 700 76px/1.05 'Space Grotesk';
@@ -195,7 +173,7 @@ const html = `<!doctype html>
     color: ${VIOLET};
   }
 </style>
-<img src="${headshot}" alt="" />
+<div class="orbit"><img src="${headshot}" alt="" /></div>
 <div>
   <h1>${NAME}</h1>
   <p>${ROLE}</p>

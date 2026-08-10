@@ -183,11 +183,17 @@ a scrape carries no theme signal, so a page cannot ship a light card and a dark 
 the client pick. One card serves both, and the dark one wins in iMessage, where most bubbles
 are dark already.
 
-That is also why the script knocks the headshot's white studio background out. On the light
-page the white disappears into the canvas; on this one it reads as a bright disc. A flood
-fill from the border finds it, walking inward through pale pixels, so the teeth and the white
-squares of the shirt stay opaque because neither touches an edge. The circle behind the
-cutout is then `--color-panel`, not a crop of the photo.
+The card carries the hero's **OrbitAvatar**, held still: the dashed ring, the headshot as it
+is shot, and the spectrum dot with its glow. That shape is what makes the card and the page
+it opens read as the same object, so the script derives every measurement from the hero's
+250px ring rather than restating it. `DOT_OCLOCK` parks the dot at 2. The hero's dot never
+stops, so no angle is the true one, but 12 reads as a mark on the crown and 3 lines up with
+the role line and turns into a bullet aimed at it.
+
+The headshot goes in **untouched, white studio background and all**. On a dark canvas that
+white reads as a bright disc, and it is meant to: the hero shows the same disc in dark mode.
+Knocking the background out makes a quieter card and a card that no longer matches the page,
+which is the wrong trade for the one image a stranger sees first.
 
 The touch icon is the favicon with its corner radius stripped and its alpha flattened. iOS
 masks the icon itself, so a rounded source leaves the mask's corners empty.
