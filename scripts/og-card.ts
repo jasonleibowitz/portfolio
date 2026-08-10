@@ -318,7 +318,31 @@ const escape = (text: string): string =>
  * There is one shell and not five. Thus each link preview looks like part of
  * one set, and the colors are in one place.
  */
-const shell = (main: string) => `<!doctype html>
+/**
+ * Markup and the CSS that the markup needs, in one value.
+ *
+ * The CSS of a component must not be a separate constant. If it is, each card
+ * that uses the component must also remember to put that constant in its own
+ * style block, and a card that does not do this shows markup with no style and
+ * reports no error.
+ */
+type Part = { css: string; html: string };
+
+/**
+ * Makes the part for one card: the CSS of the card, the markup of the card, and
+ * each part that the markup contains.
+ *
+ * The function removes CSS that is the same, thus a card can use one component
+ * two times. The `/lists` card does this: it shows two groups of artwork.
+ */
+function card(css: string, html: string, ...used: Part[]): Part {
+  return {
+    css: [...new Set([...used.map((part) => part.css), css])].join('\n'),
+    html,
+  };
+}
+
+const shell = ({ css, html }: Part) => `<!doctype html>
 <meta charset="utf-8" />
 <style>
   @font-face { font-family: 'Space Grotesk'; src: url('${grotesk}') format('woff2-variations'); font-weight: 300 700; }
@@ -375,8 +399,10 @@ const shell = (main: string) => `<!doctype html>
   footer { display: flex; align-items: center; gap: 16px; flex: none; }
   footer img { width: 44px; height: 44px; }
   footer span { font: 600 32px/1 'Inter'; letter-spacing: 0.01em; color: ${VIOLET}; }
+
+${css}
 </style>
-${main}
+${html}
 <footer>
   <img src="${monogram}" alt="" />
   <span>${DOMAIN}</span>
@@ -385,13 +411,12 @@ ${main}
 
 /* ------------------------------------------------------------------- cards */
 
-/** For the home page, About, Projects, and each page with no image. */
-const defaultCard = () =>
-  shell(`
-<style>
-  /* The OrbitAvatar of the home page, but it does not move. A person knows the
-     ring and the dot from the site. Thus the card and the page look the
-     same. */
+/**
+ * The OrbitAvatar of the home page, but it does not move. A person knows the
+ * ring and the dot from the site. Thus the card and the page look the same.
+ */
+const Orbit = (): Part => ({
+  css: `
   .orbit {
     position: relative;
     width: ${RING}px;
@@ -421,20 +446,31 @@ const defaultCard = () =>
     border-radius: 50%;
     object-fit: cover;
     box-shadow: ${LIFT};
-  }
+  }`,
+  html: `<div class="orbit"><img src="${headshot}" alt="" /></div>`,
+});
+
+/** For the home page, About, Projects, and each page with no image. */
+function defaultCard(): Part {
+  const orbit = Orbit();
+
+  return card(
+    `
   main { gap: 64px; }
   h1 { font-size: 72px; line-height: 1.05; }
   .lead { margin-top: 18px; }
-  .rule { margin-top: 32px; }
-</style>
-<main>
-  <div class="orbit"><img src="${headshot}" alt="" /></div>
+  .rule { margin-top: 32px; }`,
+    `<main>
+  ${orbit.html}
   <div>
     <h1>${NAME}</h1>
     <p class="lead">${ROLE}</p>
     <div class="rule"></div>
   </div>
-</main>`);
+</main>`,
+    orbit
+  );
+}
 
 /**
  * The card for `/writing`. It shows the two most recent posts.
@@ -442,9 +478,9 @@ const defaultCard = () =>
  * This page has no single image, thus the card shows the items on the page. The
  * titles of real posts show the subject of the page better than an icon.
  */
-const writingCard = (posts: Entry<PostData>[]) =>
-  shell(`
-<style>
+const writingCard = (posts: Entry<PostData>[]): Part =>
+  card(
+    `
   main { gap: 52px; }
   .copy { flex: 1; min-width: 0; }
   h1 { font-size: 104px; line-height: 1; }
@@ -474,9 +510,8 @@ const writingCard = (posts: Entry<PostData>[]) =>
     overflow: hidden;
     font: 600 40px/1.25 'Inter';
     color: ${INK};
-  }
-</style>
-<main>
+  }`,
+    `<main>
   <div class="copy">
     <p class="eyebrow">${escape(WRITING.eyebrow)}</p>
     <h1>${escape(WRITING.headline)}</h1>
@@ -489,37 +524,26 @@ const writingCard = (posts: Entry<PostData>[]) =>
       .map((post) => `<li><span>${escape(post.data.title)}</span></li>`)
       .join('')}
   </ul>
-</main>`);
+</main>`
+  );
 
 /**
  * The artwork of one list, in the arrangement that `ListRow.astro` uses. The
  * images overlap, the image on the left is on top, and each image has a border
  * in the background color. Thus two images of similar color stay separate.
  */
-function fan(
+function Fan(
   entry: Entry<ListData>,
   { width, limit }: { width: number; limit: number }
-) {
+): Part {
   const poster = entry.data.thumb === 'poster';
   const height = poster ? Math.round((width * 3) / 2) : width;
   const covers = allItems(entry.data)
     .filter((item) => item.image !== undefined)
     .slice(0, limit);
 
-  return `<div class="fan">${covers
-    .map((item, i) => {
-      const file = resolve(entry.dir, item.image!);
-      return `<img src="${dataUri(file)}" alt="" style="
-        width: ${width}px;
-        height: ${height}px;
-        z-index: ${covers.length - i};
-        margin-left: ${i === 0 ? 0 : -Math.round(width * 0.36)}px;
-      " />`;
-    })
-    .join('')}</div>`;
-}
-
-const FAN_CSS = `
+  return {
+    css: `
   .fan { display: flex; align-items: flex-start; }
   .fan img {
     flex: none;
@@ -527,7 +551,20 @@ const FAN_CSS = `
     border: 1px solid ${LINE};
     border-radius: 14px;
     box-shadow: 0 0 0 4px ${CANVAS}, ${LIFT};
-  }`;
+  }`,
+    html: `<div class="fan">${covers
+      .map((item, i) => {
+        const file = resolve(entry.dir, item.image!);
+        return `<img src="${dataUri(file)}" alt="" style="
+        width: ${width}px;
+        height: ${height}px;
+        z-index: ${covers.length - i};
+        margin-left: ${i === 0 ? 0 : -Math.round(width * 0.36)}px;
+      " />`;
+      })
+      .join('')}</div>`,
+  };
+}
 
 /**
  * The card for `/lists`. It shows the artwork of each published list, below the
@@ -537,35 +574,41 @@ const FAN_CSS = `
  * above it already gives the name of the section. If the heading gives it a
  * second time, the card does not tell the reader what the section contains.
  */
-const listsCard = (lists: Entry<ListData>[]) =>
-  shell(`
-<style>
-  ${FAN_CSS}
+function listsCard(lists: Entry<ListData>[]): Part {
+  const stacks = lists.map((list) => ({
+    list,
+    art: Fan(list, { width: 108, limit: 5 }),
+  }));
+
+  return card(
+    `
   main { gap: 52px; }
   .copy { flex: 1; min-width: 0; }
   h1 { font-size: 68px; line-height: 1.06; }
   .eyebrow + h1 { margin-top: 16px; }
   .rule { margin-top: 30px; }
   .stacks { flex: none; display: flex; flex-direction: column; gap: 32px; align-items: flex-end; }
-  .stack .name { margin-bottom: 14px; text-align: right; font: 600 32px/1 'Inter'; color: ${INK}; }
-</style>
-<main>
+  .stack .name { margin-bottom: 14px; text-align: right; font: 600 32px/1 'Inter'; color: ${INK}; }`,
+    `<main>
   <div class="copy">
     <p class="eyebrow">${escape(LISTS.eyebrow)}</p>
     <h1>${escape(LISTS.headline)}</h1>
     <div class="rule"></div>
   </div>
   <div class="stacks">
-    ${lists
+    ${stacks
       .map(
-        (list) => `<div class="stack">
+        ({ list, art }) => `<div class="stack">
       <p class="name">${escape(list.data.title)}</p>
-      ${fan(list, { width: 108, limit: 5 })}
+      ${art.html}
     </div>`
       )
       .join('')}
   </div>
-</main>`);
+</main>`,
+    ...stacks.map(({ art }) => art)
+  );
+}
 
 /**
  * The card for one post. It shows the cover image of the post and its title.
@@ -575,14 +618,14 @@ const listsCard = (lists: Entry<ListData>[]) =>
  * it is. This card is always 1200x630, and it also shows the title and the name
  * of the site.
  */
-const postCard = (post: Entry<PostData>) => {
+function postCard(post: Entry<PostData>): Part {
   const title = post.data.title;
   /* The size comes from the number of characters. Thus a title of 52
      characters and a title of 20 characters both fill the column. */
   const size = title.length > 46 ? 54 : title.length > 30 ? 64 : 76;
 
-  return shell(`
-<style>
+  return card(
+    `
   main { gap: 56px; }
   .copy { flex: 1; min-width: 0; }
   h1 { font-size: ${size}px; line-height: 1.08; }
@@ -596,17 +639,17 @@ const postCard = (post: Entry<PostData>) => {
     border: 1px solid ${LINE};
     border-radius: 18px;
     box-shadow: ${LIFT};
-  }
-</style>
-<main>
+  }`,
+    `<main>
   <div class="copy">
     <p class="eyebrow">${escape(WRITING.title)}</p>
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
   <img class="cover" src="${dataUri(join('public', post.data.image.url))}" alt="" />
-</main>`);
-};
+</main>`
+  );
+}
 
 /**
  * The card for one list. It shows the artwork of the list and its title.
@@ -616,21 +659,27 @@ const postCard = (post: Entry<PostData>) => {
  * title. The title is 80px, and a smaller line is not legible when a person
  * sees the card at one third of this size.
  */
-const listCard = (list: Entry<ListData>) =>
-  shell(`
-<style>
-  ${FAN_CSS}
+function listCard(list: Entry<ListData>): Part {
+  const art = Fan(list, {
+    width: list.data.thumb === 'poster' ? 124 : 148,
+    limit: 6,
+  });
+
+  return card(
+    `
   main { flex-direction: column; align-items: flex-start; justify-content: center; gap: 46px; }
   h1 { font-size: 80px; line-height: 1.05; }
-  .eyebrow + h1 { margin-top: 18px; }
-</style>
-<main>
-  ${fan(list, { width: list.data.thumb === 'poster' ? 124 : 148, limit: 6 })}
+  .eyebrow + h1 { margin-top: 18px; }`,
+    `<main>
+  ${art.html}
   <div>
     <p class="eyebrow">${escape(LISTS.eyebrow)}</p>
     <h1>${escape(list.data.title)}</h1>
   </div>
-</main>`);
+</main>`,
+    art
+  );
+}
 
 /* ------------------------------------------------------------------ render */
 
@@ -704,16 +753,16 @@ const lists = published<ListData>('src/content/lists', (d) => d.updated);
 rmSync('public/og', { recursive: true, force: true });
 
 const cards: Card[] = [
-  ['public/og/default.jpg', defaultCard()],
-  ['public/og/writing.jpg', writingCard(posts)],
-  ['public/og/lists.jpg', listsCard(lists)],
+  ['public/og/default.jpg', shell(defaultCard())],
+  ['public/og/writing.jpg', shell(writingCard(posts))],
+  ['public/og/lists.jpg', shell(listsCard(lists))],
   ...posts.map((post): Card => [
     `public/og/post/${post.id}.jpg`,
-    postCard(post),
+    shell(postCard(post)),
   ]),
   ...lists.map((list): Card => [
     `public/og/list/${list.id}.jpg`,
-    listCard(list),
+    shell(listCard(list)),
   ]),
 ];
 
