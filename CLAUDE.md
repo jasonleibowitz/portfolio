@@ -227,6 +227,18 @@ text with system fonts and this site's typefaces are npm packages. Frontmatter i
 `yaml`. The script cannot call `getPublished`, but it must agree with it, so it drops drafts
 itself: no page, no card.
 
+**The script restates nothing that lives elsewhere.** The masthead copy comes from
+`src/lib/site.ts`, and the palette is parsed out of `theme.css` at generation time: it reads
+`@theme` and then `:root[data-theme='dark']` over it, the same cascade a browser resolves, so
+a token the dark block does not restate still comes out right. A token it cannot find throws,
+because the alternative is `background: undefined` and a wrong card with a green build. Edit
+`--color-canvas` and the cards move with the site. Verified by changing a token and watching
+the output change, then restoring it and confirming all ten cards came back byte-identical.
+
+The one thing still written out by hand is the `linear-gradient(100deg, …)` ramp, which lives
+in `spectrum-fill` and `text-gradient` in `utilities.css`. Those are Tailwind `@utility`
+blocks rather than tokens, so there is nothing to parse.
+
 The script is **TypeScript run straight by `node`**, with no build step: Node 24 strips the
 types on the way in, which is also how it imports `src/lib/site.ts`. `tsconfig.json` includes
 `**/*`, so `pnpm check` typechecks it, which was verified by planting an error rather than

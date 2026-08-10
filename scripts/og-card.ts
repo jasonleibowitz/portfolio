@@ -80,22 +80,84 @@ const JPEG = { quality: 92, chromaSubsampling: '4:4:4' };
 const WIDTH = 1200;
 const HEIGHT = 630;
 
+/* ------------------------------------------------------------------ palette */
+
+const THEME_CSS = 'src/styles/theme.css';
+
 /**
- * Tokens copied from `:root[data-theme='dark']` in `src/styles/theme.css`,
- * which is where they are owned.
+ * One declaration block of `theme.css`, by the text that opens it.
+ *
+ * A block ends at the first `}` in column one. Everything nested inside, the
+ * `@keyframes` in `@theme` included, is indented, so the brace that closes a
+ * nested rule never terminates the search early.
  */
-const CANVAS = '#16161f';
-const PANEL = 'rgb(255 255 255 / 0.07)';
-const LINE = 'rgb(255 255 255 / 0.13)';
-const LINE_STRONG = 'rgb(255 255 255 / 0.22)';
-const INK = '#f4f2fb';
-const MUTED = '#c2becf';
-const FAINT = '#948fa8';
-const VIOLET = '#a99bff';
-const CYAN = '#5fdff2';
-const GLOW_A = 'rgb(125 95 255 / 0.2)';
-const GLOW_B = 'rgb(70 205 235 / 0.14)';
-const LIFT = '0 12px 38px rgb(0 0 0 / 0.42)';
+function block(css: string, opener: string): string {
+  const start = css.indexOf(opener);
+  if (start === -1) throw new Error(`No ${opener} block in ${THEME_CSS}`);
+
+  const open = css.indexOf('{', start);
+  const close = css.indexOf('\n}', open);
+  if (close === -1) throw new Error(`Unterminated ${opener} in ${THEME_CSS}`);
+
+  return css.slice(open, close);
+}
+
+/**
+ * The dark palette, read from the stylesheet that owns it rather than restated
+ * here.
+ *
+ * These values used to be a hand-copied list, which is a second place to edit
+ * and one nothing checks: changing `--color-canvas` moved the site and left
+ * every share card on the old colour, silently and for as long as nobody
+ * happened to compare them.
+ *
+ * The two blocks are read in cascade order, the same way a browser resolves
+ * them: `@theme` is the base and `:root[data-theme='dark']` overrides it. So a
+ * token the dark block does not bother to restate still resolves, and does not
+ * have to be redundantly overridden just to keep this script working.
+ */
+function darkPalette(): (name: string) => string {
+  /* Comments go first: one of them could otherwise contribute a stray `;`. */
+  const css = readFileSync(THEME_CSS, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const tokens = new Map<string, string>();
+
+  for (const source of [
+    block(css, '@theme'),
+    block(css, ":root[data-theme='dark']"),
+  ]) {
+    for (const [, name, value] of source.matchAll(
+      /(--[\w-]+)\s*:\s*([^;]+);/g
+    )) {
+      tokens.set(name, value.trim().replace(/\s+/g, ' '));
+    }
+  }
+
+  return (name) => {
+    const value = tokens.get(name);
+    /* Loud, because the alternative is `background: undefined` and a card that
+       renders wrong with a green build. */
+    if (!value) throw new Error(`No ${name} in ${THEME_CSS}`);
+    return value;
+  };
+}
+
+const token = darkPalette();
+
+const CANVAS = token('--color-canvas');
+const PANEL = token('--color-panel');
+const LINE = token('--color-line');
+const LINE_STRONG = token('--color-line-strong');
+const INK = token('--color-ink');
+const MUTED = token('--color-muted');
+const FAINT = token('--color-faint');
+const VIOLET = token('--color-violet');
+const CYAN = token('--color-cyan');
+const GLOW_A = token('--color-glow-a');
+const GLOW_B = token('--color-glow-b');
+const LIFT = token('--shadow-lift');
+/* The same 100deg ramp as `spectrum-fill` and `text-gradient` in
+   utilities.css, which are Tailwind utilities and so cannot be read from
+   here. */
 const SPECTRUM = `linear-gradient(100deg, ${VIOLET}, ${CYAN})`;
 
 /**
