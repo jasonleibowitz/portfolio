@@ -26,6 +26,15 @@ export type ArtworkResult = {
   /** Shown in the result row, where it helps tell two matches apart. */
   hint?: string;
   /**
+   * Other credits this result could carry, broadest last.
+   *
+   * A place sits inside several areas at once, and which one belongs under the
+   * name is a judgement: "Williamsburg" on a coffee list, "Brooklyn" on a list
+   * that spans boroughs. The editor picks; nothing here guesses well enough to
+   * decide.
+   */
+  subtitleOptions?: string[];
+  /**
    * Opaque handles for pictures that each need a second request to resolve,
    * which is how Google hands out place photos. Sources that return a usable
    * `imageUrl` outright leave this alone.
@@ -207,15 +216,20 @@ const googlePlaces: ArtworkSource = {
           c.types?.includes(type)
         )?.longText;
 
-      const area =
-        component('neighborhood') ??
-        component('sublocality_level_1') ??
-        component('sublocality') ??
-        component('locality');
+      // Narrowest first, which is the usual preference, but all of them are
+      // offered because Google carries no neighbourhood for many Manhattan
+      // addresses and the right answer is then a borough or a typed word.
+      const areas = [
+        component('neighborhood'),
+        component('sublocality_level_1'),
+        component('locality'),
+        component('administrative_area_level_2'),
+      ].filter((value, i, all) => value && all.indexOf(value) === i) as string[];
 
       return {
         name: place.displayName?.text,
-        subtitle: area,
+        subtitle: areas[0],
+        subtitleOptions: areas,
         href: place.websiteUri ?? place.googleMapsUri,
         photoRefs: (place.photos ?? []).map((photo: any) => photo.name),
         /*

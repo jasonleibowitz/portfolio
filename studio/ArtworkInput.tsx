@@ -52,6 +52,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
     { result: ArtworkResult; images: string[] } | null
   >(null);
   const [manualUrl, setManualUrl] = useState('');
+  const [credit, setCredit] = useState('');
 
   const search = useCallback(async () => {
     if (!query.trim()) return;
@@ -76,7 +77,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
    */
   /** Uploads the chosen picture, if any, and appends the item. */
   const commit = useCallback(
-    async (result: ArtworkResult, artwork?: string) => {
+    async (result: ArtworkResult, artwork?: string, subtitle?: string) => {
       const name = result.name;
       setAdding(name);
       setError(null);
@@ -93,7 +94,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                 _key: randomKey(),
                 name,
                 href: result.href,
-                subtitle: result.subtitle,
+                subtitle: subtitle ?? result.subtitle,
                 tags: [],
                 ...(image ? { image } : {}),
               },
@@ -105,6 +106,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
         setResults([]);
         setChoosing(null);
         setManualUrl('');
+        setCredit('');
         setQuery('');
       } catch (err: any) {
         setError(err.message);
@@ -130,6 +132,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
       try {
         const images = await source.listImages(result);
         if (images.length <= 1) return commit(result, images[0]);
+        setCredit(result.subtitle ?? '');
         setChoosing({ result, images });
         setResults([]);
       } catch (err: any) {
@@ -186,6 +189,29 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
               <Text size={1}>
                 Choose a picture for <strong>{choosing.result.name}</strong>
               </Text>
+              <Stack space={2}>
+                <Text size={1} muted>
+                  Credit
+                </Text>
+                <Flex gap={2} wrap="wrap">
+                  {(choosing.result.subtitleOptions ?? []).map((option) => (
+                    <Button
+                      key={option}
+                      text={option}
+                      mode={credit === option ? 'default' : 'ghost'}
+                      onClick={() => setCredit(option)}
+                    />
+                  ))}
+                </Flex>
+                {/* Typed, because Google carries no neighbourhood for many
+                    Manhattan addresses and "Flatiron" is not on offer. */}
+                <TextInput
+                  value={credit}
+                  placeholder="Or write one, like Flatiron…"
+                  onChange={(e) => setCredit(e.currentTarget.value)}
+                />
+              </Stack>
+
               <Grid columns={4} gap={2}>
                 {choosing.images.map((url, i) => (
                   <Card
@@ -195,7 +221,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                     overflow="hidden"
                     border
                     as="button"
-                    onClick={() => commit(choosing.result, url)}
+                    onClick={() => commit(choosing.result, url, credit)}
                     disabled={adding !== null}
                     style={{ cursor: 'pointer', aspectRatio: '1', padding: 0 }}
                   >
@@ -221,7 +247,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && manualUrl.trim()) {
                         e.preventDefault();
-                        commit(choosing.result, manualUrl.trim());
+                        commit(choosing.result, manualUrl.trim(), credit);
                       }
                     }}
                   />
@@ -230,7 +256,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   text="Use URL"
                   mode="default"
                   disabled={adding !== null || !manualUrl.trim()}
-                  onClick={() => commit(choosing.result, manualUrl.trim())}
+                  onClick={() => commit(choosing.result, manualUrl.trim(), credit)}
                 />
               </Flex>
 
@@ -239,7 +265,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   text="Add without a picture"
                   mode="ghost"
                   disabled={adding !== null}
-                  onClick={() => commit(choosing.result)}
+                  onClick={() => commit(choosing.result, undefined, credit)}
                 />
                 <Button
                   text="Cancel"
