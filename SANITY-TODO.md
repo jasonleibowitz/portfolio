@@ -34,6 +34,12 @@ document and keeps the draft. Recoverable, but a different operation.
 
 ## Still to build
 
+- **Content edits do not appear until the dev server restarts.** Astro's content
+  layer runs a loader once and keeps the result in `.astro/data-store.json`, so
+  nothing re-fetches when a document changes in the studio. Astro's live content
+  collections run the loader per request and are meant for this; check whether
+  they are stable in Astro 7 before relying on them.
+
 - **Films are untested.** The picker searches Apple for both, but a `poster`
   list queries the `movie` entity and only podcasts have been tried. TMDB may
   still be the better source for films, as `scripts/list-artwork.mjs` notes.
