@@ -22,18 +22,9 @@ interface Props {
 
 const { page } = Astro.props;
 const active = NAV_FOR_PAGE[page];
-/**
- * The label on the closed control. A page in no section, the 404, has no
- * current item, so the control names the menu itself rather than a place the
- * reader is not.
- */
 const section = NAV.find((item) => item.key === active);
 
-/**
- * The name on the closed control. It is the section that the reader is in. The
- * 404 page is in no section, thus the control gives the name of the menu, and
- * not the name of a place where the reader is not.
- */
+/** The 404 is in no section, thus the closed control names the menu. */
 const current = section ?? { label: 'Menu', icon: 'lucide:compass' };
 ---
 

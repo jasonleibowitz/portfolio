@@ -132,14 +132,12 @@ const LISTS_LEAD =
   'Recommendations I get asked for often enough that it was easier to write them down';
 
 /**
- * The heading of `/lists`, in the same shape as `WRITING`, and for one more
- * reason. `scripts/og-card.ts` makes the share card outside Astro, and it reads
- * this file. Text that stays in the page must be typed a second time in the
- * script, and the card then keeps the old text after a change.
+ * The heading of `/lists`. `scripts/og-card.ts` reads this file to make the
+ * share card, thus text kept in the page would be typed a second time and the
+ * card would hold the old words after a change.
  *
- * `headline` is not the same key as `title`, because the heading of this page
- * is a sentence and its nav label is one word. For Writing the two are the same
- * word, thus both of its keys contain it.
+ * `headline` is not `title` because this heading is a sentence and the nav
+ * label is one word.
  */
 export const LISTS = {
   eyebrow: 'Lists',

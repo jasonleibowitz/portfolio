@@ -17,36 +17,26 @@ import { parse as parseYaml } from 'yaml';
 import { LISTS, WRITING } from '../src/lib/site.ts';
 
 /**
- * Makes each image that a link preview needs. It writes them into `public/`.
- * It is the first part of `pnpm build`.
+ * Makes each image that a link preview needs, in `public/`, as the first part of
+ * `pnpm build`:
  *
- *   og/default.jpg       the card for a page that has no image of its own
+ *   og/default.jpg       a page with no image of its own
  *   og/writing.jpg       /writing
  *   og/lists.jpg         /lists
  *   og/post/<id>.jpg     one for each published post
  *   og/list/<id>.jpg     one for each published list
- *   apple-touch-icon.png the image that iMessage and iOS use if there is no
- *                        other one
+ *   apple-touch-icon.png what iMessage and iOS use if there is no other image
  *
- * These files are not in git. `public/og/` is in `.gitignore`, and each build
- * makes the cards again from the current content. CI does this also.
+ * No card is in git. Each build makes them again, in CI also, thus a card
+ * always agrees with its page and no person must remember to make one.
  *
- * Thus a card always agrees with its page. If you change the title of a post,
- * the next build makes a new card with the new title. If you delete a post, the
- * next build does not make its card. No person must remember to do this.
+ * Each card is an HTML page and Chrome makes the image, because sharp shows SVG
+ * text in a font of the operating system and this site gets its fonts from npm.
+ * The GitHub runner has Chrome. `pnpm dev` does not run this; use `pnpm cards`
+ * to see a card during development.
  *
- * `pnpm dev` does not run this script, because only a web crawler reads a card.
- * Use `pnpm cards` if you must look at a card during development.
- *
- * Each card is an HTML page, and Chrome makes an image of it. sharp cannot do
- * this: sharp shows the text of an SVG file in a font of the operating system,
- * and this site gets its two fonts from npm. Chrome reads the same woff2 files
- * as the site. The GitHub runner has Chrome, thus CI installs nothing.
- *
- * Each card is dark, in the light theme also. `og:image` gives one address, and
- * a web crawler does not tell you which theme it must use. Thus a page cannot
- * supply a light card and a dark card. One card must do both. The dark card is
- * better in iMessage, where most message areas are already dark.
+ * Each card is dark in both themes: `og:image` is one address, and a web
+ * crawler does not say which theme it wants.
  */
 
 /**
@@ -102,15 +92,12 @@ function block(css: string, opener: string): string {
 }
 
 /**
- * Reads the dark colors from `theme.css`, which is the file that holds them.
+ * Reads the dark colors from `theme.css`, the file that holds them. Do not copy
+ * the values here: a copy is a second place to change, and no test compares the
+ * two.
  *
- * Do not copy these values into this script. A copy is a second place to
- * change, and no test compares the two. If you change `--color-canvas` and the
- * script has a copy, the site changes but each card keeps the old color.
- *
- * The function reads two blocks, in the sequence that a browser uses: `@theme`
- * first, then `:root[data-theme='dark']` over it. Thus a color that the dark
- * block does not give again is still correct.
+ * It reads `@theme` first, then `:root[data-theme='dark']` over it, which is
+ * the sequence that a browser uses.
  */
 function darkPalette(): (name: string) => string {
   /* Remove the comments first. A comment can contain a `;`. */
@@ -371,13 +358,10 @@ const shell = ({ css, html }: Part) => `<!doctype html>
   /*
     No text on a card is smaller than 30px.
 
-    A card is 1200px wide, and a message program shows it at approximately
-    350px. Thus divide each size here by 3.5 to get the size that a person sees.
-    The type sizes of the site are too small for this: the caption size is 12px,
-    which becomes less than 4px.
-
-    Thus a card shows a small number of things, and each one is large. A count
-    or a date is correct on a page, but this card does not show it.
+    A card is 1200px wide and a message program shows it at approximately 350px,
+    thus divide each size here by 3.5. The 12px caption size of the site becomes
+    less than 4px. A card therefore shows few things, each one large, and no
+    counts and no dates.
   */
   .eyebrow {
     font: 400 30px/1 'JetBrains Mono';
@@ -691,19 +675,14 @@ type Card = [out: string, html: string];
 /**
  * Makes an image of each card and writes it as a JPEG file.
  *
- * Chrome needs approximately 2.5 seconds to start, but it needs almost no time
- * to show a card. Thus the script starts one Chrome, and gives each card to the
- * same page. Ten cards, one Chrome at a time for each, needed 28 seconds. Ten
- * cards in one Chrome need approximately four seconds.
+ * One Chrome for all the cards: Chrome needs 2.5 seconds to start and almost no
+ * time to show a card. Ten cards took 28 seconds with one Chrome for each, and
+ * take three seconds through one browser.
  *
- * Chrome makes a PNG image, and sharp writes the JPEG file. Do not let Chrome
- * write the JPEG file: Chrome selects the chroma subsampling, and 4:2:0 puts
- * color errors on the edges of the letters. sharp uses 4:4:4, which does not.
- *
- * The file is a JPEG because each card contains a photograph. A PNG file keeps
- * all of the data and is four times larger. At quality 92 a person cannot see
- * the difference in the heading, which is the only part that a lossy format can
- * make worse.
+ * Chrome makes a PNG and sharp writes the JPEG. Do not let Chrome write the
+ * JPEG: it selects 4:2:0 chroma subsampling, which puts color errors on the
+ * edges of the letters. A JPEG because each card contains a photograph, which a
+ * PNG keeps at four times the size.
  */
 async function shoot(cards: Card[]) {
   const browser = await launch({

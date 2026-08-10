@@ -7,16 +7,13 @@ import Link from '@components/ui/Link.astro';
 /**
  * A temporary page. The text is correct, but no person has designed the layout.
  *
- * The page is necessary now, because links to this site are 10 years old. The
- * redirects in `astro.config.mjs` send each `/blog/*` address that is still
- * correct. Each other address went to a page of Cloudflare, which has no header
- * and no link back to the site.
+ * Links to this site are 10 years old. An address that no redirect in
+ * `astro.config.mjs` matches went to a page of Cloudflare with no header and no
+ * way back. There is one link and no button, because a gradient button is an
+ * action that the reader came to do.
  *
- * One link, and no button. On this site a gradient button is an action that the
- * reader came to do, and no reader comes here to do an action.
- *
- * `not_found_handling` in `wrangler.jsonc` must stay `404-page`. If it does not,
- * the build makes this page and no person sees it.
+ * `not_found_handling` in `wrangler.jsonc` must stay `404-page`, or no person
+ * sees this page.
  */
 ---
 
