@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
+import { ArtworkInput } from '../ArtworkInput';
 import { listItem, richText, tag, tagsField, thumbField } from './shared';
 
 const post = defineType({
@@ -95,6 +96,7 @@ const list = defineType({
       title: 'Items',
       type: 'array',
       of: [{ type: 'listItem' }],
+      components: { input: ArtworkInput },
       hidden: ({ document }) => !!(document?.groups as unknown[])?.length,
       validation: (r) =>
         r.custom((items, ctx) => {
@@ -129,6 +131,7 @@ const list = defineType({
               name: 'items',
               type: 'array',
               of: [{ type: 'listItem' }],
+              components: { input: ArtworkInput },
             }),
           ],
           preview: {
