@@ -104,8 +104,15 @@ loop: Sanity posts a webhook, the site rebuilds from the published set, and
 Cloudflare serves it about two minutes later. `content-preview.yml` is its
 twin for drafts, and sends them to their own alias instead.
 
-Nothing is read from Sanity at request time. A built page is HTML, holds no
-token, and does not care whether Sanity is up.
+A built page holds the words and no token, so the text does not need Sanity
+again. The images are the exception: the HTML points at `cdn.sanity.io`, and
+each visitor loads them from there. If Sanity is down, the text stays and the
+pictures break.
+
+The studio is the same shape. `/admin` is JavaScript that this site delivers,
+and the browser then talks to `api.sanity.io`. The Worker has no `main` and
+runs no code, so no content ever reaches it. That is why each host needs a CORS
+origin in Sanity.
 
 Projects are the exception and still come from `src/content/projects`. Their
 write-ups were not migrated, so they stay on files until the copy is written in
