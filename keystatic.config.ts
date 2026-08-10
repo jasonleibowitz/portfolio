@@ -1,9 +1,11 @@
 import { config, fields, collection } from '@keystatic/core';
 import { captionedImage } from './keystatic.components';
+import { lists } from './keystatic.lists';
 
 export default config({
   storage: { kind: 'local' },
   collections: {
+    lists,
     blog: collection({
       label: 'Writing',
       slugField: 'title',
@@ -18,7 +20,11 @@ export default config({
           defaultValue: 'Jason Leibowitz',
         }),
         image: fields.object({
-          url: fields.text({ label: 'Cover image path' }),
+          url: fields.image({
+            label: 'Cover image',
+            directory: 'public/blog-images',
+            publicPath: '/blog-images/',
+          }),
           alt: fields.text({ label: 'Alt text' }),
         }),
         tags: fields.array(fields.text({ label: 'Tag' }), { label: 'Tags' }),
