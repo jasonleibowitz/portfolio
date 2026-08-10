@@ -13,3 +13,7 @@ plop-templates/
 
 # Critique snapshots are generated archives, not hand-edited source.
 .impeccable/critique/
+
+# Agent state, and the git worktrees under it. `pnpm format` writes, so without
+# this line it reformats files in another branch's checkout.
+.claude/

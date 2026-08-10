@@ -5,7 +5,16 @@ import astro from 'eslint-plugin-astro';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default defineConfig([
-  globalIgnores(['dist/', '.astro/', 'node_modules/', 'plop-templates/']),
+  /* `.claude/` is agent state, and `.claude/worktrees/` holds whole checkouts of
+     this repo on other branches. Linting one reports another branch's problems
+     as this branch's, and nothing in this config could fix them. */
+  globalIgnores([
+    'dist/',
+    '.astro/',
+    'node_modules/',
+    'plop-templates/',
+    '.claude/',
+  ]),
   js.configs.recommended,
   tseslint.configs.recommended,
   astro.configs.recommended,
