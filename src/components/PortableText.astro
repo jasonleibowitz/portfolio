@@ -2,6 +2,7 @@
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
 import CaptionedImage from '@components/CaptionedImage.astro';
+import Spans from '@components/Spans.astro';
 import { imageUrl } from '@lib/sanity';
 
 /**
@@ -10,12 +11,10 @@ import { imageUrl } from '@lib/sanity';
  * Portable Text is data rather than a compiled component, so it cannot go
  * through `render()` the way MDX does. That is the one real cost of moving
  * content out of the repo, and this file is where it is paid: every block type
- * has to be mapped to markup once, here, instead of being written inline in a
- * post.
+ * is mapped to markup once, here, instead of being written inline in a post.
  *
  * The upside is that the mapping is central. A change to how images or code
- * blocks render moves every post at once, which is the same argument as the
- * named project sections.
+ * blocks render moves every post at once.
  */
 interface Props {
   value: any[];
@@ -23,23 +22,72 @@ interface Props {
 
 const { value = [] } = Astro.props;
 
-/** A span's marks are either decorators (`strong`) or keys into `markDefs`. */
-function marksFor(span: any, markDefs: any[] = []) {
-  const defs = (span.marks ?? []).map(
-    (mark: string) => markDefs.find((d) => d._key === mark) ?? mark
-  );
-  return {
-    strong: defs.includes('strong'),
-    em: defs.includes('em'),
-    code: defs.includes('code'),
-    link: defs.find((d: any) => d && d._type === 'link'),
-  };
+/** The plain text of a block, used for heading ids and their TOC entries. */
+export function blockText(node: any) {
+  return (node.children ?? []).map((c: any) => c.text ?? '').join('');
 }
+
+/**
+ * The id a heading renders with, matching what rehype generates for MDX.
+ *
+ * Without these the table of contents links point at anchors that do not
+ * exist, which breaks both jump-to-section and the scroll spy that highlights
+ * the section currently in view.
+ */
+export function headingId(node: any) {
+  return blockText(node)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/**
+ * Groups runs of consecutive list items into a single list.
+ *
+ * Portable Text marks each item individually rather than nesting them, so
+ * rendering blocks one at a time puts every bullet in its own `<ul>` and the
+ * gaps between them read as separate lists.
+ */
+function groupBlocks(nodes: any[]) {
+  const out: any[] = [];
+  for (const node of nodes) {
+    const listType = node._type === 'block' ? node.listItem : undefined;
+    const previous = out[out.length - 1];
+    if (listType && previous?.list === listType) previous.items.push(node);
+    else if (listType) out.push({ list: listType, items: [node] });
+    else out.push(node);
+  }
+  return out;
+}
+
+const blocks = groupBlocks(value);
 ---
 
 {
-  value.map((node: any) => {
-    if (node._type === 'image') {
+  blocks.map((node: any) => {
+    if (node.list === 'bullet')
+      return (
+        <ul>
+          {node.items.map((item: any) => (
+            <li>
+              <Spans node={item} />
+            </li>
+          ))}
+        </ul>
+      );
+
+    if (node.list === 'number')
+      return (
+        <ol>
+          {node.items.map((item: any) => (
+            <li>
+              <Spans node={item} />
+            </li>
+          ))}
+        </ol>
+      );
+
+    if (node._type === 'image')
       return (
         <CaptionedImage
           src={imageUrl(node, { width: 1400 })}
@@ -52,48 +100,41 @@ function marksFor(span: any, markDefs: any[] = []) {
           }
         />
       );
-    }
 
-    if (node._type === 'code') {
+    if (node._type === 'code')
       return (
         <pre>
           <code>{node.code}</code>
         </pre>
       );
-    }
 
     if (node._type !== 'block') return null;
 
-    const children = node.children?.map((span: any) => {
-      const { strong, em, code, link } = marksFor(span, node.markDefs);
-      let out: any = span.text;
-      if (code) out = <code>{out}</code>;
-      if (em) out = <em>{out}</em>;
-      if (strong) out = <strong>{out}</strong>;
-      if (link) out = <a href={link.href}>{out}</a>;
-      return out;
-    });
-
-    if (node.style === 'h2') return <Heading2>{children}</Heading2>;
-    if (node.style === 'h3') return <Heading3>{children}</Heading3>;
-    if (node.style === 'blockquote') return <blockquote>{children}</blockquote>;
-
-    // A list item is a normal block carrying `listItem`. Each renders as its
-    // own single-item list, which is wrong for spacing but right for content,
-    // and grouping them properly is a refinement rather than a blocker.
-    if (node.listItem === 'bullet')
+    if (node.style === 'h2')
       return (
-        <ul>
-          <li>{children}</li>
-        </ul>
-      );
-    if (node.listItem === 'number')
-      return (
-        <ol>
-          <li>{children}</li>
-        </ol>
+        <Heading2 id={headingId(node)}>
+          <Spans node={node} />
+        </Heading2>
       );
 
-    return <p>{children}</p>;
+    if (node.style === 'h3')
+      return (
+        <Heading3 id={headingId(node)}>
+          <Spans node={node} />
+        </Heading3>
+      );
+
+    if (node.style === 'blockquote')
+      return (
+        <blockquote>
+          <Spans node={node} />
+        </blockquote>
+      );
+
+    return (
+      <p>
+        <Spans node={node} />
+      </p>
+    );
   })
 }

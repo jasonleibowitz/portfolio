@@ -2,7 +2,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-import { imageUrl, queries, sanity, usingSanity } from './lib/sanity';
+import { imageUrl, queries, sanityClient, usingSanity } from './lib/sanity';
 
 /**
  * Reads a collection from Sanity instead of from disk.
@@ -15,7 +15,7 @@ import { imageUrl, queries, sanity, usingSanity } from './lib/sanity';
 const sanityLoader = (query: string) => ({
   name: 'sanity',
   load: async ({ store, parseData, logger }: any) => {
-    const entries = await sanity.fetch(query);
+    const entries = await sanityClient().fetch(query);
     logger.info(`loaded ${entries.length} entries from Sanity`);
     store.clear();
     for (const entry of entries) {

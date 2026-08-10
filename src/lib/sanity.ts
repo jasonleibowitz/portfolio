@@ -11,14 +11,28 @@ import process from 'node:process';
  * `published` sees only published documents, `drafts` sees unpublished work as
  * if it were live. That single value is the whole preview mechanism.
  */
-export const sanity = createClient({
-  projectId: process.env.SANITY_PROJECT_ID ?? '',
-  dataset: process.env.SANITY_DATASET ?? 'production',
-  apiVersion: '2025-08-15',
-  useCdn: false,
-  token: process.env.SANITY_READ_TOKEN,
-  perspective: process.env.SANITY_PERSPECTIVE === 'drafts' ? 'drafts' : 'published',
-});
+let client: ReturnType<typeof createClient> | undefined;
+
+/**
+ * Built on first use, never at import.
+ *
+ * The client throws when it has no `projectId`, so constructing it at module
+ * scope broke every build that does not read from Sanity -- merely importing
+ * this file was enough. A file-backed build must not need Sanity credentials
+ * to exist.
+ */
+export function sanityClient() {
+  client ??= createClient({
+    projectId: process.env.SANITY_PROJECT_ID ?? '',
+    dataset: process.env.SANITY_DATASET ?? 'production',
+    apiVersion: '2025-08-15',
+    useCdn: false,
+    token: process.env.SANITY_READ_TOKEN,
+    perspective:
+      process.env.SANITY_PERSPECTIVE === 'drafts' ? 'drafts' : 'published',
+  });
+  return client;
+}
 
 /**
  * Whether this build reads from Sanity or from the .mdx files.
