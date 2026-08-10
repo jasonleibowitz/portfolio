@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -12,10 +13,15 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { parse as parseYaml } from 'yaml';
+/* Node 24 strips the types on the way in, so the masthead copy is read from
+   the file the pages read it from rather than typed out a second time here.
+   `.nvmrc` pins that version; on Node 22 this import needs
+   --experimental-strip-types. */
+import { LISTS, WRITING } from '../src/lib/site.ts';
 
 /**
- * Rebuilds every raster a link preview needs. They are committed to `public/`
- * rather than generated at build time:
+ * Draws every raster a link preview needs, into `public/`, as the first half of
+ * `pnpm build`:
  *
  *   og/default.jpg       the card for any page with nothing of its own
  *   og/writing.jpg       /writing
@@ -24,20 +30,19 @@ import { parse as parseYaml } from 'yaml';
  *   og/list/<id>.jpg     one per published list
  *   apple-touch-icon.png what iMessage and iOS fall back to
  *
- * Run it after adding a post or a list, and after changing the headshot, the
- * role line or the palette:
+ * Nothing here is committed: `public/og/` is ignored, and the cards are rebuilt
+ * from current content on every build, including in CI. That is the whole point
+ * of running here rather than by hand. A card cannot be older than the post it
+ * describes, a renamed post cannot keep its old title on its card, and a deleted
+ * one cannot leave a card behind, because none of them survive the next build.
  *
- *   node scripts/og-card.mjs
- *
- * A route asks for its card through `shareCard()` in `src/lib/og.ts`, which
- * fails the build when the file is absent. A new post therefore cannot ship
- * with a stale or missing card without the build saying so.
+ * `pnpm dev` does not run this, since a card is only ever read by a scraper. Run
+ * `pnpm cards` if you want to look at one while developing.
  *
  * Cards are laid out in HTML and shot with headless Chrome rather than composed
  * in sharp, because sharp rasterizes SVG text with system fonts and this site's
- * typefaces are npm packages. Chrome loads the same woff2 files the site
- * serves. Chrome is a local tool here, not a dependency: CI never runs this, it
- * reads the committed images.
+ * typefaces are npm packages. Chrome loads the same woff2 files the site serves.
+ * The GitHub runner ships Chrome, so CI needs nothing installed for this.
  *
  * Every card is dark, in both themes. `og:image` is one URL and a scrape
  * carries no theme signal, so a page cannot offer a light card and a dark card
@@ -45,7 +50,33 @@ import { parse as parseYaml } from 'yaml';
  * better of the two in iMessage, where most bubbles are dark already.
  */
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+/**
+ * Chrome, wherever this is running. macOS locally, Linux on the GitHub runner,
+ * which ships one. `CHROME_PATH` covers anything else.
+ */
+function findChrome() {
+  const candidates = [
+    process.env.CHROME_PATH,
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ].filter(Boolean);
+
+  const found = candidates.find((path) => existsSync(path));
+  if (found) return found;
+
+  throw new Error(
+    `No Chrome found. Looked in:\n  ${candidates.join('\n  ')}\n` +
+      'Set CHROME_PATH, or install Chrome. The share cards are built with it.'
+  );
+}
+
+const CHROME = findChrome();
+
+/** Shared by every card, and folded into the fingerprint below. */
+const JPEG = { quality: 92, chromaSubsampling: '4:4:4' };
 const WIDTH = 1200;
 const HEIGHT = 630;
 
@@ -327,11 +358,9 @@ const writingCard = (posts) =>
 </style>
 <main>
   <div class="copy">
-    <p class="eyebrow">Archive</p>
-    <h1>Writing</h1>
-    <p class="lead">${escape(
-      "Long reviews of hardware I probably didn't need to buy, plus the occasional how-to."
-    )}</p>
+    <p class="eyebrow">${escape(WRITING.eyebrow)}</p>
+    <h1>${escape(WRITING.headline)}</h1>
+    <p class="lead">${escape(WRITING.description)}</p>
     <div class="rule"></div>
   </div>
   <ul class="recent">
@@ -398,8 +427,8 @@ const listsCard = (lists) =>
 </style>
 <main>
   <div class="copy">
-    <p class="eyebrow">Lists</p>
-    <h1>Things, ranked and sorted</h1>
+    <p class="eyebrow">${escape(LISTS.eyebrow)}</p>
+    <h1>${escape(LISTS.headline)}</h1>
     <div class="rule"></div>
   </div>
   <div class="stacks">
@@ -447,7 +476,7 @@ const postCard = (post) => {
 </style>
 <main>
   <div class="copy">
-    <p class="eyebrow">Writing</p>
+    <p class="eyebrow">${escape(WRITING.title)}</p>
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
@@ -474,7 +503,7 @@ const listCard = (list) =>
 <main>
   ${fan(list, { width: list.data.thumb === 'poster' ? 124 : 148, limit: 6 })}
   <div>
-    <p class="eyebrow">Lists</p>
+    <p class="eyebrow">${escape(LISTS.eyebrow)}</p>
     <h1>${escape(list.data.title)}</h1>
   </div>
 </main>`);
@@ -484,31 +513,84 @@ const listCard = (list) =>
 const scratch = mkdtempSync(join(tmpdir(), 'og-card-'));
 
 /**
- * Shoots one card and writes it as JPEG.
+ * Shoots a batch of cards in one Chrome and writes each as JPEG.
  *
- * Every card carries a photograph, which PNG stores losslessly and at four
- * times the weight. At quality 92 with no chroma subsampling the difference is
- * invisible on the headline, which is the only part a lossy codec could hurt.
+ * The cards are stacked in one tall page as iframes and cut apart afterwards,
+ * because launching Chrome costs about 2.5 seconds and rendering a card costs
+ * almost nothing. Ten cards one at a time took 28 seconds; the same ten in one
+ * launch take about four, which is the difference between a step a build can
+ * afford and one it cannot.
+ *
+ * Iframes rather than ten divs in one document: each card brings its own CSS,
+ * written against bare `h1` and short class names, and a shared document would
+ * have them overwrite each other. An iframe is a separate document, so the card
+ * templates stay exactly as they would be on their own.
+ *
+ * Each card is JPEG because every one carries a photograph, which PNG stores
+ * losslessly at four times the weight. At quality 92 with no chroma subsampling
+ * the difference is invisible on the headline, the only part a lossy codec
+ * could hurt.
  */
-async function shoot(html, out) {
-  const page = join(scratch, 'card.html');
-  const raw = join(scratch, 'shot.png');
-  writeFileSync(page, html);
-  mkdirSync(dirname(out), { recursive: true });
+async function shootBatch(batch) {
+  const pages = batch.map(([out], i) => {
+    const file = join(scratch, `card-${i}.html`);
+    writeFileSync(file, batch[i][1]);
+    mkdirSync(dirname(out), { recursive: true });
+    return file;
+  });
 
+  const sheet = join(scratch, 'sheet.html');
+  writeFileSync(
+    sheet,
+    `<!doctype html><meta charset="utf-8" />
+<style>
+  html, body { margin: 0; padding: 0; background: #000; }
+  iframe { display: block; width: ${WIDTH}px; height: ${HEIGHT}px; border: 0; }
+</style>
+${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
+  );
+
+  const shot = join(scratch, 'sheet.png');
   execFileSync(CHROME, [
     '--headless=new',
     '--disable-gpu',
     '--hide-scrollbars',
     '--force-device-scale-factor=1',
-    `--window-size=${WIDTH},${HEIGHT}`,
-    `--screenshot=${raw}`,
-    `file://${page}`,
+    /* Chrome's own sandbox is off because CI runs this too, and the only page
+       it ever opens is one this script just wrote. `/dev/shm` is small on some
+       CI hosts, and Chrome crashes rather than falling back on its own. */
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    `--window-size=${WIDTH},${HEIGHT * batch.length}`,
+    `--screenshot=${shot}`,
+    `file://${sheet}`,
   ]);
 
-  await sharp(raw)
-    .jpeg({ quality: 92, chromaSubsampling: '4:4:4' })
-    .toFile(out);
+  /* One decode, many crops. Re-reading the sheet per card would decode a
+     12000px PNG once for every card cut out of it. */
+  const sheetPixels = await sharp(shot)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  for (const [i, [out]] of batch.entries()) {
+    await sharp(sheetPixels.data, { raw: sheetPixels.info })
+      .extract({ left: 0, top: i * HEIGHT, width: WIDTH, height: HEIGHT })
+      .jpeg(JPEG)
+      .toFile(out);
+  }
+}
+
+/**
+ * Chrome stops rendering somewhere past 16384px of viewport, so a long enough
+ * sheet would come back part black. Twelve cards is 7560px, comfortably under
+ * it, and still one launch for a site this size.
+ */
+const BATCH = 12;
+
+async function shoot(cards) {
+  for (let i = 0; i < cards.length; i += BATCH) {
+    await shootBatch(cards.slice(i, i + BATCH));
+  }
 }
 
 const posts = published('src/content/blog', 'pubDate');
@@ -526,7 +608,7 @@ const cards = [
   ...lists.map((list) => [`public/og/list/${list.id}.jpg`, listCard(list)]),
 ];
 
-for (const [out, html] of cards) await shoot(html, out);
+await shoot(cards);
 
 /**
  * The touch icon comes straight from the favicon, whose monogram is drawn in

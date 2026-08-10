@@ -21,7 +21,11 @@ const tags = await getPublishedTags();
   image={shareCard('writing')}
   imageAlt="Writing on leibowitz.me, with the two most recent posts"
 >
-  <PageHead eyebrow="Archive" title={WRITING.title} intro={WRITING.intro} />
+  <PageHead
+    eyebrow={WRITING.eyebrow}
+    title={WRITING.headline}
+    intro={WRITING.intro}
+  />
 
   <Section>
     <SidebarLayout data-filter-root data-unit="posts">

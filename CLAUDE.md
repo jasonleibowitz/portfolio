@@ -97,9 +97,8 @@ pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
 Generates `src/content/blog/<today>-<dash-case-title>.mdx` with `draft: true` and a
-placeholder image. Replace the placeholder before publishing, then run
-`node scripts/og-card.mjs` and commit the card it writes for the post. The build fails
-without it: see "Link previews" below.
+placeholder image. Replace the placeholder before publishing. The share card needs no
+attention: `pnpm build` draws it.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into
 `{ { expr } }`, which breaks the generator silently.
@@ -166,26 +165,51 @@ of the title is a second thing to drift.
 | A project       | its `icon`, re-encoded to PNG by `getImage()`                 |
 | Everything else | `og/default.jpg`, the orbit avatar with the name and role     |
 
-`scripts/og-card.mjs` writes all of those except the project icons, into `public/og/`, and
-they are committed. **Run it after adding a post or a list**, the same way an image gets
-committed:
+`scripts/og-card.mjs` draws all of those except the project icons, and it runs as the first
+half of `pnpm build`:
 
-```bash
-node scripts/og-card.mjs
+```json
+"build": "node scripts/og-card.mjs && astro build"
 ```
 
-Forgetting is not a silent failure. A route asks for its card through `shareCard()` in
-`src/lib/og.ts`, which throws when the file is absent, so the build stops and names the
-missing path. Nothing else would catch it: the four gates never fetch a tag they emit, and a
-scraper fails much later in someone else's chat window. The script also clears `public/og`
-first, so a card whose post was deleted or drafted cannot linger as an orphan.
+**Nothing under `public/og/` is committed.** It is gitignored, and every build redraws it from
+current content, in CI as well as locally. That is the point of building them rather than
+committing them: a card cannot be older than the post it describes, a retitled post cannot
+keep its old card, and a deleted post cannot leave one behind, because none of them survive
+the next build. There is nothing to remember and nothing to check.
+
+Verified against real edits rather than assumed. A new post writes a new card and redraws
+`writing.jpg`; a changed post title redraws that post's card and `writing.jpg`; a changed list
+title or a change to the artwork in its fan redraws that list's card and `lists.jpg`; and
+editing `WRITING` or `LISTS` in `src/lib/site.ts` redraws the matching index card.
+
+That last one is why the masthead copy lives in `src/lib/site.ts` and not inline in the two
+index pages. The script runs outside Astro and reads that file directly (Node 24 strips the
+types on import, which `.nvmrc` pins). Copy left in a page would have to be typed a second
+time in the script, and the card would then keep the old wording after an edit.
+
+`pnpm dev` does **not** draw them, because a card is only ever read by a scraper. `pnpm cards`
+draws them on demand if you want to look at one. `shareCard()` in `src/lib/og.ts` still checks
+that a card exists, but only during a build, and it is a disagreement detector rather than a
+reminder: the generator and `getPublished` decide separately what is published, and if they
+ever part company a page would ship an `og:image` that 404s.
+
+All the cards are drawn in **one Chrome launch**, stacked as iframes in one tall page and cut
+apart with sharp afterwards. Launching Chrome costs ~2.5s and rendering a card costs almost
+nothing, so ten cards one at a time took 28 seconds and ten in one launch take four. Iframes
+rather than ten divs, because each card brings its own CSS written against bare `h1` and short
+class names. The batch is capped at 12 cards per launch: Chrome stops rendering somewhere past
+16384px of viewport, and a longer sheet comes back part black.
+
+The GitHub runner ships Chrome, so CI installs nothing. `findChrome()` walks the usual paths
+and honours `CHROME_PATH`; it fails with the list it tried rather than with a spawn error.
 
 A generated card exists because the alternatives are worse. A page with no `og:image` shares
 as a bare text row, and iMessage renders nothing but the URL. A raw cover image is a
 different shape on every post, and it says nothing about _which_ post is being shared, since
 the cover carries no title. One 1200x630 card per page fixes both.
 
-The cards ship as **JPEG at quality 92 with no chroma subsampling**. Every one carries a
+The cards are **JPEG at quality 92 with no chroma subsampling**. Every one carries a
 photograph, which PNG stores losslessly at four times the weight; the same espresso card is
 465kB as PNG and 107kB here, and the two are indistinguishable on the headline, which is the
 only part a lossy codec could hurt. `apple-touch-icon.png` stays PNG.
@@ -199,10 +223,9 @@ Tag archives take the default card. They are the one `/writing` route that does 
 Writing card, which is a choice and not an oversight.
 
 The cards are laid out in HTML and shot with headless Chrome, because sharp rasterizes SVG
-text with system fonts and this site's typefaces are npm packages. Chrome is a local tool
-there, not a dependency: CI never runs the script, it reads the committed images. Frontmatter
-is read with `yaml`, a devDependency for the same reason. The script cannot call
-`getPublished`, but it must agree with it, so it drops drafts itself: no page, no card.
+text with system fonts and this site's typefaces are npm packages. Frontmatter is read with
+`yaml`. The script cannot call `getPublished`, but it must agree with it, so it drops drafts
+itself: no page, no card.
 
 **Every card is dark, in both themes, and that is not an oversight.** `og:image` is one URL
 and a scrape carries no theme signal, so a page cannot ship a light card and a dark card and

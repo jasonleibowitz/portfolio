@@ -115,9 +115,32 @@ const WRITING_LEAD =
   "Long reviews of hardware I probably didn't need to buy, plus the occasional how-to";
 
 export const WRITING = {
+  eyebrow: 'Archive',
   title: 'Writing',
+  headline: 'Writing',
   description: `${WRITING_LEAD}.`,
   intro: `${WRITING_LEAD} I wrote so I'd never have to work it out twice.`,
+} as const;
+
+const LISTS_LEAD =
+  'Recommendations I get asked for often enough that it was easier to write them down';
+
+/**
+ * The `/lists` masthead, in the same shape, and for one more reason: the share
+ * card is drawn outside Astro by `scripts/og-card.mjs`, which reads this file.
+ * Copy left inline in the page would have to be typed a second time in the
+ * script, and the card would then keep the old wording after an edit.
+ *
+ * `headline` is separate from `title` because this page's masthead is a
+ * sentence and its nav label is a word. Writing's are the same word, which is
+ * why both of its keys hold it.
+ */
+export const LISTS = {
+  eyebrow: 'Lists',
+  title: 'Lists',
+  headline: 'Things, ranked and sorted',
+  description: `${LISTS_LEAD}.`,
+  intro: `${LISTS_LEAD}. Shorter than a post, updated whenever something changes.`,
 } as const;
 
 /** How the feed names itself, in its XML and in the head link offering it. */
