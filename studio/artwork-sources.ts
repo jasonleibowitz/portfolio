@@ -40,6 +40,8 @@ export type ArtworkResult = {
    * `imageUrl` outright leave this alone.
    */
   photoRefs?: string[];
+  /** Used to ask another source for a better neighbourhood. */
+  address?: string;
 };
 
 export type ArtworkSource = {
@@ -58,6 +60,12 @@ export type ArtworkSource = {
    * for.
    */
   listImages?(result: ArtworkResult): Promise<string[]>;
+  /**
+   * Optional second step for the credit line, for the same reason as the
+   * images: it costs a request, so it runs for the one result picked rather
+   * than for a whole search.
+   */
+  listCredits?(result: ArtworkResult): Promise<string[]>;
 };
 
 /**
@@ -230,6 +238,7 @@ const googlePlaces: ArtworkSource = {
         name: place.displayName?.text,
         subtitle: areas[0],
         subtitleOptions: areas,
+        address: place.shortFormattedAddress,
         href: place.websiteUri ?? place.googleMapsUri,
         photoRefs: (place.photos ?? []).map((photo: any) => photo.name),
         /*
@@ -252,6 +261,49 @@ const googlePlaces: ArtworkSource = {
    * request, and a grid longer than that is a worse way to choose rather than
    * a better one.
    */
+
+  /**
+   * Credit options, with OpenStreetMap filling Google's gap.
+   *
+   * Google carries no `neighborhood` component for much of Manhattan: 25 E
+   * 20th St stops at "Manhattan", and a coffee list wants "Flatiron District".
+   * OpenStreetMap has it, needs no key, and is asked once for the one place
+   * chosen. Its answer leads because it is the most specific; Google's own
+   * areas follow as the fallback.
+   */
+  listCredits: async (result) => {
+    const google = result.subtitleOptions ?? [];
+    if (!result.address) return google;
+
+    try {
+      const params = new URLSearchParams({
+        q: result.address,
+        format: 'jsonv2',
+        limit: '1',
+        addressdetails: '1',
+      });
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?${params}`
+      );
+      if (!response.ok) return google;
+
+      const [match] = await response.json();
+      const address = match?.address ?? {};
+      const osm = [
+        address.neighbourhood,
+        address.quarter,
+        address.suburb,
+        address.city_district,
+      ].filter(Boolean) as string[];
+
+      return [...osm, ...google].filter(
+        (value, i, all) => all.indexOf(value) === i
+      );
+    } catch {
+      return google;
+    }
+  },
+
   listImages: async (result) => {
     const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
 

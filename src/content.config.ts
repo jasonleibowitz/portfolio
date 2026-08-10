@@ -14,17 +14,43 @@ import { imageUrl, queries, sanityClient, usingSanity } from './lib/sanity';
  */
 const sanityLoader = (query: string) => ({
   name: 'sanity',
-  load: async ({ store, parseData, logger }: any) => {
+  load: async ({ store, parseData, logger, generateDigest }: any) => {
     const entries = await sanityClient().fetch(query);
-    logger.info(`loaded ${entries.length} entries from Sanity`);
-    store.clear();
+
+    /*
+     * Every entry carries a digest, and unchanged ones are left alone.
+     *
+     * Clearing the store and rewriting it on each load looked equivalent and
+     * was not: with nothing to compare, the content layer treats each sync as
+     * a change, pushes a reload to the browser, and the reload triggers the
+     * next sync. The page reloaded forever. A digest is how Astro tells "the
+     * loader ran again" apart from "the content is different".
+     */
+    const seen = new Set<string>();
+    let changed = 0;
+
     for (const entry of entries) {
       if (!entry.id) continue;
+      seen.add(entry.id);
+
+      const digest = generateDigest(entry);
+      if (store.get(entry.id)?.digest === digest) continue;
+
       store.set({
         id: entry.id,
         data: await parseData({ id: entry.id, data: entry }),
+        digest,
       });
+      changed += 1;
     }
+
+    // A document deleted in the studio has to leave the store as well, which
+    // clearing used to handle for free.
+    for (const existing of store.values()) {
+      if (!seen.has(existing.id)) store.delete(existing.id);
+    }
+
+    if (changed) logger.info(`${changed} of ${entries.length} entries changed`);
   },
 });
 
