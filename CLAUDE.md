@@ -97,7 +97,9 @@ pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
 Generates `src/content/blog/<today>-<dash-case-title>.mdx` with `draft: true` and a
-placeholder image. Replace the placeholder before publishing.
+placeholder image. Replace the placeholder before publishing, then run
+`node scripts/og-card.mjs` and commit the card it writes for the post. The build fails
+without it: see "Link previews" below.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into
 `{ { expr } }`, which breaks the generator silently.
@@ -153,42 +155,66 @@ in conflict and neither needs "fixing" to match the other.
 `twitter:` twin, so only `twitter:card` and `twitter:creator` are spelled out; a second copy
 of the title is a second thing to drift.
 
-**Every page emits an `og:image`.** Which one it is comes from the page:
+**Every page emits an `og:image`, and almost all of them are generated.**
 
-| Page            | Share image                                    |
-| --------------- | ---------------------------------------------- |
-| A post          | its frontmatter `image`                        |
-| A list          | its frontmatter `image`, if the entry sets one |
-| A project       | its `icon`, re-encoded to PNG by `getImage()`  |
-| Everything else | `public/og-default.png`, the headshot card     |
+| Page            | Share card                                                    |
+| --------------- | ------------------------------------------------------------- |
+| `/writing`      | `og/writing.jpg`, the section title beside its 3 newest posts |
+| `/lists`        | `og/lists.jpg`, the page title beside a fan per list          |
+| A post          | `og/post/<id>.jpg`, its cover beside its title and date       |
+| A list          | `og/list/<id>.jpg`, its artwork fan over its title and counts |
+| A project       | its `icon`, re-encoded to PNG by `getImage()`                 |
+| Everything else | `og/default.jpg`, the orbit avatar with the name and role     |
 
-The default exists because a page with no `og:image` shares as a bare text row, and iMessage
-in particular renders nothing but the URL. It is a real photo and the same two lines the
-homepage `<title>` states, so it invents no copy.
+`scripts/og-card.mjs` writes all of those except the project icons, into `public/og/`, and
+they are committed. **Run it after adding a post or a list**, the same way an image gets
+committed:
+
+```bash
+node scripts/og-card.mjs
+```
+
+Forgetting is not a silent failure. A route asks for its card through `shareCard()` in
+`src/lib/og.ts`, which throws when the file is absent, so the build stops and names the
+missing path. Nothing else would catch it: the four gates never fetch a tag they emit, and a
+scraper fails much later in someone else's chat window. The script also clears `public/og`
+first, so a card whose post was deleted or drafted cannot linger as an orphan.
+
+A generated card exists because the alternatives are worse. A page with no `og:image` shares
+as a bare text row, and iMessage renders nothing but the URL. A raw cover image is a
+different shape on every post, and it says nothing about _which_ post is being shared, since
+the cover carries no title. One 1200x630 card per page fixes both.
+
+The cards ship as **JPEG at quality 92 with no chroma subsampling**. Every one carries a
+photograph, which PNG stores losslessly at four times the weight; the same espresso card is
+465kB as PNG and 107kB here, and the two are indistinguishable on the headline, which is the
+only part a lossy codec could hurt. `apple-touch-icon.png` stays PNG.
 
 A project's icon is square, and cropping a square to 1.91:1 cuts the top and bottom off it,
 so those pages pass `imageShape="square"` and get `twitter:card: summary`. The icons ship as
 webp, which the page wants and iMessage reads, but LinkedIn's scraper drops a webp and shows
-no picture, which is why the share copy is PNG. Post covers are still webp: they live in
-`public/` and so cannot go through `astro:assets` to be re-encoded.
+no picture, which is why the share copy is PNG.
 
-`public/og-default.png` and `public/apple-touch-icon.png` are committed rasters, rebuilt by
-`node scripts/og-card.mjs` after a change to the headshot, the role line or the palette. The
-card is laid out in HTML and shot with headless Chrome, because sharp rasterizes SVG text
-with system fonts and this site's two typefaces are npm packages. Chrome is a local tool
-there, not a dependency: CI never runs the script, it reads the committed PNGs.
+Tag archives take the default card. They are the one `/writing` route that does not get the
+Writing card, which is a choice and not an oversight.
 
-**The card is dark in both themes, and that is not an oversight.** `og:image` is one URL and
-a scrape carries no theme signal, so a page cannot ship a light card and a dark card and let
-the client pick. One card serves both, and the dark one wins in iMessage, where most bubbles
-are dark already.
+The cards are laid out in HTML and shot with headless Chrome, because sharp rasterizes SVG
+text with system fonts and this site's typefaces are npm packages. Chrome is a local tool
+there, not a dependency: CI never runs the script, it reads the committed images. Frontmatter
+is read with `yaml`, a devDependency for the same reason. The script cannot call
+`getPublished`, but it must agree with it, so it drops drafts itself: no page, no card.
 
-The card carries the hero's **OrbitAvatar**, held still: the dashed ring, the headshot as it
-is shot, and the spectrum dot with its glow. That shape is what makes the card and the page
-it opens read as the same object, so the script derives every measurement from the hero's
-250px ring rather than restating it. `DOT_OCLOCK` parks the dot at 2. The hero's dot never
-stops, so no angle is the true one, but 12 reads as a mark on the crown and 3 lines up with
-the role line and turns into a bullet aimed at it.
+**Every card is dark, in both themes, and that is not an oversight.** `og:image` is one URL
+and a scrape carries no theme signal, so a page cannot ship a light card and a dark card and
+let the client pick. One card serves both, and the dark one wins in iMessage, where most
+bubbles are dark already.
+
+One shell draws all of them: the canvas, the aurora, and a signature of the monogram beside
+`leibowitz.me`. The default card also carries the hero's **OrbitAvatar**, held still, which is
+what makes it and the page it opens read as the same object. Every measurement is a ratio of
+the hero's 250px ring rather than a second set of numbers. `DOT_OCLOCK` parks the dot at 2:
+the hero's dot never stops, so no angle is the true one, but 12 reads as a mark on the crown
+and 3 lines up with the role line and turns into a bullet aimed at it.
 
 The headshot goes in **untouched, white studio background and all**. On a dark canvas that
 white reads as a bright disc, and it is meant to: the hero shows the same disc in dark mode.

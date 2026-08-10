@@ -9,6 +9,7 @@ import Typography from '@components/ui/Typography.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import Toc from '@components/Toc.astro';
 import { readingMinutes, wordCount } from '@lib/reading';
+import { shareCard } from '@lib/og';
 import Link from '@components/ui/Link.astro';
 
 interface Props {
@@ -40,8 +41,8 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
   pageTitle={title}
   page="post"
   description={description}
-  image={image?.url}
-  imageAlt={image?.alt}
+  image={shareCard(`post/${post.id}`)}
+  imageAlt={`${title}, a post on leibowitz.me`}
 >
   <Section as="article" flush={false}>
     {

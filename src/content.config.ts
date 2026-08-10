@@ -76,21 +76,8 @@ const lists = defineCollection({
       title: z.string(),
       description: z.string().optional(),
       updated: z.coerce.date(),
-      /**
-       * The share card, and only that -- a list has no hero on the page.
-       *
-       * A path under `public/`, the same shape a post's image takes, rather
-       * than the `image()` the artwork below uses: a share image is read by a
-       * scraper at a fixed URL and never resized, so the assets pipeline has
-       * nothing to do for it. Optional, and a list without one shares the
-       * site's default card.
-       */
-      image: z
-        .object({
-          url: z.string().startsWith('/', 'a local path under public/'),
-          alt: z.string(),
-        })
-        .optional(),
+      /* A list has no share-image field: `scripts/og-card.mjs` builds its card
+         out of the artwork and the title already in here. */
       /** Ranked lists are numbered and never grouped. */
       ranked: z.boolean().default(false),
       /**

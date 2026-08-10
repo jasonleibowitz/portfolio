@@ -16,6 +16,7 @@ import ListFooter from '@components/ListFooter.astro';
 import Ph from '@components/ui/Ph.astro';
 import { getPublished } from '@lib/content';
 import { allItems, listTags, groupId } from '@lib/lists';
+import { shareCard } from '@lib/og';
 
 export async function getStaticPaths() {
   const lists = await getPublished('lists');
@@ -64,8 +65,8 @@ const hasBody = Boolean(list.body?.trim());
   pageTitle={data.title}
   page="list"
   description={data.description}
-  image={data.image?.url}
-  imageAlt={data.image?.alt}
+  image={shareCard(`list/${list.id}`)}
+  imageAlt={`${data.title}, a list on leibowitz.me`}
 >
   <PageHead title={data.title} intro={data.description}>
     {

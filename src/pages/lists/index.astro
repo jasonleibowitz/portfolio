@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHead from '@components/ui/PageHead.astro';
 import Section from '@components/layout/Section.astro';
 import ListRow from '@components/ListRow.astro';
+import { shareCard } from '@lib/og';
 import { getPublished } from '@lib/content';
 import Typography from '@components/ui/Typography.astro';
 
@@ -13,6 +14,8 @@ const lists = await getPublished('lists');
   pageTitle="Lists"
   page="lists"
   description="Recommendations I get asked for often enough that it was easier to write them down."
+  image={shareCard('lists')}
+  imageAlt="Lists on leibowitz.me, with artwork from each one"
 >
   <PageHead
     eyebrow="Lists"
