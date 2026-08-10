@@ -1,0 +1,99 @@
+---
+import Heading2 from '@components/markdown/Heading2.astro';
+import Heading3 from '@components/markdown/Heading3.astro';
+import CaptionedImage from '@components/CaptionedImage.astro';
+import { imageUrl } from '@lib/sanity';
+
+/**
+ * Renders a Sanity Portable Text body using this site's own components.
+ *
+ * Portable Text is data rather than a compiled component, so it cannot go
+ * through `render()` the way MDX does. That is the one real cost of moving
+ * content out of the repo, and this file is where it is paid: every block type
+ * has to be mapped to markup once, here, instead of being written inline in a
+ * post.
+ *
+ * The upside is that the mapping is central. A change to how images or code
+ * blocks render moves every post at once, which is the same argument as the
+ * named project sections.
+ */
+interface Props {
+  value: any[];
+}
+
+const { value = [] } = Astro.props;
+
+/** A span's marks are either decorators (`strong`) or keys into `markDefs`. */
+function marksFor(span: any, markDefs: any[] = []) {
+  const defs = (span.marks ?? []).map(
+    (mark: string) => markDefs.find((d) => d._key === mark) ?? mark
+  );
+  return {
+    strong: defs.includes('strong'),
+    em: defs.includes('em'),
+    code: defs.includes('code'),
+    link: defs.find((d: any) => d && d._type === 'link'),
+  };
+}
+---
+
+{
+  value.map((node: any) => {
+    if (node._type === 'image') {
+      return (
+        <CaptionedImage
+          src={imageUrl(node, { width: 1400 })}
+          alt={node.alt}
+          caption={node.caption}
+          attribution={
+            node.attribution?.href
+              ? { src: node.attribution.href, text: node.attribution.text }
+              : undefined
+          }
+        />
+      );
+    }
+
+    if (node._type === 'code') {
+      return (
+        <pre>
+          <code>{node.code}</code>
+        </pre>
+      );
+    }
+
+    if (node._type !== 'block') return null;
+
+    const children = node.children?.map((span: any) => {
+      const { strong, em, code, link } = marksFor(span, node.markDefs);
+      let out: any = span.text;
+      if (code) out = <code>{out}</code>;
+      if (em) out = <em>{out}</em>;
+      if (strong) out = <strong>{out}</strong>;
+      if (link) out = <a href={link.href}>{out}</a>;
+      return out;
+    });
+
+    if (node.style === 'h2') return <Heading2>{children}</Heading2>;
+    if (node.style === 'h3') return <Heading3>{children}</Heading3>;
+    if (node.style === 'blockquote') return <blockquote>{children}</blockquote>;
+
+    // A list item is a normal block carrying `listItem`. Each renders as its
+    // own single-item list, which is wrong for spacing but right for content,
+    // and grouping them properly is a refinement rather than a blocker.
+    if (node.listItem === 'bullet')
+      return (
+        <ul>
+          <li>{children}</li>
+        </ul>
+      );
+    if (node.listItem === 'number')
+      return (
+        <ol>
+          <li>{children}</li>
+        </ol>
+      );
+
+    return <p>{children}</p>;
+  })
+}

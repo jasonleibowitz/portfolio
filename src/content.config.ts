@@ -2,12 +2,70 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+import { imageUrl, queries, sanity, usingSanity } from './lib/sanity';
+
+/**
+ * Reads a collection from Sanity instead of from disk.
+ *
+ * A loader is the whole integration point: routes keep calling
+ * `getPublished()` and never learn where an entry came from. Only the body
+ * differs, because Portable Text is data rather than a compiled component and
+ * has to be rendered by `<PortableText />` instead of `render()`.
+ */
+const sanityLoader = (query: string) => ({
+  name: 'sanity',
+  load: async ({ store, parseData, logger }: any) => {
+    const entries = await sanity.fetch(query);
+    logger.info(`loaded ${entries.length} entries from Sanity`);
+    store.clear();
+    for (const entry of entries) {
+      if (!entry.id) continue;
+      store.set({
+        id: entry.id,
+        data: await parseData({ id: entry.id, data: entry }),
+      });
+    }
+  },
+});
+
+/**
+ * An uploaded asset, reshaped into the `{ url, alt }` the templates already
+ * read. Doing it here rather than in each template is what keeps the routes
+ * source-agnostic: only the body has to know which source it came from.
+ */
+const sanityImage = z
+  .object({
+    asset: z.object({ _ref: z.string() }).optional(),
+    alt: z.string().optional(),
+  })
+  .transform((value) => ({
+    url: imageUrl(value, { width: 1600 }) ?? '',
+    alt: value.alt ?? '',
+  }));
+
 /**
  * Copy that is still waiting on Jason is marked rather than invented, so the
  * gaps are visible on the page instead of described in a document. Each entry
  * names a frontmatter field that renders with a dotted underline.
  */
 const placeholder = z.array(z.string()).default([]);
+
+/**
+ * Sanity keeps the body as Portable Text and images as asset references, so
+ * the schema differs by source. Everything a template reads by name -- title,
+ * pubDate, tags, draft -- stays identical, which is why the routes do not have
+ * to branch.
+ */
+const sanityBlogSchema = z.object({
+  title: z.string(),
+  pubDate: z.coerce.date(),
+  description: z.string().optional(),
+  author: z.string(),
+  image: sanityImage,
+  tags: z.array(z.string()).default([]),
+  draft: z.boolean().default(false),
+  body: z.array(z.any()).default([]),
+});
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
@@ -33,6 +91,10 @@ const blog = defineCollection({
     draft: z.boolean().default(false),
   }),
 });
+
+const blogCollection = usingSanity
+  ? defineCollection({ loader: sanityLoader(queries.posts), schema: sanityBlogSchema })
+  : blog;
 
 const lists = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lists' }),
@@ -203,4 +265,4 @@ const projects = defineCollection({
     }),
 });
 
-export const collections = { blog, lists, projects };
+export const collections = { blog: blogCollection, lists, projects };
