@@ -24,10 +24,13 @@ import Link from '@components/ui/Link.astro';
   page="missing"
   description="Nothing lives at this address."
 >
+  {
+    /* No eyebrow. Every other masthead uses it to name the section, and this
+      page is in none. The headline already gives the status code. */
+  }
   <PageHead
-    eyebrow="404"
-    title="That address does not resolve"
-    intro="Nothing lives here. The link may be wrong, or the page may never have existed."
+    title="This is a 404. It's either my fault or yours."
+    intro="Either way, there is nothing at this address."
   />
 
   <Section>
