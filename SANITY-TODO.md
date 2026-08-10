@@ -44,8 +44,24 @@ document and keeps the draft. Recoverable, but a different operation.
   still be the better source for films, as `scripts/list-artwork.mjs` notes.
 - **`scripts/list-artwork.mjs` is now redundant** for anything in Sanity. Keep
   it while the file-backed source is still live; delete it when that goes.
-- **Projects loader.** `blog` and `lists` read from Sanity; `projects` still
-  reads `.mdx`.
+- **Projects loader, blocked on copy rather than code.** `blog` and `lists`
+  read from Sanity; `projects` still reads `.mdx`, and `content.config.ts`
+  exports it unconditionally so `CONTENT_SOURCE=sanity` leaves it alone.
+
+  The blocker is that all three write-ups are empty in Sanity: `problem`,
+  `howItWorks` and `lessons` have zero blocks on every project. The import
+  dropped them, because in the `.mdx` files that copy is raw
+  `<p class="placeholder-copy">` rather than markdown. Nothing of value was
+  lost, it was placeholder text, but moving projects now would leave three
+  pages with no write-up at all.
+
+  Writing those three in the studio is what unblocks it. The loader itself is
+  then a copy of the `lists` one, plus five fields the Sanity schema is missing
+  that the pages do read: `status_text_long`, `cta`, `testflight`, `order` and
+  `placeholder`. `specs` also needs mapping, since Sanity stores five named
+  fields where the pages want a list of label/value rows. `links` is in the
+  `.mdx` schema and rendered nowhere, so it does not need porting.
+
 - **Artwork ratio does nothing in the studio.** `thumb` is a data flag the site
   reads. It could drive the image field's crop, and does not.
 - **Raw HTML in bodies is dropped on import**, which is the embedded tweet in the
@@ -72,8 +88,17 @@ image can be pasted as a URL.
 - CORS origins in Sanity for each host the studio is served from: the staging
   and content-preview `workers.dev` URLs, and leibowitz.me at cutover. A
   per-pull-request URL is a new host each time and will not be worth adding.
-- Sanity webhook posting `repository_dispatch` to GitHub, so a content change
-  triggers the preview build.
+- **Two Sanity webhooks**, both posting `repository_dispatch` to GitHub with a
+  personal access token that has `repo` scope. Without them the workflows exist
+  and never fire, and publishing changes nothing a visitor can see.
+
+  | Fires on         | Event type       | Runs                  |
+  | ---------------- | ---------------- | --------------------- |
+  | publish          | `sanity-publish` | `content-deploy.yml`  |
+  | create or update | `sanity-preview` | `content-preview.yml` |
+
+  Both workflows also have `workflow_dispatch`, so either can be run by hand
+  from the Actions tab before the webhooks exist. That is the way to test one.
 
 ## The Google Maps key reaches the browser
 

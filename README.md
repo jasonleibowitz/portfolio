@@ -91,16 +91,25 @@ pnpm format:check  # prettier
 
 ## Deployment
 
-| Trigger        | Where it goes                               |
-| -------------- | ------------------------------------------- |
-| Pull request   | `pr-<n>-portfolio.<subdomain>.workers.dev`  |
-| Push to `main` | `portfolio.<subdomain>.workers.dev`         |
-| Content change | `content-portfolio.<subdomain>.workers.dev` |
+| Trigger               | Where it goes                               |
+| --------------------- | ------------------------------------------- |
+| Pull request          | `pr-<n>-portfolio.<subdomain>.workers.dev`  |
+| Push to `main`        | `portfolio.<subdomain>.workers.dev`         |
+| **Publish** in Sanity | `portfolio.<subdomain>.workers.dev`         |
+| **Save a draft**      | `content-portfolio.<subdomain>.workers.dev` |
 
-The content preview is a separate build from Sanity's drafts, so unpublished
-work can be shared without touching production. It runs from
-`.github/workflows/content-preview.yml`, triggered by a Sanity webhook or by
-hand from the Actions tab.
+Posts and lists are read from Sanity at build time, so publishing has to
+rebuild something to change anything. `content-deploy.yml` is what closes that
+loop: Sanity posts a webhook, the site rebuilds from the published set, and
+Cloudflare serves it about two minutes later. `content-preview.yml` is its
+twin for drafts, and sends them to their own alias instead.
+
+Nothing is read from Sanity at request time. A built page is HTML, holds no
+token, and does not care whether Sanity is up.
+
+Projects are the exception and still come from `src/content/projects`. Their
+write-ups were not migrated, so they stay on files until the copy is written in
+the studio.
 
 The studio has no deploy of its own. It is `/admin` on each of those URLs, so
 it ships with the site and editing works from a phone. Each new host needs its
