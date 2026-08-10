@@ -3,7 +3,7 @@ import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
 import MobileNav from '@components/MobileNav.astro';
 import Footer from '@components/Footer.astro';
-import { FEED_TITLE, type PageKey } from '@lib/site';
+import { CARD, FEED_TITLE, type PageKey } from '@lib/site';
 import { shareCard } from '@lib/og';
 
 import '@fontsource-variable/space-grotesk';
@@ -28,6 +28,12 @@ interface Props {
    * bottom of a square image, thus such a page asks for the small card.
    */
   imageShape?: 'wide' | 'square';
+  /**
+   * The size of `image`, in pixels. A page that gives its own image gives this
+   * also. A page that leaves both out gets a generated card, which is `CARD`.
+   */
+  imageWidth?: number;
+  imageHeight?: number;
 }
 
 const {
@@ -37,6 +43,8 @@ const {
   image,
   imageAlt,
   imageShape = 'wide',
+  imageWidth = CARD.width,
+  imageHeight = CARD.height,
 } = Astro.props;
 
 /**
@@ -115,6 +123,13 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     {description && <meta property="og:description" content={description} />}
     <meta property="og:image" content={share} />
     {shareAlt && <meta property="og:image:alt" content={shareAlt} />}
+    {
+      /* Give the size. Without it a crawler shows the link, gets the picture,
+        and shows the picture to the next reader only. Thus the first person to
+        share an address sees a preview with no picture in it. */
+    }
+    <meta property="og:image:width" content={String(imageWidth)} />
+    <meta property="og:image:height" content={String(imageHeight)} />
     <meta
       name="twitter:card"
       content={imageShape === 'square' ? 'summary' : 'summary_large_image'}

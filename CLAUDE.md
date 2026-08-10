@@ -233,6 +233,14 @@ as a bare text row, and iMessage renders nothing but the URL. A raw cover image 
 different shape on every post, and it says nothing about _which_ post is being shared, since
 the cover carries no title. One 1200x630 card per page fixes both.
 
+**That size is `CARD` in `src/lib/site.ts`, and the page states it as `og:image:width` and
+`og:image:height`.** Facebook's crawler renders a link before the picture has arrived, so
+without those tags the first person to share an address gets a preview with no image in it,
+and only the second one sees the card. The generator draws at `CARD` and `BaseLayout`
+declares it, from that one value, because a declared size that disagrees with the file is a
+reserved space of the wrong shape and no gate compares the two. A project page overrides
+both with its icon's own dimensions.
+
 The cards are **JPEG at quality 92 with no chroma subsampling**. Every one carries a
 photograph, which PNG stores losslessly at four times the weight; the same espresso card is
 465kB as PNG and 107kB here, and the two are indistinguishable on the headline, which is the

@@ -57,6 +57,8 @@ const ctas = [
   image={shareIcon?.src}
   imageAlt={shareIcon && `The ${data.title} app icon`}
   imageShape={shareIcon ? 'square' : 'wide'}
+  imageWidth={data.icon?.width}
+  imageHeight={data.icon?.height}
 >
   <Section flush={false}>
     <Status status={data.status}>

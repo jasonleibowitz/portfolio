@@ -14,7 +14,7 @@ import { parse as parseYaml } from 'yaml';
    the page headings from the same file as the pages, and no person must type
    them a second time. `.nvmrc` sets that version of Node. Node 22 needs the
    option --experimental-strip-types for this import. */
-import { LISTS, WRITING } from '../src/lib/site.ts';
+import { CARD, LISTS, WRITING } from '../src/lib/site.ts';
 
 /**
  * Makes each image that a link preview needs, in `public/`, as the first part of
@@ -66,8 +66,9 @@ const CHROME = findChrome();
 
 /** Each card uses these settings. */
 const JPEG = { quality: 92, chromaSubsampling: '4:4:4' };
-const WIDTH = 1200;
-const HEIGHT = 630;
+/* From `src/lib/site.ts`, because `BaseLayout` states the same two numbers to
+   a crawler. */
+const { width: WIDTH, height: HEIGHT } = CARD;
 
 /* ------------------------------------------------------------------ palette */
 

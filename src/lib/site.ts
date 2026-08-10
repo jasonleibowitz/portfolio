@@ -147,6 +147,23 @@ export const LISTS = {
   intro: `${LISTS_LEAD}. Shorter than a post, updated whenever something changes.`,
 } as const;
 
+/**
+ * The size of every generated share card, in pixels.
+ *
+ * `scripts/og-card.ts` draws at this size and `BaseLayout` states it to a
+ * crawler as `og:image:width` and `og:image:height`. It is one value because
+ * the two must agree: a crawler that gets the wrong size keeps space of the
+ * wrong shape, and no gate compares a number in the page with an image file.
+ *
+ * A crawler that gets no size shows the link without the picture, gets the
+ * picture, and shows it to the next reader. The first reader of each address
+ * sees no picture, and here that reader is usually Jason.
+ *
+ * 1200x630 is 1.91:1, which is the size that Facebook, LinkedIn, Slack and
+ * iMessage each show without a crop.
+ */
+export const CARD = { width: 1200, height: 630 } as const;
+
 /** How the feed names itself, in its XML and in the head link offering it. */
 export const FEED_TITLE = `${WRITING.title} · Jason Leibowitz`;
 
