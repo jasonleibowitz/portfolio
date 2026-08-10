@@ -18,8 +18,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "plop": "plop",
-    "studio": "sanity dev --root studio",
-    "studio:deploy": "sanity deploy --root studio"
+    "studio": "sanity dev --port 3333",
+    "studio:deploy": "sanity deploy"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.5",

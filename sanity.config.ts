@@ -2,7 +2,7 @@ import { visionTool } from '@sanity/vision';
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 
-import { schemaTypes } from './schemas';
+import { schemaTypes } from './studio/schemas';
 
 /**
  * Sanity Studio for leibowitz.me.
