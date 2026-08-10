@@ -6,6 +6,7 @@ import icon from 'astro-icon';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import tailwindcss from '@tailwindcss/vite';
+import sanityLive from './integrations/sanity-live.mjs';
 
 // Keystatic's routes are server-rendered, so building with the integration on
 // fails with NoAdapterInstalled. The editor is only ever used at `astro dev`.
@@ -16,7 +17,13 @@ export default defineConfig({
   // `site` sets the canonical tag, the og:image URL and the RSS links. CI
   // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
-  integrations: [mdx(), icon(), react(), ...(isDev ? [keystatic()] : [])],
+  integrations: [
+    mdx(),
+    icon(),
+    react(),
+    sanityLive(),
+    ...(isDev ? [keystatic()] : []),
+  ],
   markdown: {
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
