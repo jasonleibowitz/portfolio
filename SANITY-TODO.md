@@ -55,6 +55,19 @@ document and keeps the draft. Recoverable, but a different operation.
   copy renders with a dotted underline from a `placeholder[]` array; the Sanity
   schemas do not carry it.
 
+## Ruled out
+
+**Logos from a Google image search.** Better ranked than reading a venue's own
+site, and built, but Google discontinued full-web search for new Programmable
+Search Engines in August 2025. An engine created now searches only the sites it
+lists, which cannot find a logo for an arbitrary business. Confirmed through the
+API Explorer: the engine and the API both work, and every result came from the
+one placeholder site. Reaching it again would need an engine created before that
+date, or a paid search API.
+
+Logos still come from the venue's own website, read by the dev server, and any
+image can be pasted as a URL.
+
 ## Needs an account, so cannot be done from here
 
 - Repo secrets: `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_READ_TOKEN`.
