@@ -60,3 +60,5 @@ design/
 # it is the design system itself, not output.
 .impeccable/critique/
 .impeccable/live/
+tina/__generated__/
+public/tina-admin/

@@ -1,6 +1,9 @@
 backend:
   name: github
-  repo: jasonleibowitz/portfolio-v2
+  # Sveltia's local mode checks that the folder you pick is named after the
+  # second half of this value, so for the spike it names the worktree rather
+  # than the real repo, which is jasonleibowitz/portfolio.
+  repo: jasonleibowitz/keystatic-spike
   branch: main
 
 # Edits go straight to the working tree over a local proxy, so the spike never

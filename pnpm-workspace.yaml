@@ -3,6 +3,8 @@
 # and the bundler needs esbuild -- without these, `pnpm build` fails on
 # image generation with MissingSharp.
 allowBuilds:
+  better-sqlite3: set this to true or false
+  core-js: set this to true or false
   esbuild: true
   sharp: true
   # workerd is wrangler's local runtime, and only `wrangler dev` needs it.
