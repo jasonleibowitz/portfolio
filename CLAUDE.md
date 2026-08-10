@@ -178,6 +178,17 @@ card is laid out in HTML and shot with headless Chrome, because sharp rasterizes
 with system fonts and this site's two typefaces are npm packages. Chrome is a local tool
 there, not a dependency: CI never runs the script, it reads the committed PNGs.
 
+**The card is dark in both themes, and that is not an oversight.** `og:image` is one URL and
+a scrape carries no theme signal, so a page cannot ship a light card and a dark card and let
+the client pick. One card serves both, and the dark one wins in iMessage, where most bubbles
+are dark already.
+
+That is also why the script knocks the headshot's white studio background out. On the light
+page the white disappears into the canvas; on this one it reads as a bright disc. A flood
+fill from the border finds it, walking inward through pale pixels, so the teeth and the white
+squares of the shirt stay opaque because neither touches an edge. The circle behind the
+cutout is then `--color-panel`, not a crop of the photo.
+
 The touch icon is the favicon with its corner radius stripped and its alpha flattened. iOS
 masks the icon itself, so a rounded source leaves the mask's corners empty.
 

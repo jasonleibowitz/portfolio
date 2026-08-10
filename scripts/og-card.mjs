@@ -21,18 +21,28 @@ import sharp from 'sharp';
  * the site serves, so the card is set in Space Grotesk and Inter and not in a
  * fallback. Chrome is a local tool here, not a dependency: CI never runs this,
  * it reads the committed PNGs.
+ *
+ * The card is dark in both themes. `og:image` is one URL, and a scrape carries
+ * no theme signal, so a page cannot offer a light card and a dark card and let
+ * the client choose. One card must serve both, and the dark one is the better
+ * of the two in iMessage, where most bubbles are already dark.
  */
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-/** Tokens copied from `src/styles/theme.css`, which is where they are owned. */
-const CANVAS = '#fcfaf6';
-const INK = '#131220';
-const MUTED = '#55536a';
-const VIOLET = '#5b3df5';
-const CYAN = '#0e9fb8';
-const GLOW_A = 'rgb(91 61 245 / 0.16)';
-const GLOW_B = 'rgb(14 159 184 / 0.16)';
+/**
+ * Tokens copied from `:root[data-theme='dark']` in `src/styles/theme.css`,
+ * which is where they are owned.
+ */
+const CANVAS = '#16161f';
+const PANEL = 'rgb(255 255 255 / 0.07)';
+const LINE = 'rgb(255 255 255 / 0.13)';
+const INK = '#f4f2fb';
+const MUTED = '#c2becf';
+const VIOLET = '#a99bff';
+const CYAN = '#5fdff2';
+const GLOW_A = 'rgb(125 95 255 / 0.2)';
+const GLOW_B = 'rgb(70 205 235 / 0.14)';
 
 /** The same two lines the homepage `<title>` states, so a card cannot drift. */
 const NAME = 'Jason Leibowitz';
@@ -50,7 +60,75 @@ const inter = dataUri(
   'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
   'font/woff2'
 );
-const headshot = dataUri('src/images/headshot.png', 'image/png');
+/**
+ * The headshot with its white studio background made transparent.
+ *
+ * The photo is shot on white, which disappears into the light page but becomes
+ * a bright disc on this canvas. A flood fill from the border finds the
+ * background: it walks inward through pale pixels, so the teeth and the white
+ * squares of the shirt stay opaque because neither one touches an edge. A
+ * sub-pixel blur on the alpha channel alone keeps the hair from stepping.
+ */
+async function cutBackground(file) {
+  /** At or above this, a pixel the fill reaches counts as background. */
+  const PALE = 225;
+
+  const { data, info } = await sharp(file)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const { width, height, channels } = info;
+
+  const background = new Uint8Array(width * height);
+  const pending = [];
+
+  const visit = (x, y) => {
+    const pixel = y * width + x;
+    if (background[pixel]) return;
+    const i = pixel * channels;
+    if (Math.min(data[i], data[i + 1], data[i + 2]) < PALE) return;
+    background[pixel] = 1;
+    pending.push(pixel);
+  };
+
+  for (let x = 0; x < width; x++) {
+    visit(x, 0);
+    visit(x, height - 1);
+  }
+  for (let y = 0; y < height; y++) {
+    visit(0, y);
+    visit(width - 1, y);
+  }
+
+  while (pending.length) {
+    const pixel = pending.pop();
+    const x = pixel % width;
+    const y = (pixel - x) / width;
+    if (x > 0) visit(x - 1, y);
+    if (x < width - 1) visit(x + 1, y);
+    if (y > 0) visit(x, y - 1);
+    if (y < height - 1) visit(x, y + 1);
+  }
+
+  for (let pixel = 0; pixel < width * height; pixel++) {
+    if (background[pixel]) data[pixel * channels + 3] = 0;
+  }
+
+  const raw = { width, height, channels };
+  const cut = sharp(data, { raw });
+  const alpha = await cut.clone().extractChannel(3).blur(0.7).toBuffer();
+
+  return sharp(await cut.clone().removeAlpha().toBuffer(), {
+    raw: { width, height, channels: 3 },
+  })
+    .joinChannel(alpha, { raw: { width, height, channels: 1 } })
+    .png()
+    .toBuffer();
+}
+
+const headshot = `data:image/png;base64,${(
+  await cutBackground('src/images/headshot.png')
+).toString('base64')}`;
 
 const html = `<!doctype html>
 <meta charset="utf-8" />
@@ -80,13 +158,16 @@ const html = `<!doctype html>
       radial-gradient(410px 410px at 88% 22%, ${GLOW_B}, transparent 60%),
       radial-gradient(480px 480px at 60% 92%, ${GLOW_A}, transparent 65%);
   }
+  /* The circle is a panel behind the cutout, not a crop of the photo, so the
+     surround takes the page's own raised surface instead of white. */
   img {
     width: 340px;
     height: 340px;
     flex: none;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 10px 34px rgb(24 18 60 / 0.16);
+    background: ${PANEL};
+    box-shadow: inset 0 0 0 1px ${LINE};
   }
   h1 {
     font: 700 76px/1.05 'Space Grotesk';
