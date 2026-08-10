@@ -564,15 +564,25 @@ function Fan(
 }
 
 /**
- * The card for `/lists`. It shows the artwork of each published list, below the
- * title of that list.
+ * How many lists the `/lists` card shows. Three stacks fill the column. A
+ * fourth goes below the bottom edge, where `overflow: hidden` removes it, and
+ * no gate reports this: a gate does not look at an image.
+ *
+ * `published()` sorts by `updated`, thus these are the newest three. The
+ * Writing card keeps the newest two posts for the same reason.
+ */
+const MAX_STACKS = 3;
+
+/**
+ * The card for `/lists`. It shows the artwork of the most recent lists, below
+ * the title of each one.
  *
  * The heading is the heading of the page, not the word "Lists". The small label
  * above it already gives the name of the section. If the heading gives it a
  * second time, the card does not tell the reader what the section contains.
  */
 function listsCard(lists: Entry<ListData>[]): Part {
-  const stacks = lists.map((list) => ({
+  const stacks = lists.slice(0, MAX_STACKS).map((list) => ({
     list,
     art: Fan(list, { width: 108, limit: 5 }),
   }));
