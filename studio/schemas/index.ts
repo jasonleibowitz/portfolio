@@ -1,6 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
-import { listItem, tagsField, thumbField } from './shared';
+import { listItem, richText, tag, tagsField, thumbField } from './shared';
 
 const post = defineType({
   name: 'post',
@@ -52,57 +52,7 @@ const post = defineType({
     }),
     tagsField,
     defineField({ name: 'draft', type: 'boolean', initialValue: true }),
-    defineField({
-      name: 'body',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'block',
-          styles: [
-            { title: 'Paragraph', value: 'normal' },
-            // No H1: the page renders the title as its own h1, so a second one
-            // in the body is a duplicate.
-            { title: 'Heading 2', value: 'h2' },
-            { title: 'Heading 3', value: 'h3' },
-            { title: 'Quote', value: 'blockquote' },
-          ],
-          marks: {
-            decorators: [
-              { title: 'Bold', value: 'strong' },
-              { title: 'Italic', value: 'em' },
-              { title: 'Code', value: 'code' },
-            ],
-          },
-        }),
-        // An image in the body is a first-class block, so it renders as the
-        // real picture in the editor rather than an opaque card.
-        defineArrayMember({
-          type: 'image',
-          options: { hotspot: true },
-          fields: [
-            defineField({ name: 'alt', type: 'string' }),
-            defineField({ name: 'caption', type: 'string' }),
-            defineField({
-              name: 'attribution',
-              type: 'object',
-              fields: [
-                defineField({ name: 'text', type: 'string' }),
-                defineField({ name: 'href', type: 'url' }),
-              ],
-            }),
-          ],
-        }),
-        defineArrayMember({
-          name: 'code',
-          title: 'Code snippet',
-          type: 'object',
-          fields: [
-            defineField({ name: 'language', type: 'string' }),
-            defineField({ name: 'code', type: 'text', rows: 10 }),
-          ],
-        }),
-      ],
-    }),
+    defineField({ name: 'body', type: 'richText' }),
   ],
   preview: { select: { title: 'title', subtitle: 'pubDate', media: 'image' } },
 });
@@ -230,20 +180,23 @@ const project = defineType({
       of: [{ type: 'string' }],
       options: { layout: 'tags' },
     }),
-    // The spec rail, rendered in order.
+    /*
+     * Named fields rather than a label/value array. The array let every project
+     * invent its own rows, so the spec rail drifted between pages; these are
+     * the same five rows everywhere, and a blank one simply does not render.
+     * Renaming a row is a change here, once, rather than an edit per project.
+     */
     defineField({
       name: 'specs',
       title: 'Specs',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          fields: [
-            defineField({ name: 'label', type: 'string' }),
-            defineField({ name: 'value', type: 'string' }),
-          ],
-          preview: { select: { title: 'label', subtitle: 'value' } },
-        }),
+      type: 'object',
+      options: { columns: 2 },
+      fields: [
+        defineField({ name: 'platform', title: 'Platform', type: 'string' }),
+        defineField({ name: 'client', title: 'Client', type: 'string' }),
+        defineField({ name: 'backend', title: 'Backend', type: 'string' }),
+        defineField({ name: 'status', title: 'Status', type: 'string' }),
+        defineField({ name: 'started', title: 'Started', type: 'string' }),
       ],
     }),
     defineField({
@@ -259,9 +212,29 @@ const project = defineType({
     }),
     defineField({ name: 'is_featured', title: 'Featured', type: 'boolean' }),
     defineField({ name: 'draft', type: 'boolean', initialValue: true }),
-    defineField({ name: 'body', type: 'array', of: [{ type: 'block' }] }),
+    /*
+     * The write-up is three named sections rather than one free body, because
+     * every project page is meant to answer the same three questions in the
+     * same order. Renaming "What I'd do differently" is then one change here
+     * and it moves on every project at once, which a free body cannot do.
+     */
+    defineField({
+      name: 'problem',
+      title: 'The problem',
+      type: 'richText',
+    }),
+    defineField({
+      name: 'howItWorks',
+      title: 'How it works',
+      type: 'richText',
+    }),
+    defineField({
+      name: 'lessons',
+      title: "What I'd do differently",
+      type: 'richText',
+    }),
   ],
   preview: { select: { title: 'title', subtitle: 'status_text', media: 'icon' } },
 });
 
-export const schemaTypes = [post, list, project, listItem];
+export const schemaTypes = [post, list, project, listItem, tag, richText];

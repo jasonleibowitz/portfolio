@@ -90,7 +90,28 @@ function toPortableText(body) {
     const line = lines[i];
     if (!line.trim()) continue;
 
-    // Skip JSX/HTML blocks wholesale rather than emitting broken markup.
+    if (/^\s*<CaptionedImage/.test(line)) {
+      // Collect the whole element: these are written across several lines.
+      const jsx = [];
+      while (i < lines.length && !lines[i].includes('/>')) jsx.push(lines[i++]);
+      jsx.push(lines[i] ?? '');
+      const el = jsx.join(' ');
+      const prop = (name) =>
+        el.match(new RegExp(`${name}="([^"]*)"`))?.[1] ?? undefined;
+      const src = prop('src');
+      if (src) {
+        out.push({
+          _type: 'image',
+          _key: key(),
+          alt: prop('alt') ?? prop('caption') ?? '',
+          caption: prop('caption'),
+          _sanityAsset: `image@file://${join(PUBLIC, src.replace(/^\//, ''))}`,
+        });
+      }
+      continue;
+    }
+
+    // Any other raw HTML or JSX is skipped rather than half-converted.
     if (/^\s*<\/?[A-Za-z]/.test(line)) {
       while (i < lines.length && lines[i].trim() !== '') i += 1;
       continue;
@@ -170,6 +191,64 @@ const slug = (current) => ({ _type: 'slug', current });
 const day = (value) =>
   value instanceof Date ? value.toISOString().slice(0, 10) : String(value ?? '');
 
+/** Every tag seen across the content, so the vocabulary is created once. */
+const tags = new Set();
+const tagRef = (name) => {
+  tags.add(name);
+  return { _type: 'reference', _key: key(), _ref: `tag-${name}` };
+};
+const tagRefs = (list) => (list ?? []).map(tagRef);
+
+/**
+ * Splits a project body on its `##` headings into the named sections the
+ * schema now defines, so the three questions stay in the same order on every
+ * project instead of being whatever the author typed.
+ */
+const PROJECT_SECTIONS = {
+  'the problem': 'problem',
+  'how it works': 'howItWorks',
+  "what i'd do differently": 'lessons',
+};
+
+function splitSections(body) {
+  const sections = {};
+  let current = null;
+  const buffer = [];
+
+  const flush = () => {
+    if (current) sections[current] = toPortableText(buffer.join('\n'));
+    buffer.length = 0;
+  };
+
+  for (const line of body.split('\n')) {
+    const heading = line.match(/^##\s+(.*)$/);
+    if (heading) {
+      flush();
+      current = PROJECT_SECTIONS[heading[1].trim().toLowerCase()] ?? null;
+      continue;
+    }
+    if (current) buffer.push(line);
+  }
+  flush();
+  return sections;
+}
+
+/** The spec rail's rows, keyed by the label they used to carry. */
+const SPEC_FIELDS = {
+  platform: 'platform',
+  client: 'client',
+  backend: 'backend',
+  status: 'status',
+  started: 'started',
+};
+
+const toSpecs = (specs) =>
+  (specs ?? []).reduce((acc, { label, value }) => {
+    const field = SPEC_FIELDS[String(label).trim().toLowerCase()];
+    if (field) acc[field] = value;
+    return acc;
+  }, {});
+
 const listItem = (item, dir) => ({
   _type: 'listItem',
   _key: key(),
@@ -177,7 +256,7 @@ const listItem = (item, dir) => ({
   href: item.href,
   subtitle: item.subtitle,
   note: item.note,
-  tags: item.tags ?? [],
+  tags: tagRefs(item.tags),
   ...(item.image ? { image: { _sanityAsset: relativeAsset(dir, item.image) } } : {}),
 });
 
@@ -193,7 +272,7 @@ async function main() {
       pubDate: day(post.data.pubDate),
       description: post.data.description ?? '',
       author: post.data.author,
-      tags: post.data.tags ?? [],
+      tags: tagRefs(post.data.tags),
       draft: post.data.draft ?? false,
       ...(post.data.image?.url
         ? {
@@ -242,11 +321,20 @@ async function main() {
       frame: project.data.frame ?? 'phone',
       is_featured: project.data.is_featured ?? false,
       draft: project.data.draft ?? false,
-      specs: (project.data.specs ?? []).map((s) => ({ ...s, _key: key() })),
+      specs: toSpecs(project.data.specs),
       ...(project.data.icon
         ? { icon: { _sanityAsset: relativeAsset(project.dir, project.data.icon) } }
         : {}),
-      body: toPortableText(project.body),
+      ...splitSections(project.body),
+    });
+  }
+
+  for (const name of tags) {
+    docs.push({
+      _id: `tag-${name}`,
+      _type: 'tag',
+      title: name,
+      slug: { _type: 'slug', current: name },
     });
   }
 
