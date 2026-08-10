@@ -3,14 +3,20 @@ import process from 'node:process';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
+import react from '@astrojs/react';
+import keystatic from '@keystatic/astro';
 import tailwindcss from '@tailwindcss/vite';
+
+// Keystatic's routes are server-rendered, so building with the integration on
+// fails with NoAdapterInstalled. The editor is only ever used at `astro dev`.
+const isDev = process.argv[2] === 'dev';
 
 // https://astro.build/config
 export default defineConfig({
   // `site` sets the canonical tag, the og:image URL and the RSS links. CI
   // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
-  integrations: [mdx(), icon()],
+  integrations: [mdx(), icon(), react(), ...(isDev ? [keystatic()] : [])],
   markdown: {
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
