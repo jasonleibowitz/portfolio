@@ -248,8 +248,10 @@ Writing card, which is a choice and not an oversight.
 
 The cards are laid out in HTML and shot with headless Chrome, because sharp rasterizes SVG
 text with system fonts and this site's typefaces are npm packages. Frontmatter is read with
-`yaml`. The script cannot call `getPublished`, but it must agree with it, so it drops drafts
-itself: no page, no card.
+`yaml`. The script cannot call `getPublished`, but it must agree with it, so it reads
+`SHOW_DRAFTS` itself and applies the same rule: no page, no card. Leaving that read out is
+not a missing card but a failed build, since `shareCard()` stops a build that asks for one
+the script did not draw, and a pull request preview sets that variable.
 
 **The script restates nothing that lives elsewhere.** The masthead copy comes from
 `src/lib/site.ts`, and the palette is parsed out of `theme.css` at generation time: it reads

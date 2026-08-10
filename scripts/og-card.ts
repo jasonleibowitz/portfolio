@@ -256,12 +256,23 @@ interface Entry<T> {
 }
 
 /**
+ * Whether a draft gets a page, and thus a card. It is the other half of
+ * `showDrafts` in `src/lib/content.ts`, which decides the same thing for Astro.
+ * The two must agree: a pull request preview sets this variable, and a page
+ * that gets no card stops the build.
+ *
+ * There is no `import.meta.env.DEV` half here, because `pnpm dev` does not run
+ * this script.
+ */
+const SHOW_DRAFTS = process.env.SHOW_DRAFTS === 'true';
+
+/**
  * Reads the frontmatter of each entry in a collection. It gives the published
  * entries, the most recent one first.
  *
  * This script does not run in Astro, thus it cannot call `getPublished`. But it
  * must agree with that function. A draft has no page, thus it must have no
- * card. This function removes the drafts.
+ * card.
  */
 function published<T extends Draftable>(
   dir: string,
@@ -276,7 +287,7 @@ function published<T extends Draftable>(
         readFileSync(join(dir, file), 'utf8').split(/^---$/m)[1] ?? ''
       ) as T,
     }))
-    .filter((entry) => entry.data.draft !== true)
+    .filter((entry) => SHOW_DRAFTS || entry.data.draft !== true)
     .sort(
       (a, b) =>
         new Date(date(b.data)).valueOf() - new Date(date(a.data)).valueOf()
