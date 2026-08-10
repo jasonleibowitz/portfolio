@@ -125,8 +125,67 @@ const films: ArtworkSource = {
 };
 
 /**
- * For lists with no catalogue behind them, which is most of the interesting
- * ones: coffee shops, restaurants, walks.
+ * Anywhere with a street address: coffee shops, pizza, restaurants, bars.
+ *
+ * OpenStreetMap's Nominatim, chosen over Google Places and Foursquare for one
+ * reason each. Google needs a billing account with a card attached even inside
+ * its free tier. Foursquare's current API refuses cross-origin requests
+ * outright, its preflight answering 400, so only their legacy v3 works from a
+ * browser and that is an API they are migrating off. Nominatim needs no key,
+ * no account and no card, and it answers the browser directly.
+ *
+ * It returns no photograph, which is the honest trade and probably the right
+ * one: your own picture of a coffee shop beats a stock exterior, and licensing
+ * someone else's venue photos on a personal site is a question worth not
+ * having. Each item's own upload field is where the photo goes.
+ *
+ * Nominatim's usage policy caps callers at one request a second and asks them
+ * to identify themselves. A human clicking Search cannot outrun that, and a
+ * browser sends a Referer, which is the identification the policy accepts from
+ * a web app.
+ */
+const places: ArtworkSource = {
+  id: 'places',
+  label: 'Places (OpenStreetMap)',
+  placeholder: 'Search a shop, bar or restaurant…',
+  providesArtwork: false,
+  search: async (term) => {
+    const params = new URLSearchParams({
+      q: term,
+      format: 'jsonv2',
+      limit: '8',
+      addressdetails: '1',
+      extratags: '1',
+    });
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`
+    );
+    if (!response.ok) throw new Error(`Place search failed (${response.status})`);
+
+    return (await response.json()).map((place: any) => {
+      const address = place.address ?? {};
+      const extra = place.extratags ?? {};
+      // Neighborhood first: "Williamsburg" identifies a coffee shop to a
+      // reader in a way "Kings County" does not.
+      const area =
+        address.neighbourhood ??
+        address.suburb ??
+        address.town ??
+        address.city ??
+        address.state;
+
+      return {
+        name: place.name || place.display_name?.split(',')[0],
+        subtitle: area,
+        href: extra.website ?? extra['contact:website'],
+        hint: [place.type?.replace(/_/g, ' '), area].filter(Boolean).join(' · '),
+      };
+    });
+  },
+};
+
+/**
+ * For lists with no catalogue behind them at all.
  *
  * Adding the item by hand is still less work than the alternative, and the
  * upload field on each item is where its photo goes. This exists so a list can
@@ -144,6 +203,7 @@ export const SOURCES: Record<string, ArtworkSource> = {
   podcasts,
   films,
   albums,
+  places,
   manual,
 };
 
