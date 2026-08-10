@@ -1,6 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
 import { ArtworkInput } from '../ArtworkInput';
+import { SOURCE_OPTIONS } from '../artwork-sources';
 import { listItem, richText, tag, tagsField, thumbField } from './shared';
 
 const post = defineType({
@@ -84,6 +85,21 @@ const list = defineType({
       description: 'A ranked list is one numbered sequence, so it cannot be grouped.',
     }),
     thumbField,
+    /*
+     * Where this list's items come from, which drives the search box on the
+     * items array. Separate from `thumb`: the ratio is how an item looks, the
+     * source is where its data lives, and a coffee shop is square like a
+     * podcast while sharing nothing else with one.
+     */
+    defineField({
+      name: 'source',
+      title: 'Item source',
+      type: 'string',
+      initialValue: 'manual',
+      options: { list: SOURCE_OPTIONS },
+      description:
+        'Adds a search box to the items below. Pick "None" for lists with no catalogue behind them.',
+    }),
     /*
      * `items` and `groups` are mutually exclusive, and the editor enforces it
      * two ways so an invalid list cannot be built in the first place: each is

@@ -2,6 +2,8 @@ import { Box, Button, Card, Flex, Spinner, Stack, Text, TextInput } from '@sanit
 import { useCallback, useState } from 'react';
 import { insert, useClient, useFormValue, type ArrayOfObjectsInputProps } from 'sanity';
 
+import { SOURCES, type ArtworkResult } from './artwork-sources';
+
 /**
  * Adds a "search and add" row above a list's items.
  *
@@ -15,65 +17,22 @@ import { insert, useClient, useFormValue, type ArrayOfObjectsInputProps } from '
  * adds a way in.
  */
 
-type Result = {
-  collectionName?: string;
-  trackName?: string;
-  artistName?: string;
-  artworkUrl100?: string;
-  artworkUrl600?: string;
-  collectionViewUrl?: string;
-  trackViewUrl?: string;
-  releaseDate?: string;
-};
-
-/**
- * The iTunes Search API sends no CORS header, so this goes through JSONP.
- * Its artwork CDN does send one, which is what makes the upload below possible
- * without a proxy.
- */
-function itunesSearch(term: string, entity: string): Promise<Result[]> {
-  return new Promise((resolve, reject) => {
-    const callback = `itunes_cb_${Math.floor(Math.random() * 1e9)}`;
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Search timed out'));
-    }, 10000);
-
-    function cleanup() {
-      clearTimeout(timer);
-      delete (window as any)[callback];
-      script.remove();
-    }
-
-    (window as any)[callback] = (data: { results?: Result[] }) => {
-      cleanup();
-      resolve(data.results ?? []);
-    };
-    script.onerror = () => {
-      cleanup();
-      reject(new Error('Search failed'));
-    };
-    script.src =
-      `https://itunes.apple.com/search?term=${encodeURIComponent(term)}` +
-      `&entity=${entity}&limit=8&callback=${callback}`;
-    document.head.append(script);
-  });
-}
-
 const randomKey = () => Math.random().toString(36).slice(2, 10);
 
 export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   const { onChange, renderDefault } = props;
   const client = useClient({ apiVersion: '2025-08-15' });
 
-  // The list's own ratio picks the search source, so a poster list searches
-  // films and a square list searches podcasts without a second control.
-  const thumb = useFormValue(['thumb']) as string | undefined;
-  const entity = thumb === 'poster' ? 'movie' : 'podcast';
+  /*
+   * The list says where its items come from. Reading `thumb` instead, as this
+   * did at first, conflates how an item looks with where its data lives: a
+   * coffee shop is square like a podcast and shares nothing else with one.
+   */
+  const sourceId = (useFormValue(['source']) as string | undefined) ?? 'manual';
+  const source = SOURCES[sourceId] ?? SOURCES.manual;
 
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Result[]>([]);
+  const [results, setResults] = useState<ArtworkResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,13 +43,13 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
     setError(null);
     setResults([]);
     try {
-      setResults(await itunesSearch(query, entity));
+      setResults(await source.search(query));
     } catch (err: any) {
       setError(err.message);
     } finally {
       setBusy(false);
     }
-  }, [query, entity]);
+  }, [query, source]);
 
   /**
    * Uploads the artwork and appends the item.
@@ -100,16 +59,16 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
    * which is the reason the file-backed schema refused remote images too.
    */
   const add = useCallback(
-    async (result: Result) => {
-      const name = result.collectionName ?? result.trackName ?? '';
+    async (result: ArtworkResult) => {
+      const name = result.name;
       setAdding(name);
       setError(null);
       try {
-        const source = result.artworkUrl600 ?? result.artworkUrl100;
+        const artwork = result.imageUrl;
         let image;
 
-        if (source) {
-          const blob = await fetch(source).then((r) => {
+        if (artwork) {
+          const blob = await fetch(artwork).then((r) => {
             if (!r.ok) throw new Error(`Artwork fetch failed (${r.status})`);
             return r.blob();
           });
@@ -126,8 +85,8 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                 _type: 'listItem',
                 _key: randomKey(),
                 name,
-                href: result.collectionViewUrl ?? result.trackViewUrl,
-                subtitle: result.artistName,
+                href: result.href,
+                subtitle: result.subtitle,
                 tags: [],
                 ...(image ? { image } : {}),
               },
@@ -147,19 +106,23 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
     [client, onChange]
   );
 
+  // A list with no catalogue behind it gets the plain array editor, with no
+  // search box promising something it cannot do.
+  if (!source.search || source.id === 'manual') return renderDefault(props);
+
   return (
     <Stack space={3}>
       <Card padding={3} radius={2} tone="primary" border>
         <Stack space={3}>
           <Text size={1} weight="medium">
-            Add from Apple ({entity === 'movie' ? 'films' : 'podcasts'})
+            Add from {source.label}
           </Text>
 
           <Flex gap={2}>
             <Box flex={1}>
               <TextInput
                 value={query}
-                placeholder={`Search for a ${entity}…`}
+                placeholder={source.placeholder}
                 onChange={(e) => setQuery(e.currentTarget.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -185,40 +148,41 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
 
           {results.length > 0 && (
             <Stack space={2}>
-              {results.map((result, i) => {
-                const name = result.collectionName ?? result.trackName ?? '';
-                return (
-                  <Card
-                    key={i}
-                    padding={2}
-                    radius={2}
-                    border
-                    as="button"
-                    onClick={() => add(result)}
-                    disabled={adding !== null}
-                    style={{ cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                  >
-                    <Flex align="center" gap={3}>
+              {results.map((result, i) => (
+                <Card
+                  key={i}
+                  padding={2}
+                  radius={2}
+                  border
+                  as="button"
+                  onClick={() => add(result)}
+                  disabled={adding !== null}
+                  style={{ cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                >
+                  <Flex align="center" gap={3}>
+                    {result.imageUrl && (
                       <img
-                        src={result.artworkUrl100}
+                        src={result.imageUrl}
                         alt=""
                         width={40}
                         height={40}
                         style={{ borderRadius: 4, flexShrink: 0 }}
                       />
-                      <Stack space={2} flex={1}>
-                        <Text size={1} weight="medium">
-                          {name}
-                        </Text>
+                    )}
+                    <Stack space={2} flex={1}>
+                      <Text size={1} weight="medium">
+                        {result.name}
+                      </Text>
+                      {result.hint && (
                         <Text size={0} muted>
-                          {result.artistName}
+                          {result.hint}
                         </Text>
-                      </Stack>
-                      {adding === name && <Spinner muted />}
-                    </Flex>
-                  </Card>
-                );
-              })}
+                      )}
+                    </Stack>
+                    {adding === result.name && <Spinner muted />}
+                  </Flex>
+                </Card>
+              ))}
             </Stack>
           )}
         </Stack>
