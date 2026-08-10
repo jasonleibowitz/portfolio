@@ -1,0 +1,34 @@
+---
+/**
+ * Marks an entry that is only visible because this build shows drafts.
+ *
+ * Only ever renders in `pnpm dev` and in a preview build, because those are
+ * the only builds where a draft appears at all. In production the entry is
+ * filtered out by `getPublished`, so there is nothing to label and this
+ * renders nothing.
+ *
+ * It exists because a preview shows published and unpublished work in one
+ * list, and without a mark there is no way to tell which is which -- the
+ * question "is this live?" should be answerable by looking.
+ */
+interface Props {
+  draft?: boolean;
+}
+
+const { draft = false } = Astro.props;
+
+// Matches the condition in `getPublished`, deliberately: if the two disagree,
+// either a draft renders unlabelled or a published entry gets a false badge.
+const showDrafts = import.meta.env.DEV || process.env.SHOW_DRAFTS === 'true';
+---
+
+{
+  draft && showDrafts && (
+    <span
+      class="rounded-sm border border-line px-1.5 py-0.5 font-mono text-meta tracking-label text-faint uppercase"
+      title="Hidden in production. Visible here because this build shows drafts."
+    >
+      Draft
+    </span>
+  )
+}

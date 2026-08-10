@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Artwork from '@components/Artwork.astro';
+import DraftBadge from './DraftBadge.astro';
 import { formatDay } from '@lib/dates';
 import { allItems, splitYear } from '@lib/lists';
 import Typography from './ui/Typography.astro';
@@ -131,6 +132,11 @@ const shape = data.ranked
       <li>{plural(items.length, 'entry', 'entries')}</li>
       {shape && <li>{shape}</li>}
       <li>Updated {formatDay(data.updated)}</li>
+      {data.draft && (
+        <li>
+          <DraftBadge draft={data.draft} />
+        </li>
+      )}
     </ul>
   </div>
 </a>
