@@ -1,10 +1,10 @@
 import {
+  Autocomplete,
   Box,
   Button,
   Card,
   Flex,
   Grid,
-  Select,
   Spinner,
   Stack,
   Text,
@@ -78,7 +78,12 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
    */
   /** Uploads the chosen picture, if any, and appends the item. */
   const commit = useCallback(
-    async (result: ArtworkResult, artwork?: string, subtitle?: string) => {
+    async (
+      result: ArtworkResult,
+      artwork?: string,
+      subtitle?: string,
+      creditOptions: string[] = []
+    ) => {
       const name = result.name;
       setAdding(name);
       setError(null);
@@ -96,6 +101,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                 name,
                 href: result.href,
                 subtitle: subtitle ?? result.subtitle,
+                creditOptions: creditOptions.length ? creditOptions : undefined,
                 tags: [],
                 ...(image ? { image } : {}),
               },
@@ -202,28 +208,18 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                 <Text size={1} muted>
                   Credit
                 </Text>
-                {/* OpenStreetMap's neighbourhood leads, then Google's areas:
-                    Google stops at "Manhattan" where OSM knows "Flatiron
-                    District". */}
-                <Select
+                {/* One control, not a dropdown beside a text box holding the
+                    same value. OpenStreetMap's neighbourhood leads, then
+                    Google's areas: Google stops at "Manhattan" where OSM knows
+                    "Flatiron District". */}
+                <Autocomplete
+                  id="credit"
                   value={credit}
-                  onChange={(e) => setCredit(e.currentTarget.value)}
-                >
-                  {choosing.credits.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                  {!choosing.credits.includes(credit) && credit && (
-                    <option value={credit}>{credit}</option>
-                  )}
-                </Select>
-                {/* Neither source always has the right word, so it can be
-                    written instead. */}
-                <TextInput
-                  value={credit}
-                  placeholder="Or write one…"
-                  onChange={(e) => setCredit(e.currentTarget.value)}
+                  options={choosing.credits.map((value) => ({ value }))}
+                  placeholder="Pick an area, or write one…"
+                  onChange={(next) => setCredit(next ?? '')}
+                  onQueryChange={(query) => setCredit(query ?? '')}
+                  openButton
                 />
               </Stack>
 
@@ -237,7 +233,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                     overflow="hidden"
                     border
                     as="button"
-                    onClick={() => commit(choosing.result, url, credit)}
+                    onClick={() => commit(choosing.result, url, credit, choosing.credits)}
                     disabled={adding !== null}
                     style={{ cursor: 'pointer', aspectRatio: '1', padding: 0 }}
                   >
@@ -264,7 +260,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && manualUrl.trim()) {
                         e.preventDefault();
-                        commit(choosing.result, manualUrl.trim(), credit);
+                        commit(choosing.result, manualUrl.trim(), credit, choosing.credits);
                       }
                     }}
                   />
@@ -273,7 +269,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   text="Use URL"
                   mode="default"
                   disabled={adding !== null || !manualUrl.trim()}
-                  onClick={() => commit(choosing.result, manualUrl.trim(), credit)}
+                  onClick={() => commit(choosing.result, manualUrl.trim(), credit, choosing.credits)}
                 />
               </Flex>
 
@@ -282,7 +278,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   text={choosing.images.length ? "Add without a picture" : "Add"}
                   mode="ghost"
                   disabled={adding !== null}
-                  onClick={() => commit(choosing.result, undefined, credit)}
+                  onClick={() => commit(choosing.result, undefined, credit, choosing.credits)}
                 />
                 <Button
                   text="Cancel"

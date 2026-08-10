@@ -1,6 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
 import { ArtworkFieldInput } from '../ArtworkFieldInput';
+import { CreditInput } from '../CreditInput';
 
 /**
  * The one rich text shape, shared by post bodies and project sections.
@@ -165,6 +166,24 @@ export const listItem = defineType({
       type: 'string',
       description:
         "A few words that identify this kind of thing: a podcast's hosts, a book's author.",
+      // Offers the areas found when the item was added, and still takes
+      // anything typed.
+      components: { input: CreditInput },
+    }),
+    /*
+     * Every area the sources returned when this item was added.
+     *
+     * Kept so the choice can be revisited: a shop filed under "Manhattan"
+     * should be changeable to "Flatiron District" months later without
+     * searching again. Hidden, because it is a record of what was on offer
+     * rather than something to edit.
+     */
+    defineField({
+      name: 'creditOptions',
+      title: 'Credit options',
+      type: 'array',
+      of: [{ type: 'string' }],
+      hidden: true,
     }),
     defineField({ name: 'note', type: 'text', rows: 3 }),
     tagsField,
