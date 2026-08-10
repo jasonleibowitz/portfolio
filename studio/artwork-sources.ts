@@ -95,6 +95,56 @@ function itunesSearch(term: string, entity: string): Promise<any[]> {
   });
 }
 
+/**
+ * Logos by way of a "<name> logo" image search.
+ *
+ * Better than reading the venue's own site, which was the first attempt: a
+ * page's markup gives whatever the theme happens to put in an apple-touch-icon
+ * or an og:image, which for a coffee roaster turned out to be a bag of beans.
+ * A search for the logo returns the logo.
+ *
+ * Google Images has no public API, so this goes through the Custom Search JSON
+ * API, which needs the Custom Search API enabled and a Programmable Search
+ * Engine id in `SANITY_STUDIO_GOOGLE_CSE_ID`. Free for 100 searches a day.
+ *
+ * Results come from arbitrary hosts that mostly refuse a cross-origin read, so
+ * each is wrapped in the dev server's proxy before being offered.
+ */
+async function logoSearch(name: string): Promise<string[]> {
+  const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
+  const cx = process.env.SANITY_STUDIO_GOOGLE_CSE_ID;
+  if (!key || !cx || !name) return [];
+
+  const params = new URLSearchParams({
+    key,
+    cx,
+    q: `${name} logo`,
+    searchType: 'image',
+    num: '6',
+    // Transparent logos are the point, and this is the only way to ask for
+    // them. A photograph of a shopfront is never a png with an alpha channel.
+    imgType: 'clipart',
+    safe: 'active',
+  });
+
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?${params}`
+    );
+    if (!response.ok) return [];
+    const { items = [] } = await response.json();
+    return items
+      .map((item: any) => item.link)
+      .filter(Boolean)
+      .map(
+        (url: string) =>
+          `http://localhost:4321/_proxy?url=${encodeURIComponent(url)}`
+      );
+  } catch {
+    return [];
+  }
+}
+
 const podcasts: ArtworkSource = {
   id: 'podcasts',
   label: 'Apple Podcasts',
@@ -264,14 +314,18 @@ const googlePlaces: ArtworkSource = {
      * Absent that server, or for a place with no website, this contributes
      * nothing and the photographs stand alone.
      */
-    const logos = result.href?.startsWith('http')
-      ? await fetch(
-          `http://localhost:4321/_logo?site=${encodeURIComponent(result.href)}`
-        )
-          .then((r) => r.json())
-          .then((d) => d.logos as string[])
-          .catch(() => [])
-      : [];
+    const [searched, scraped] = await Promise.all([
+      logoSearch(result.name),
+      result.href?.startsWith('http')
+        ? fetch(
+            `http://localhost:4321/_logo?site=${encodeURIComponent(result.href)}`
+          )
+            .then((r) => r.json())
+            .then((d) => d.logos as string[])
+            .catch(() => [])
+        : Promise.resolve([]),
+    ]);
+    const logos = [...searched, ...scraped];
 
     if (!key || !result.photoRefs?.length) return logos;
 
