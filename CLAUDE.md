@@ -129,6 +129,58 @@ targets against real routes at build time, so a broken redirect fails the build.
   `render(entry)` from `astro:content` (**not** the removed `entry.render()`).
 - `rss.xml.ts` exports **`GET()`** (Astro 3+ renamed it from `get()`).
 
+### Crawlers
+
+`@astrojs/sitemap` emits `sitemap-index.xml` and `sitemap-0.xml`. It walks the routes that
+were actually built, so it needs no draft filter of its own and gets `getPublished`'s answer
+for free. This was verified rather than assumed: a `draft: true` post is absent from
+`sitemap-0.xml` in a plain build and present in a `SHOW_DRAFTS=true` one. Redirect routes
+stay out on their own, so the sitemap lists the 21 canonical pages and none of `/blog/*`.
+
+`robots.txt` is a **route**, `src/pages/robots.txt.ts`, not a file in `public/`. It builds
+its `Sitemap:` line from `Astro.site`, so `SITE_URL` moves the host for the canonical tag,
+the RSS links, the sitemap and this one line together. A committed static copy would
+hardcode `https://leibowitz.me`, which is a second place to edit at DNS cutover and points
+a preview at production's sitemap.
+
+It allows crawling, which is right for production. Previews and staging also serve
+`X-Robots-Tag: noindex` from `scripts/noindex.mjs`; the header wins there. The two are not
+in conflict and neither needs "fixing" to match the other.
+
+### Link previews
+
+`BaseLayout` writes the `og:` and `twitter:` tags. X reads the `og:` ones when it has no
+`twitter:` twin, so only `twitter:card` and `twitter:creator` are spelled out; a second copy
+of the title is a second thing to drift.
+
+**Every page emits an `og:image`.** Which one it is comes from the page:
+
+| Page            | Share image                                    |
+| --------------- | ---------------------------------------------- |
+| A post          | its frontmatter `image`                        |
+| A list          | its frontmatter `image`, if the entry sets one |
+| A project       | its `icon`, re-encoded to PNG by `getImage()`  |
+| Everything else | `public/og-default.png`, the headshot card     |
+
+The default exists because a page with no `og:image` shares as a bare text row, and iMessage
+in particular renders nothing but the URL. It is a real photo and the same two lines the
+homepage `<title>` states, so it invents no copy.
+
+A project's icon is square, and cropping a square to 1.91:1 cuts the top and bottom off it,
+so those pages pass `imageShape="square"` and get `twitter:card: summary`. The icons ship as
+webp, which the page wants and iMessage reads, but LinkedIn's scraper drops a webp and shows
+no picture, which is why the share copy is PNG. Post covers are still webp: they live in
+`public/` and so cannot go through `astro:assets` to be re-encoded.
+
+`public/og-default.png` and `public/apple-touch-icon.png` are committed rasters, rebuilt by
+`node scripts/og-card.mjs` after a change to the headshot, the role line or the palette. The
+card is laid out in HTML and shot with headless Chrome, because sharp rasterizes SVG text
+with system fonts and this site's two typefaces are npm packages. Chrome is a local tool
+there, not a dependency: CI never runs the script, it reads the committed PNGs.
+
+The touch icon is the favicon with its corner radius stripped and its alpha flattened. iOS
+masks the icon itself, so a rounded source leaves the mask's corners empty.
+
 ## Styling
 
 Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no PostCSS config —

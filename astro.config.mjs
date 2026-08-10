@@ -2,6 +2,7 @@
 import process from 'node:process';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import icon from 'astro-icon';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -10,7 +11,7 @@ export default defineConfig({
   // `site` sets the canonical tag, the og:image URL and the RSS links. CI
   // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
-  integrations: [mdx(), icon()],
+  integrations: [mdx(), sitemap(), icon()],
   markdown: {
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },

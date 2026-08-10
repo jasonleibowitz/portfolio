@@ -60,7 +60,13 @@ let rank = 0;
 const hasBody = Boolean(list.body?.trim());
 ---
 
-<BaseLayout pageTitle={data.title} page="list" description={data.description}>
+<BaseLayout
+  pageTitle={data.title}
+  page="list"
+  description={data.description}
+  image={data.image?.url}
+  imageAlt={data.image?.alt}
+>
   <PageHead title={data.title} intro={data.description}>
     {
       /* `-mb-3` cancels the title's own top margin, which is sized for a 15px

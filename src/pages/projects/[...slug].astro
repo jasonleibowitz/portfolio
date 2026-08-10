@@ -1,4 +1,5 @@
 ---
+import { getImage } from 'astro:assets';
 import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Section from '@components/layout/Section.astro';
@@ -28,6 +29,16 @@ const { project } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 
+/**
+ * The app's own icon is the share card, re-encoded as PNG. The icons ship as
+ * webp, which the page wants and which iMessage reads, but LinkedIn's scraper
+ * still drops a webp and shows no picture at all. A project with no icon falls
+ * through to the site's default card.
+ */
+const shareIcon = data.icon
+  ? await getImage({ src: data.icon, format: 'png' })
+  : undefined;
+
 /** The beta invite first, because it is the one that asks for a reply. */
 const ctas = [
   data.testflight && {
@@ -43,6 +54,9 @@ const ctas = [
   pageTitle={data.title}
   page="project"
   description={data.description}
+  image={shareIcon?.src}
+  imageAlt={shareIcon && `The ${data.title} app icon`}
+  imageShape={shareIcon ? 'square' : 'wide'}
 >
   <Section flush={false}>
     <Status status={data.status}>
