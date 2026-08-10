@@ -1,0 +1,56 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * List artwork, from either content source.
+ *
+ * A file-backed entry carries `ImageMetadata` from `astro:assets`, which is
+ * resized at build time. A Sanity-backed entry carries a URL string that the
+ * CDN has already sized. Both end up as the same box, so every caller passes
+ * its image here rather than knowing which kind it holds.
+ *
+ * The CDN case is a plain `<img>` on purpose: routing it back through
+ * `astro:assets` would re-download and re-encode an image the CDN has already
+ * encoded better, and would make each build depend on a remote fetch.
+ */
+interface Props {
+  src: ImageMetadata | string;
+  width: number;
+  height: number;
+  class?: string;
+  style?: string;
+}
+
+const { src, width, height, class: className, style } = Astro.props;
+---
+
+{
+  typeof src === 'string' ? (
+    <img
+      src={src}
+      alt=""
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      class={className}
+      style={style}
+    />
+  ) : (
+    /* Quality 92 and 3x density: the box is too small for a default encode to
+       have spare pixels to lose. */
+    <Image
+      src={src}
+      alt=""
+      width={width}
+      height={height}
+      fit="cover"
+      densities={[2, 3]}
+      quality={92}
+      loading="lazy"
+      class={className}
+      style={style}
+    />
+  )
+}

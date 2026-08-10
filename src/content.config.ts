@@ -216,6 +216,55 @@ const lists = defineCollection({
   },
 });
 
+
+/**
+ * A list from Sanity.
+ *
+ * Artwork arrives as an asset reference and leaves as a CDN URL sized for the
+ * 56px column, so `<Artwork>` can render it without `astro:assets`. The
+ * `items` / `groups` rule is not repeated here: the studio already prevents
+ * the invalid combinations, and a second copy would be a second thing to keep
+ * in step.
+ */
+const sanityListItem = z.object({
+  name: z.string(),
+  href: z.string().nullish().transform((v) => v ?? undefined),
+  image: z
+    .object({ asset: z.object({ _ref: z.string() }).optional() })
+    .nullish()
+    .transform((v) => imageUrl(v, { width: 168 })),
+  subtitle: z.string().nullish().transform((v) => v ?? undefined),
+  note: z.string().nullish().transform((v) => v ?? undefined),
+  tags: z.array(z.string()).nullish().transform((v) => v ?? []),
+  placeholder: z.array(z.string()).default([]),
+});
+
+const sanityListSchema = z.object({
+  title: z.string(),
+  description: z.string().nullish().transform((v) => v ?? undefined),
+  updated: z.coerce.date(),
+  ranked: z.boolean().nullish().transform((v) => v ?? false),
+  thumb: z.enum(['square', 'poster']).nullish().transform((v) => v ?? 'square'),
+  items: z.array(sanityListItem).nullish().transform((v) => v ?? []),
+  groups: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string().nullish().transform((v) => v ?? undefined),
+        placeholder: z.array(z.string()).default([]),
+        items: z.array(sanityListItem).nullish().transform((v) => v ?? []),
+      })
+    )
+    .nullish()
+    .transform((v) => v ?? []),
+  draft: z.boolean().nullish().transform((v) => v ?? false),
+  placeholder: z.array(z.string()).default([]),
+});
+
+const listsCollection = usingSanity
+  ? defineCollection({ loader: sanityLoader(queries.lists), schema: sanityListSchema })
+  : lists;
+
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
   // A function of `image()` so an icon path resolves relative to its own entry
@@ -276,4 +325,4 @@ const projects = defineCollection({
     }),
 });
 
-export const collections = { blog: blogCollection, lists, projects };
+export const collections = { blog: blogCollection, lists: listsCollection, projects };

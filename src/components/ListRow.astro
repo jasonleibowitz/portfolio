@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { Image } from 'astro:assets';
+import Artwork from '@components/Artwork.astro';
 import { formatDay } from '@lib/dates';
 import { allItems, splitYear } from '@lib/lists';
 import Typography from './ui/Typography.astro';
@@ -73,15 +73,10 @@ const shape = data.ranked
     covers.length > 0 && (
       <div class="mb-5 flex card:mb-6" aria-hidden="true">
         {covers.map((item, i) => (
-          <Image
+          <Artwork
             src={item.image!}
-            alt=""
             width={88}
             height={data.thumb === 'poster' ? 132 : 88}
-            fit="cover"
-            densities={[2, 3]}
-            quality={92}
-            loading="lazy"
             style={`z-index: ${covers.length - i}`}
             class:list={[
               'relative w-14 shrink-0 rounded-md border border-line object-cover ring-[3px] ring-canvas card:w-22',
