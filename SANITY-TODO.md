@@ -69,32 +69,55 @@ image can be pasted as a URL.
 
 ## Needs an account, so cannot be done from here
 
-- **Make the `production` dataset private**, in Manage > Datasets. It is public
-  today: an unauthenticated request for `count(*)` answers 101, and the project
-  id that request needs is compiled into the site. Drafts are already
-  protected, so what this closes is bulk reads of published documents.
-
-  Assets are not affected either way. Sanity serves them from cdn.sanity.io
-  whatever the dataset visibility, and the built site holds those URLs, so no
-  image breaks: "Asset files are not private, so even images uploaded to a
-  private dataset can be viewed by unauthenticated users."
-
-- Repo variables `SANITY_PROJECT_ID` and `SANITY_DATASET`, and the repo secret
-  `SANITY_READ_TOKEN` (a Viewer token, from Manage > API > Tokens). The first
-  two are variables because they are compiled into the studio bundle a visitor
-  downloads, so they are not secret. Once the dataset is private the token is
-  no longer optional: every build that sets `CONTENT_SOURCE=sanity` needs it.
 - CORS origins in Sanity for each host the studio is served from: the staging
   and content-preview `workers.dev` URLs, and leibowitz.me at cutover. A
   per-pull-request URL is a new host each time and will not be worth adding.
 - Sanity webhook posting `repository_dispatch` to GitHub, so a content change
   triggers the preview build.
 
-## Due at launch, not before
+## The Google Maps key reaches the browser
 
-- **Restrict `PUBLIC_SANITY_GOOGLE_MAPS_KEY` by HTTP referrer**, in Google
-  Cloud, to the hosts that serve `/admin`. The key reaches the browser by
-  design, so an unrestricted one can be spent by anyone who reads the bundle.
-  Not urgent yet: no deployed build carries `/admin`, because the studio is
-  only built when `PUBLIC_SANITY_PROJECT_ID` is set and no CI variable sets it.
-  It becomes urgent the moment one does.
+`/admin` ships the key to anyone who opens the page, so it needs restricting in
+Google Cloud. Two keys, because one of them is published and the other is not:
+
+- **Deployed key**, in CI: referrers `https://*.jasonaleibowitz.workers.dev/*`
+  and `https://leibowitz.me/*`. Not localhost. The wildcard covers staging, the
+  content preview and every `pr-<n>-` build, and a `workers.dev` subdomain
+  belongs to one account.
+- **Dev key**, in the gitignored `.env`: referrer `http://localhost:4321/*`.
+  It is never built into anything that deploys, so it is never published.
+
+Neither list is a boundary. `Referer` is a request header and anyone can send
+whichever one they like, so the restriction stops a stranger pasting the key
+into their own site and stops nothing else. What bounds the damage is
+restricting the key to Places API (New) and setting a quota on it.
+
+The fix that would end this is to stop shipping the key: proxy the Places call
+the way `integrations/logo-proxy.mjs` proxies logo lookups in dev. That needs a
+Worker script in production, which a site of static assets does not have today,
+so it is a real change rather than a setting.
+
+## Done, and how it was checked
+
+- **The `production` dataset is private.** It was public: an unauthenticated
+  `count(*)` answered 101, and the project id that request needs is compiled
+  into the site. Now the same request answers 0, while the read token sees all
+  116 documents. Anonymous reads return HTTP 200 with an empty result rather
+  than a 401, so a caller is told nothing, not refused.
+
+  Assets were never in scope and did not change. Sanity serves them from
+  cdn.sanity.io whatever the dataset visibility, so no image on the built site
+  breaks: "Asset files are not private, so even images uploaded to a private
+  dataset can be viewed by unauthenticated users." Verified by requesting one
+  after the change: still 200.
+
+- Repo variables `SANITY_PROJECT_ID` and `SANITY_DATASET`, and the repo secret
+  `SANITY_READ_TOKEN`. The first two are variables because they are compiled
+  into the studio bundle a visitor downloads, so they are not secret. Now the
+  dataset is private the token is not optional: every build that sets
+  `CONTENT_SOURCE=sanity` needs it.
+
+  Two Viewer tokens, not one: `astro-build` for this machine, `github-actions`
+  for CI, so either can be revoked without stopping the other. Note that a
+  Viewer token reads drafts, so the token is not what keeps unpublished work
+  off the site. `SANITY_PERSPECTIVE` is.
