@@ -4,6 +4,7 @@ import {
   Card,
   Flex,
   Grid,
+  Select,
   Spinner,
   Stack,
   Text,
@@ -49,7 +50,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   const [error, setError] = useState<string | null>(null);
   // Set once a place is picked and it has several pictures to choose between.
   const [choosing, setChoosing] = useState<
-    { result: ArtworkResult; images: string[] } | null
+    { result: ArtworkResult; images: string[]; credits: string[] } | null
   >(null);
   const [manualUrl, setManualUrl] = useState('');
   const [credit, setCredit] = useState('');
@@ -118,22 +119,30 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   );
 
   /**
-   * A result was picked. Sources with one picture per result add straight away;
-   * sources with several show them so the editor chooses, because the first
-   * photograph Google holds for a bar is as likely to be someone's cocktail as
-   * the room.
+   * A result was picked, so gather what it could become and ask.
+   *
+   * Always asks, even for a place with one picture and one credit. Skipping
+   * the step when there was only one image also skipped the credit, which is
+   * how every Manhattan shop silently ended up filed under "Manhattan".
+   *
+   * Sources with neither extra step, like Apple's, still add in one click:
+   * there is nothing to choose between.
    */
   const pick = useCallback(
     async (result: ArtworkResult) => {
-      if (!source.listImages) return commit(result, result.imageUrl);
+      if (!source.listImages && !source.listCredits) {
+        return commit(result, result.imageUrl);
+      }
 
       setAdding(result.name);
       setError(null);
       try {
-        const images = await source.listImages(result);
-        if (images.length <= 1) return commit(result, images[0]);
-        setCredit(result.subtitle ?? '');
-        setChoosing({ result, images });
+        const [images, credits] = await Promise.all([
+          source.listImages?.(result) ?? Promise.resolve([]),
+          source.listCredits?.(result) ?? Promise.resolve(result.subtitleOptions ?? []),
+        ]);
+        setCredit(credits[0] ?? result.subtitle ?? '');
+        setChoosing({ result, images, credits });
         setResults([]);
       } catch (err: any) {
         setError(err.message);
@@ -193,25 +202,32 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                 <Text size={1} muted>
                   Credit
                 </Text>
-                <Flex gap={2} wrap="wrap">
-                  {(choosing.result.subtitleOptions ?? []).map((option) => (
-                    <Button
-                      key={option}
-                      text={option}
-                      mode={credit === option ? 'default' : 'ghost'}
-                      onClick={() => setCredit(option)}
-                    />
+                {/* OpenStreetMap's neighbourhood leads, then Google's areas:
+                    Google stops at "Manhattan" where OSM knows "Flatiron
+                    District". */}
+                <Select
+                  value={credit}
+                  onChange={(e) => setCredit(e.currentTarget.value)}
+                >
+                  {choosing.credits.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ))}
-                </Flex>
-                {/* Typed, because Google carries no neighbourhood for many
-                    Manhattan addresses and "Flatiron" is not on offer. */}
+                  {!choosing.credits.includes(credit) && credit && (
+                    <option value={credit}>{credit}</option>
+                  )}
+                </Select>
+                {/* Neither source always has the right word, so it can be
+                    written instead. */}
                 <TextInput
                   value={credit}
-                  placeholder="Or write one, like Flatiron…"
+                  placeholder="Or write one…"
                   onChange={(e) => setCredit(e.currentTarget.value)}
                 />
               </Stack>
 
+              {choosing.images.length > 0 && (
               <Grid columns={4} gap={2}>
                 {choosing.images.map((url, i) => (
                   <Card
@@ -238,6 +254,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   </Card>
                 ))}
               </Grid>
+              )}
               <Flex gap={2}>
                 <Box flex={1}>
                   <TextInput
@@ -262,7 +279,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
 
               <Flex gap={2}>
                 <Button
-                  text="Add without a picture"
+                  text={choosing.images.length ? "Add without a picture" : "Add"}
                   mode="ghost"
                   disabled={adding !== null}
                   onClick={() => commit(choosing.result, undefined, credit)}
