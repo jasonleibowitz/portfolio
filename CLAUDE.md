@@ -194,6 +194,14 @@ index pages. The script runs outside Astro and reads that file directly (Node 24
 types on import, which `.nvmrc` pins). Copy left in a page would have to be typed a second
 time in the script, and the card would then keep the old wording after an edit.
 
+The path from a written file to a scraper has three steps and no server:
+
+1. the script writes into `public/og/`;
+2. `astro build` copies `public/` into `dist/`, and Cloudflare serves that as a static asset,
+   so `public/og/lists.jpg` is fetched at `/og/lists.jpg`;
+3. `shareCard()` returns that path and `BaseLayout` resolves it against `Astro.site`, because
+   a scraper resolves a relative URL against its own host rather than against the page.
+
 `pnpm dev` does **not** draw them, because a card is only ever read by a scraper. `pnpm cards`
 draws them on demand if you want to look at one. `shareCard()` in `src/lib/og.ts` still checks
 that a card exists, but only during a build, and it is a disagreement detector rather than a
