@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Content admin</title>
+  </head>
+  <body>
+    <script src="https://unpkg.com/@sveltia/cms@0.184.0/dist/sveltia-cms.mjs" type="module"></script>
+
+    <script type="module">
+      /*
+       * Sveltia bundles React 19 but does not expose it, so a custom widget has
+       * to bring its own copy. Elements interop because `Symbol.for` is global
+       * and both copies are React 19; class components work because the CMS's
+       * renderer drives them. Hooks would not -- a second copy of React has its
+       * own dispatcher, which is empty during someone else's render.
+       */
+      import React from 'https://esm.sh/react@19.2.0';
+
+      /*
+       * The iTunes Search API sends no CORS header, so a plain fetch from the
+       * admin page is blocked. It does support JSONP, which is why this goes
+       * through a script tag rather than fetch.
+       */
+      function itunesSearch(term, entity) {
+        return new Promise((resolve, reject) => {
+          const cb = 'itunes_cb_' + Math.floor(Math.random() * 1e9);
+          const script = document.createElement('script');
+          const timer = setTimeout(() => {
+            cleanup();
+            reject(new Error('iTunes search timed out'));
+          }, 10000);
+
+          function cleanup() {
+            clearTimeout(timer);
+            delete window[cb];
+            script.remove();
+          }
+
+          window[cb] = (data) => {
+            cleanup();
+            resolve(data.results || []);
+          };
+          script.onerror = () => {
+            cleanup();
+            reject(new Error('iTunes search failed'));
+          };
+          script.src =
+            'https://itunes.apple.com/search?term=' +
+            encodeURIComponent(term) +
+            '&entity=' +
+            entity +
+            '&limit=8&callback=' +
+            cb;
+          document.head.append(script);
+        });
+      }
+
+      /** Immutable List, plain array or null, all normalised to a plain array. */
+      function toArray(value) {
+        if (!value) return [];
+        if (typeof value.toJS === 'function') return value.toJS();
+        return Array.isArray(value) ? value : [];
+      }
+
+      function waitForCMS() {
+        return new Promise((resolve) => {
+          if (window.CMS) return resolve(window.CMS);
+          const t = setInterval(() => {
+            if (window.CMS) {
+              clearInterval(t);
+              resolve(window.CMS);
+            }
+          }, 50);
+        });
+      }
+
+      waitForCMS().then((CMS) => {
+        const h = React.createElement;
+
+        /*
+         * Deliberately a class component. A custom widget is rendered by the
+         * CMS's own React instance, so hooks from a second copy of React would
+         * read an empty dispatcher and throw. Class components work across
+         * instances because the renderer drives setState itself.
+         */
+        class ArtworkList extends React.Component {
+          constructor(props) {
+            super(props);
+            this.state = { query: '', results: [], busy: false, error: null };
+          }
+
+          get entity() {
+            // `thumb: poster` lists are films, everything else is podcast art.
+            return 'podcast';
+          }
+
+          search = async (e) => {
+            e.preventDefault();
+            if (!this.state.query.trim()) return;
+            this.setState({ busy: true, error: null, results: [] });
+            try {
+              const results = await itunesSearch(this.state.query, this.entity);
+              this.setState({ results, busy: false });
+            } catch (err) {
+              this.setState({ error: err.message, busy: false });
+            }
+          };
+
+          add = (result) => {
+            const items = toArray(this.props.value);
+            items.push({
+              name: result.collectionName || result.trackName,
+              href: result.collectionViewUrl || result.trackViewUrl || '',
+              image: result.artworkUrl600 || result.artworkUrl100 || '',
+              subtitle: result.artistName || '',
+              tags: [],
+            });
+            this.props.onChange(items);
+            this.setState({ results: [], query: '' });
+          };
+
+          remove = (index) => {
+            const items = toArray(this.props.value);
+            items.splice(index, 1);
+            this.props.onChange(items);
+          };
+
+          render() {
+            const items = toArray(this.props.value);
+            const { query, results, busy, error } = this.state;
+
+            return h('div', { className: this.props.classNameWrapper }, [
+              h('form', { key: 'f', onSubmit: this.search, style: S.form }, [
+                h('input', {
+                  key: 'i',
+                  id: this.props.forID,
+                  value: query,
+                  placeholder: 'Search Apple for a podcast…',
+                  onChange: (e) => this.setState({ query: e.target.value }),
+                  style: S.input,
+                }),
+                h(
+                  'button',
+                  { key: 'b', type: 'submit', disabled: busy, style: S.button },
+                  busy ? 'Searching…' : 'Search'
+                ),
+              ]),
+
+              error && h('p', { key: 'e', style: S.error }, error),
+
+              results.length > 0 &&
+                h(
+                  'div',
+                  { key: 'r', style: S.results },
+                  results.map((r, i) =>
+                    h(
+                      'button',
+                      {
+                        key: 'r' + i,
+                        type: 'button',
+                        onClick: () => this.add(r),
+                        style: S.result,
+                        title: 'Add this one',
+                      },
+                      [
+                        h('img', {
+                          key: 'img',
+                          src: r.artworkUrl100,
+                          style: S.resultArt,
+                        }),
+                        h('span', { key: 'n', style: S.resultName }, [
+                          h(
+                            'strong',
+                            { key: 's' },
+                            r.collectionName || r.trackName
+                          ),
+                          h('em', { key: 'a', style: S.artist }, r.artistName),
+                        ]),
+                      ]
+                    )
+                  )
+                ),
+
+              h(
+                'ul',
+                { key: 'l', style: S.list },
+                items.map((item, i) =>
+                  h('li', { key: 'i' + i, style: S.item }, [
+                    item.image &&
+                      h('img', { key: 'a', src: item.image, style: S.art }),
+                    h('span', { key: 'n', style: S.name }, [
+                      h('strong', { key: 's' }, item.name),
+                      item.subtitle &&
+                        h('em', { key: 'c', style: S.artist }, item.subtitle),
+                    ]),
+                    h(
+                      'button',
+                      {
+                        key: 'x',
+                        type: 'button',
+                        onClick: () => this.remove(i),
+                        style: S.remove,
+                      },
+                      'Remove'
+                    ),
+                  ])
+                )
+              ),
+
+              items.length === 0 &&
+                h('p', { key: 'empty', style: S.empty }, 'No items yet.'),
+            ]);
+          }
+        }
+
+        const S = {
+          form: { display: 'flex', gap: '8px', marginBottom: '12px' },
+          input: { flex: 1, padding: '8px 10px', fontSize: '14px' },
+          button: { padding: '8px 14px', fontSize: '14px', cursor: 'pointer' },
+          error: { color: '#b00', fontSize: '13px' },
+          results: {
+            display: 'grid',
+            gap: '6px',
+            marginBottom: '14px',
+            padding: '8px',
+            background: '#f4f6f8',
+            borderRadius: '6px',
+          },
+          result: {
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center',
+            padding: '6px',
+            background: '#fff',
+            border: '1px solid #dfe3e8',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            textAlign: 'left',
+          },
+          resultArt: { width: '40px', height: '40px', borderRadius: '4px' },
+          resultName: { display: 'flex', flexDirection: 'column' },
+          artist: { fontSize: '12px', opacity: 0.7, fontStyle: 'normal' },
+          list: { listStyle: 'none', margin: 0, padding: 0 },
+          item: {
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center',
+            padding: '6px 0',
+            borderBottom: '1px solid #eee',
+          },
+          art: { width: '44px', height: '44px', borderRadius: '6px' },
+          name: { display: 'flex', flexDirection: 'column', flex: 1 },
+          remove: { fontSize: '12px', cursor: 'pointer' },
+          empty: { fontSize: '13px', opacity: 0.6 },
+        };
+
+        CMS.registerWidget('artwork-list', ArtworkList);
+
+        // Sveltia has already auto-initialised by the time this module's React
+        // import resolves, so the widget would miss the first render. Calling
+        // init again after registering is what makes it show up.
+        CMS.init();
+      });
+    </script>
+  </body>
+</html>

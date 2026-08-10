@@ -1,0 +1,141 @@
+backend:
+  name: github
+  repo: jasonleibowitz/portfolio-v2
+  branch: main
+
+# Edits go straight to the working tree over a local proxy, so the spike never
+# touches GitHub and needs no auth.
+local_backend: true
+
+media_folder: public/blog-images
+public_folder: /blog-images
+
+collections:
+  - name: blog
+    label: Writing
+    label_singular: Post
+    folder: src/content/blog
+    extension: mdx
+    format: frontmatter
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    summary: '{{title}}'
+    sortable_fields: [pubDate, title]
+    fields:
+      - { name: title, label: Title, widget: string }
+      - {
+          name: pubDate,
+          label: Published,
+          widget: datetime,
+          date_format: 'YYYY-MM-DD',
+          time_format: false,
+          picker_utc: true,
+        }
+      - { name: description, label: Description, widget: text, required: false }
+      - { name: author, label: Author, widget: string, default: Jason Leibowitz }
+      - name: image
+        label: Cover image
+        widget: object
+        fields:
+          - { name: url, label: Image, widget: image }
+          - { name: alt, label: Alt text, widget: string }
+      - { name: tags, label: Tags, widget: list, default: [] }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - { name: body, label: Body, widget: markdown }
+
+  - name: lists
+    label: Lists
+    label_singular: List
+    folder: src/content/lists
+    extension: mdx
+    format: frontmatter
+    create: true
+    summary: '{{title}}'
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: description, label: Description, widget: text, required: false }
+      - {
+          name: updated,
+          label: Updated,
+          widget: datetime,
+          date_format: 'YYYY-MM-DD',
+          time_format: false,
+          picker_utc: true,
+        }
+      - { name: ranked, label: Ranked, widget: boolean, default: false }
+      - {
+          name: thumb,
+          label: Artwork ratio,
+          widget: select,
+          options: [square, poster],
+          default: square,
+        }
+      # The bespoke bit: one widget owns the whole array, so picking a search
+      # result can fill name, artwork and credit together. A per-field widget
+      # cannot, because onChange only ever sets its own field.
+      - {
+          name: items,
+          label: Items,
+          widget: artwork-list,
+          required: false,
+          default: [],
+        }
+      - name: groups
+        label: Groups
+        widget: list
+        required: false
+        default: []
+        fields:
+          - { name: name, label: Group name, widget: string }
+          - {
+              name: description,
+              label: Description,
+              widget: text,
+              required: false,
+            }
+          - {
+              name: items,
+              label: Items,
+              widget: artwork-list,
+              required: false,
+              default: [],
+            }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - { name: body, label: Body, widget: markdown, required: false }
+
+  - name: projects
+    label: Projects
+    label_singular: Project
+    folder: src/content/projects
+    extension: mdx
+    format: frontmatter
+    create: true
+    summary: '{{title}}'
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: description, label: Description, widget: text }
+      - {
+          name: status,
+          label: Status,
+          widget: select,
+          options: [development, testing, live],
+        }
+      - { name: status_text, label: Status text, widget: string }
+      - { name: stack, label: Stack, widget: list, default: [] }
+      - {
+          name: frame,
+          label: Frame,
+          widget: select,
+          options: [phone, window],
+          default: phone,
+        }
+      - name: specs
+        label: Specs
+        widget: list
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: value, label: Value, widget: string }
+      - { name: is_featured, label: Featured, widget: boolean, default: false }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - { name: body, label: Body, widget: markdown, required: false }
