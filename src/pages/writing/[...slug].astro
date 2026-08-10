@@ -4,6 +4,7 @@ import PostLayout from '@layouts/PostLayout.astro';
 import Heading2 from '@components/markdown/Heading2.astro';
 import Heading3 from '@components/markdown/Heading3.astro';
 import TextLink from '@components/markdown/TextLink.astro';
+import CaptionedImage from '@components/CaptionedImage.astro';
 import { getPublished } from '@lib/content';
 
 export async function getStaticPaths() {
@@ -21,5 +22,5 @@ const { Content, headings } = await render(post);
 ---
 
 <PostLayout post={post} headings={headings} next={next}>
-  <Content components={{ h2: Heading2, h3: Heading3, a: TextLink }} />
+  <Content components={{ h2: Heading2, h3: Heading3, a: TextLink, CaptionedImage }} />
 </PostLayout>

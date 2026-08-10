@@ -64,9 +64,22 @@ export default defineConfig({
               {
                 name: 'CaptionedImage',
                 label: 'Captioned image',
+                // Every prop the component is actually passed has to be
+                // declared. An undeclared one makes Tina reject the whole body
+                // as `invalid_markdown`, not just that block.
                 fields: [
                   { type: 'string', name: 'src', label: 'Image path' },
+                  { type: 'string', name: 'alt', label: 'Alt text' },
                   { type: 'string', name: 'caption', label: 'Caption' },
+                  {
+                    type: 'object',
+                    name: 'attribution',
+                    label: 'Credit',
+                    fields: [
+                      { type: 'string', name: 'src', label: 'Credit URL' },
+                      { type: 'string', name: 'text', label: 'Credit text' },
+                    ],
+                  },
                 ],
               },
             ],
