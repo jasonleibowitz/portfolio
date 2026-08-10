@@ -26,11 +26,11 @@ export type ArtworkResult = {
   /** Shown in the result row, where it helps tell two matches apart. */
   hint?: string;
   /**
-   * An opaque handle for a picture that needs a second request to resolve,
+   * Opaque handles for pictures that each need a second request to resolve,
    * which is how Google hands out place photos. Sources that return a usable
    * `imageUrl` outright leave this alone.
    */
-  photoRef?: string;
+  photoRefs?: string[];
 };
 
 export type ArtworkSource = {
@@ -41,11 +41,14 @@ export type ArtworkSource = {
   providesArtwork: boolean;
   search(term: string): Promise<ArtworkResult[]>;
   /**
-   * Optional second step for sources whose search results only point at a
-   * picture. Called just before upload, so a list of ten results costs one
-   * request rather than ten.
+   * Optional second step for sources that offer several pictures per result.
+   *
+   * Called only for the one result the editor picks, never for the whole
+   * search: Google charges per photo resolved, and a search of eight places
+   * with ten photos each would be eighty requests to show a grid nobody asked
+   * for.
    */
-  resolveImage?(result: ArtworkResult): Promise<string | undefined>;
+  listImages?(result: ArtworkResult): Promise<string[]>;
 };
 
 /**
@@ -204,23 +207,34 @@ const googlePlaces: ArtworkSource = {
         name: place.displayName?.text,
         subtitle: area,
         href: place.websiteUri ?? place.googleMapsUri,
-        photoRef: place.photos?.[0]?.name,
+        photoRefs: (place.photos ?? []).map((photo: any) => photo.name),
         hint: [place.primaryTypeDisplayName?.text, area].filter(Boolean).join(' · '),
       };
     });
   },
 
-  /** Resolves a photo reference into a URL the browser is allowed to read. */
-  resolveImage: async (result) => {
+  /**
+   * Resolves photo references into URLs the browser is allowed to read.
+   *
+   * Capped at eight. A busy restaurant can carry dozens, each costing a
+   * request, and a grid longer than that is a worse way to choose rather than
+   * a better one.
+   */
+  listImages: async (result) => {
     const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
-    if (!key || !result.photoRef) return undefined;
+    if (!key || !result.photoRefs?.length) return [];
 
-    const response = await fetch(
-      `https://places.googleapis.com/v1/${result.photoRef}/media` +
-        `?maxWidthPx=1200&skipHttpRedirect=true&key=${key}`
+    const urls = await Promise.all(
+      result.photoRefs.slice(0, 8).map(async (ref) => {
+        const response = await fetch(
+          `https://places.googleapis.com/v1/${ref}/media` +
+            `?maxWidthPx=1200&skipHttpRedirect=true&key=${key}`
+        );
+        if (!response.ok) return undefined;
+        return (await response.json()).photoUri as string;
+      })
     );
-    if (!response.ok) return undefined;
-    return (await response.json()).photoUri;
+    return urls.filter(Boolean) as string[];
   },
 };
 

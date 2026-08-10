@@ -1,4 +1,14 @@
-import { Box, Button, Card, Flex, Spinner, Stack, Text, TextInput } from '@sanity/ui';
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Grid,
+  Spinner,
+  Stack,
+  Text,
+  TextInput,
+} from '@sanity/ui';
 import { useCallback, useState } from 'react';
 import { insert, useClient, useFormValue, type ArrayOfObjectsInputProps } from 'sanity';
 
@@ -36,6 +46,10 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set once a place is picked and it has several pictures to choose between.
+  const [choosing, setChoosing] = useState<
+    { result: ArtworkResult; images: string[] } | null
+  >(null);
 
   const search = useCallback(async () => {
     if (!query.trim()) return;
@@ -58,16 +72,13 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
    * a remote URL would put every list at the mercy of someone else's server,
    * which is the reason the file-backed schema refused remote images too.
    */
-  const add = useCallback(
-    async (result: ArtworkResult) => {
+  /** Uploads the chosen picture, if any, and appends the item. */
+  const commit = useCallback(
+    async (result: ArtworkResult, artwork?: string) => {
       const name = result.name;
       setAdding(name);
       setError(null);
       try {
-        // Google hands out a photo reference rather than a URL, so the second
-        // request happens here, once, for the one result actually chosen.
-        const artwork =
-          result.imageUrl ?? (await source.resolveImage?.(result));
         let image;
 
         if (artwork) {
@@ -99,6 +110,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
           )
         );
         setResults([]);
+        setChoosing(null);
         setQuery('');
       } catch (err: any) {
         setError(err.message);
@@ -106,7 +118,33 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
         setAdding(null);
       }
     },
-    [client, onChange, source]
+    [client, onChange]
+  );
+
+  /**
+   * A result was picked. Sources with one picture per result add straight away;
+   * sources with several show them so the editor chooses, because the first
+   * photograph Google holds for a bar is as likely to be someone's cocktail as
+   * the room.
+   */
+  const pick = useCallback(
+    async (result: ArtworkResult) => {
+      if (!source.listImages) return commit(result, result.imageUrl);
+
+      setAdding(result.name);
+      setError(null);
+      try {
+        const images = await source.listImages(result);
+        if (images.length <= 1) return commit(result, images[0]);
+        setChoosing({ result, images });
+        setResults([]);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setAdding(null);
+      }
+    },
+    [commit, source]
   );
 
   // A list with no catalogue behind it gets the plain array editor, with no
@@ -149,6 +187,54 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
             </Text>
           )}
 
+          {choosing && (
+            <Stack space={3}>
+              <Text size={1}>
+                Choose a picture for <strong>{choosing.result.name}</strong>
+              </Text>
+              <Grid columns={4} gap={2}>
+                {choosing.images.map((url, i) => (
+                  <Card
+                    key={i}
+                    padding={0}
+                    radius={2}
+                    overflow="hidden"
+                    border
+                    as="button"
+                    onClick={() => commit(choosing.result, url)}
+                    disabled={adding !== null}
+                    style={{ cursor: 'pointer', aspectRatio: '1', padding: 0 }}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  </Card>
+                ))}
+              </Grid>
+              <Flex gap={2}>
+                <Button
+                  text="Add without a picture"
+                  mode="ghost"
+                  disabled={adding !== null}
+                  onClick={() => commit(choosing.result)}
+                />
+                <Button
+                  text="Cancel"
+                  mode="bleed"
+                  disabled={adding !== null}
+                  onClick={() => setChoosing(null)}
+                />
+              </Flex>
+            </Stack>
+          )}
+
           {results.length > 0 && (
             <Stack space={2}>
               {results.map((result, i) => (
@@ -158,7 +244,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   radius={2}
                   border
                   as="button"
-                  onClick={() => add(result)}
+                  onClick={() => pick(result)}
                   disabled={adding !== null}
                   style={{ cursor: 'pointer', textAlign: 'left', width: '100%' }}
                 >

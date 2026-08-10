@@ -52,7 +52,8 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
       setBusy(true);
       setError(null);
       try {
-        const url = result.imageUrl ?? (await source.resolveImage?.(result));
+        const url =
+          result.imageUrl ?? (await source.listImages?.(result))?.[0];
         if (!url) throw new Error('That result has no picture');
 
         const blob = await fetch(url).then((r) => {
