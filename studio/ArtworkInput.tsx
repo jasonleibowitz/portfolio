@@ -217,8 +217,19 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   value={credit}
                   options={choosing.credits.map((value) => ({ value }))}
                   placeholder="Pick an area, or write one…"
-                  onChange={(next) => setCredit(next ?? '')}
-                  onQueryChange={(query) => setCredit(query ?? '')}
+                  // Every option, always: Autocomplete otherwise filters by
+                  // what is in the field, and a filled field matches only
+                  // itself, so the menu looked empty.
+                  filterOption={() => true}
+                  onChange={(next) => {
+                    // Null means the menu closed, which happens right after an
+                    // option is picked. Writing it through would clear the
+                    // choice a moment after it was made.
+                    if (next != null) setCredit(next);
+                  }}
+                  onQueryChange={(query) => {
+                    if (query != null) setCredit(query);
+                  }}
                   openButton
                 />
               </Stack>

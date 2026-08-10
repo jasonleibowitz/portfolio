@@ -36,11 +36,31 @@ export function CreditInput(props: StringInputProps) {
       value={value}
       options={saved.map((option) => ({ value: option }))}
       placeholder="Pick an area, or write one…"
-      // Both are wired: `onChange` fires when an option is picked, and
-      // `onQueryChange` as it is typed. Without the second, a typed credit
-      // would be lost the moment the field lost focus.
-      onChange={(next) => write(next ?? '')}
-      onQueryChange={(query) => write(query ?? '')}
+      /*
+       * Every option, always.
+       *
+       * Autocomplete filters by what is in the field, so a credit already set
+       * to "Flatiron District" matched only itself and the menu looked empty.
+       * The list here is four areas for one place, not a searchable catalogue,
+       * and the point of it is to see the alternatives.
+       */
+      filterOption={() => true}
+      /*
+       * Both are wired, and both ignore null.
+       *
+       * `onChange` fires when an option is picked and `onQueryChange` as it is
+       * typed, so the second is needed or a typed credit is lost on blur. But
+       * `onQueryChange` also fires with null when the menu closes, which is
+       * what happens immediately after picking an option: writing that through
+       * cleared the field a moment after the choice was made, and the value
+       * looked like it would not stick.
+       */
+      onChange={(next) => {
+        if (next != null) write(next);
+      }}
+      onQueryChange={(query) => {
+        if (query != null) write(query);
+      }}
       openButton
     />
   );
