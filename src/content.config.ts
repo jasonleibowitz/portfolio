@@ -18,6 +18,24 @@ const sanityLoader = (query: string) => ({
     const entries = await sanityClient().fetch(query);
 
     /*
+     * An empty answer is treated as a broken build, not an empty site.
+     *
+     * A private dataset does not refuse an unauthenticated read: it answers
+     * 200 with no documents. So a build with a missing or expired token
+     * succeeds, renders a site with nothing on it, and deploys that over the
+     * real one. Nobody switches a site to Sanity to publish nothing, so the
+     * empty case is worth failing on.
+     */
+    if (entries.length === 0) {
+      throw new Error(
+        `The Sanity query for this collection returned no documents. ` +
+          `Check SANITY_READ_TOKEN, PUBLIC_SANITY_PROJECT_ID and ` +
+          `PUBLIC_SANITY_DATASET: a private dataset answers an unauthorised ` +
+          `read with an empty result rather than an error.`
+      );
+    }
+
+    /*
      * Every entry carries a digest, and unchanged ones are left alone.
      *
      * Clearing the store and rewriting it on each load looked equivalent and
