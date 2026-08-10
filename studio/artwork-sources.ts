@@ -222,7 +222,26 @@ const googlePlaces: ArtworkSource = {
    */
   listImages: async (result) => {
     const key = process.env.SANITY_STUDIO_GOOGLE_MAPS_KEY;
-    if (!key || !result.photoRefs?.length) return [];
+
+    /*
+     * The venue's own logo first, then its photographs.
+     *
+     * A logo on white is the better thumbnail for a business, and Google never
+     * returns one. It comes from the venue's website instead, read by the dev
+     * server because the studio is not allowed to read another site's HTML.
+     * Absent that server, or for a place with no website, this contributes
+     * nothing and the photographs stand alone.
+     */
+    const logos = result.href?.startsWith('http')
+      ? await fetch(
+          `http://localhost:4321/_logo?site=${encodeURIComponent(result.href)}`
+        )
+          .then((r) => r.json())
+          .then((d) => d.logos as string[])
+          .catch(() => [])
+      : [];
+
+    if (!key || !result.photoRefs?.length) return logos;
 
     const urls = await Promise.all(
       result.photoRefs.slice(0, 8).map(async (ref) => {
@@ -234,7 +253,7 @@ const googlePlaces: ArtworkSource = {
         return (await response.json()).photoUri as string;
       })
     );
-    return urls.filter(Boolean) as string[];
+    return [...logos, ...(urls.filter(Boolean) as string[])];
   },
 };
 

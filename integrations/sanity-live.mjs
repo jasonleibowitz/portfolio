@@ -1,5 +1,7 @@
 import process from 'node:process';
 
+import { addLogoProxy } from './logo-proxy.mjs';
+
 /**
  * Refreshes the content layer when a document changes in Sanity.
  *
@@ -20,7 +22,9 @@ export default function sanityLive() {
   return {
     name: 'sanity-live',
     hooks: {
-      'astro:server:setup': async ({ refreshContent, logger }) => {
+      'astro:server:setup': async ({ server, refreshContent, logger }) => {
+        addLogoProxy(server, logger);
+
         if (process.env.CONTENT_SOURCE !== 'sanity') return;
 
         const projectId = process.env.SANITY_PROJECT_ID;
