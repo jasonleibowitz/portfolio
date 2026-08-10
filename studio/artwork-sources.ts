@@ -297,6 +297,7 @@ export const SOURCES: Record<string, ArtworkSource> = {
   podcasts,
   films,
   albums,
+  googlePlaces,
   places,
   manual,
 };
