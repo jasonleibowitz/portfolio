@@ -13,6 +13,7 @@ import { useCallback, useState } from 'react';
 import { insert, useClient, useFormValue, type ArrayOfObjectsInputProps } from 'sanity';
 
 import { SOURCES, type ArtworkResult } from './artwork-sources';
+import { uploadFromUrl } from './upload';
 
 /**
  * Adds a "search and add" row above a list's items.
@@ -50,6 +51,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
   const [choosing, setChoosing] = useState<
     { result: ArtworkResult; images: string[] } | null
   >(null);
+  const [manualUrl, setManualUrl] = useState('');
 
   const search = useCallback(async () => {
     if (!query.trim()) return;
@@ -79,18 +81,9 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
       setAdding(name);
       setError(null);
       try {
-        let image;
-
-        if (artwork) {
-          const blob = await fetch(artwork).then((r) => {
-            if (!r.ok) throw new Error(`Artwork fetch failed (${r.status})`);
-            return r.blob();
-          });
-          const asset = await client.assets.upload('image', blob, {
-            filename: `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.jpg`,
-          });
-          image = { _type: 'image', asset: { _type: 'reference', _ref: asset._id } };
-        }
+        const image = artwork
+          ? await uploadFromUrl(client, artwork, name)
+          : undefined;
 
         onChange(
           insert(
@@ -111,6 +104,7 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
         );
         setResults([]);
         setChoosing(null);
+        setManualUrl('');
         setQuery('');
       } catch (err: any) {
         setError(err.message);
@@ -218,6 +212,28 @@ export function ArtworkInput(props: ArrayOfObjectsInputProps) {
                   </Card>
                 ))}
               </Grid>
+              <Flex gap={2}>
+                <Box flex={1}>
+                  <TextInput
+                    value={manualUrl}
+                    placeholder="Or paste an image URL…"
+                    onChange={(e) => setManualUrl(e.currentTarget.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && manualUrl.trim()) {
+                        e.preventDefault();
+                        commit(choosing.result, manualUrl.trim());
+                      }
+                    }}
+                  />
+                </Box>
+                <Button
+                  text="Use URL"
+                  mode="default"
+                  disabled={adding !== null || !manualUrl.trim()}
+                  onClick={() => commit(choosing.result, manualUrl.trim())}
+                />
+              </Flex>
+
               <Flex gap={2}>
                 <Button
                   text="Add without a picture"

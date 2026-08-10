@@ -326,14 +326,20 @@ const manual: ArtworkSource = {
   search: async () => [],
 };
 
-export const SOURCES: Record<string, ArtworkSource> = {
-  podcasts,
-  films,
-  albums,
-  googlePlaces,
-  places,
-  manual,
-};
+/**
+ * Keyed by each source's own `id`, never by its variable name.
+ *
+ * Written by hand, those two drifted: `googlePlaces` was stored under that
+ * name while the schema saved `google-places`, so the lookup missed and every
+ * Google list silently fell back to having no search at all. Deriving the key
+ * makes the mistake impossible to repeat.
+ */
+export const SOURCES: Record<string, ArtworkSource> = Object.fromEntries(
+  [podcasts, films, albums, googlePlaces, places, manual].map((source) => [
+    source.id,
+    source,
+  ])
+);
 
 export const SOURCE_OPTIONS = Object.values(SOURCES).map((s) => ({
   title: s.label,

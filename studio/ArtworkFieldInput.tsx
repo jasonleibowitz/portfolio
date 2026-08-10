@@ -1,8 +1,19 @@
-import { Button, Card, Flex, Spinner, Stack, Text } from '@sanity/ui';
+import {
+  Box,
+  Button,
+  Card,
+  Flex,
+  Grid,
+  Spinner,
+  Stack,
+  Text,
+  TextInput,
+} from '@sanity/ui';
 import { useCallback, useState } from 'react';
 import { set, useClient, useFormValue, type ObjectInputProps } from 'sanity';
 
 import { SOURCES, type ArtworkResult } from './artwork-sources';
+import { uploadFromUrl } from './upload';
 
 /**
  * Adds "Fetch artwork" to an item that already exists.
@@ -29,6 +40,8 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
   const source = SOURCES[sourceId] ?? SOURCES.manual;
 
   const [results, setResults] = useState<ArtworkResult[]>([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [manualUrl, setManualUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,31 +60,41 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
     }
   }, [name, source]);
 
-  const choose = useCallback(
-    async (result: ArtworkResult) => {
+  /** Uploads one picture and puts it in the field. */
+  const use = useCallback(
+    async (url: string) => {
       setBusy(true);
       setError(null);
       try {
-        const url =
-          result.imageUrl ?? (await source.listImages?.(result))?.[0];
-        if (!url) throw new Error('That result has no picture');
+        onChange(set(await uploadFromUrl(client, url, name ?? 'artwork')));
+        setResults([]);
+        setImages([]);
+        setManualUrl('');
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [client, name, onChange]
+  );
 
-        const blob = await fetch(url).then((r) => {
-          if (!r.ok) throw new Error(`Artwork fetch failed (${r.status})`);
-          return r.blob();
-        });
-        const asset = await client.assets.upload('image', blob, {
-          filename: `${(name ?? 'artwork')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')}.jpg`,
-        });
+  /**
+   * A result was picked. One picture goes straight in; several are offered,
+   * because the first photograph Google holds for a bar is as likely to be
+   * somebody's cocktail as the room.
+   */
+  const choose = useCallback(
+    async (result: ArtworkResult) => {
+      if (result.imageUrl && !source.listImages) return use(result.imageUrl);
 
-        onChange(
-          set({
-            _type: 'image',
-            asset: { _type: 'reference', _ref: asset._id },
-          })
-        );
+      setBusy(true);
+      setError(null);
+      try {
+        const found = (await source.listImages?.(result)) ?? [];
+        if (found.length === 1) return use(found[0]);
+        if (!found.length) throw new Error('That result has no picture');
+        setImages(found);
         setResults([]);
       } catch (err: any) {
         setError(err.message);
@@ -79,11 +102,12 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
         setBusy(false);
       }
     },
-    [client, name, onChange, source]
+    [source, use]
   );
 
-  // Nothing to offer without a name to search, or a source that returns
-  // pictures. The plain upload field is still there in both cases.
+  // Nothing to search without a name, or without a source that returns
+  // pictures. Pasting a URL still works in both cases, which is the point of
+  // offering it separately: it is the answer when everything else has failed.
   const canFetch = Boolean(name) && source.providesArtwork;
 
   return (
@@ -144,6 +168,64 @@ export function ArtworkFieldInput(props: ObjectInputProps) {
               ))}
             </Stack>
           )}
+          {images.length > 0 && (
+            <Stack space={2}>
+              <Text size={1} muted>
+                Pick one, logos first
+              </Text>
+              <Grid columns={4} gap={2}>
+                {images.map((url, i) => (
+                  <Card
+                    key={i}
+                    padding={0}
+                    radius={2}
+                    overflow="hidden"
+                    border
+                    as="button"
+                    onClick={() => use(url)}
+                    disabled={busy}
+                    style={{ cursor: 'pointer', aspectRatio: '1', padding: 0 }}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        background: '#fff',
+                        display: 'block',
+                      }}
+                    />
+                  </Card>
+                ))}
+              </Grid>
+            </Stack>
+          )}
+
+          {/* Always available. Nothing found, or nothing good, is a normal
+              outcome, and pasting the right URL should not need a search. */}
+          <Flex gap={2}>
+            <Box flex={1}>
+              <TextInput
+                value={manualUrl}
+                placeholder="Or paste an image URL…"
+                onChange={(e) => setManualUrl(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && manualUrl.trim()) {
+                    e.preventDefault();
+                    use(manualUrl.trim());
+                  }
+                }}
+              />
+            </Box>
+            <Button
+              text="Use URL"
+              mode="default"
+              disabled={busy || !manualUrl.trim()}
+              onClick={() => use(manualUrl.trim())}
+            />
+          </Flex>
         </Stack>
       )}
     </Stack>
