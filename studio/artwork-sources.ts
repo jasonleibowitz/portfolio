@@ -179,6 +179,7 @@ const googlePlaces: ArtworkSource = {
             'places.websiteUri',
             'places.googleMapsUri',
             'places.addressComponents',
+            'places.shortFormattedAddress',
             'places.primaryTypeDisplayName',
             'places.photos',
           ].join(','),
@@ -195,20 +196,37 @@ const googlePlaces: ArtworkSource = {
     const { places: found = [] } = await response.json();
 
     return found.map((place: any) => {
-      // "Williamsburg" identifies a coffee shop to a reader; the borough does
-      // not, and the full formatted address is too long for a credit line.
-      const area = (place.addressComponents ?? []).find((c: any) =>
-        c.types?.some((t: string) =>
-          ['neighborhood', 'sublocality', 'locality'].includes(t)
-        )
-      )?.longText;
+      /*
+       * "Williamsburg" identifies a coffee shop to a reader; "Manhattan" does
+       * not. Ordered rather than matched against a set, because a place often
+       * carries several of these and the first match wins: a set would let the
+       * borough beat the neighbourhood whenever Google listed it first.
+       */
+      const component = (type: string) =>
+        (place.addressComponents ?? []).find((c: any) =>
+          c.types?.includes(type)
+        )?.longText;
+
+      const area =
+        component('neighborhood') ??
+        component('sublocality_level_1') ??
+        component('sublocality') ??
+        component('locality');
 
       return {
         name: place.displayName?.text,
         subtitle: area,
         href: place.websiteUri ?? place.googleMapsUri,
         photoRefs: (place.photos ?? []).map((photo: any) => photo.name),
-        hint: [place.primaryTypeDisplayName?.text, area].filter(Boolean).join(' · '),
+        /*
+         * The street address, not the area, because a search for a chain
+         * returns several branches in one neighbourhood and the area alone
+         * cannot tell them apart. The area is still what the site shows: it
+         * reads better as a credit than a street number does.
+         */
+        hint: [place.primaryTypeDisplayName?.text, place.shortFormattedAddress]
+          .filter(Boolean)
+          .join(' · '),
       };
     });
   },
