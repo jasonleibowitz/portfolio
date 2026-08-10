@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# the sanity CLI writes a studio entry point here on any command it runs
+.sanity/
 # wrangler's local state and caches
 .wrangler/
 
@@ -60,3 +62,4 @@ design/
 # it is the design system itself, not output.
 .impeccable/critique/
 .impeccable/live/
+content.ndjson

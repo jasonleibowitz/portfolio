@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { Image } from 'astro:assets';
+import Artwork from '@components/Artwork.astro';
 import { Icon } from 'astro-icon/components';
 import { tv } from '@lib/tv';
 import { splitYear } from '@lib/lists';
@@ -16,8 +16,14 @@ import Typography from './ui/Typography.astro';
  * column child holds all of the text, so the entry is one grid row at any
  * length.
  */
+/*
+ * `contain`, not `cover`: a logo is not a photograph, and cropping one to fill
+ * a square cuts the wordmark off. The white tile is what makes the letterboxing
+ * read as deliberate, and it is the background most logos are drawn for. Square
+ * artwork fills the box, so the tile never shows for a podcast or an album.
+ */
 const artwork = tv({
-  base: 'mt-1 w-14 rounded-md border border-line object-cover',
+  base: 'mt-1 w-14 rounded-md border border-line bg-white object-contain',
   variants: {
     shape: {
       square: 'aspect-square',
@@ -95,17 +101,10 @@ const lastWord = words.at(-1);
 
   {
     item.image && (
-      /* Quality 92 and 3x density: the box is too small for a default encode
-        to have spare pixels to lose. */
-      <Image
+      <Artwork
         src={item.image}
-        alt=""
         width={56}
         height={ARTWORK_HEIGHT[shape]}
-        fit="cover"
-        densities={[2, 3]}
-        quality={92}
-        loading="lazy"
         class={artwork({ shape })}
       />
     )

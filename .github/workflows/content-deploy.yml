@@ -1,0 +1,103 @@
+name: Content deploy
+
+# Publishing in the studio changes Sanity, and nothing else: the site is static
+# and reads its content once, at build time. This is the workflow that closes
+# that gap. Sanity posts a `repository_dispatch` when a document is published,
+# and this rebuilds and deploys the live site.
+#
+# The sibling workflow, content-preview.yml, does the same for *drafts* and
+# sends them to a preview alias instead. Between them: publish updates the
+# site, saving a draft updates the preview, and neither needs a commit.
+on:
+  repository_dispatch:
+    types: [sanity-publish]
+  workflow_dispatch:
+
+# A burst of publishes should deploy the last one, not queue five builds. The
+# group is shared with the `staging` job in ci.yml, so a content publish and a
+# code push cannot deploy the same Worker at the same time.
+#
+# `cancel-in-progress` stays false here: cancelling mid-upload would leave the
+# live URL serving a half-written version.
+concurrency:
+  group: live-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WORKER_NAME: portfolio
+
+jobs:
+  deploy:
+    name: Build from Sanity and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # `main`, explicitly. A dispatch carries no ref, so without this the
+      # checkout is whatever GitHub considers default -- and a content deploy
+      # must ship the code that is live, not a branch that happens to be newer.
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Deliberately the published set, and nothing else:
+      #
+      #   SANITY_PERSPECTIVE is unset, so the client reads `published` and an
+      #   unpublished edit stays invisible.
+      #   SHOW_DRAFTS is unset, so an entry flagged `draft` stays out.
+      #
+      # Both are the defaults. They are named here because this is the one
+      # build whose output strangers see, and the difference between it and
+      # content-preview.yml is exactly these two absences.
+      - name: Build
+        env:
+          SITE_URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
+          CONTENT_SOURCE: sanity
+          PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
+          SANITY_READ_TOKEN: ${{ secrets.SANITY_READ_TOKEN }}
+        run: pnpm build
+
+      # TODO: delete at DNS cutover, with the same step in ci.yml. Until then
+      # this deployment is a staging one and must not be indexed.
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      # The dashboard shows this in the version history. Sanity sends the
+      # document that changed, so a row reads "Published: <title>" rather than
+      # "Manually deployed". The payload is author-controlled text, so it stays
+      # quoted and is never interpolated into the shell.
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DOC: ${{ github.event.client_payload.title || 'manual run' }}
+        run: |
+          pnpm exec wrangler deploy \
+            --tag "content" \
+            --message "Published: $DOC"
+
+      - name: Summary
+        env:
+          URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
+          DOC: ${{ github.event.client_payload.title || 'manual run' }}
+        run: |
+          {
+            echo "## Content deployed"
+            echo
+            echo "[$URL/]($URL/)"
+            echo
+            echo "Built from published Sanity content."
+          } >> "$GITHUB_STEP_SUMMARY"

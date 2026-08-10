@@ -2,8 +2,9 @@
 import type { CollectionEntry } from 'astro:content';
 import { formatDay } from '@lib/dates';
 import Chip from './ui/Chip.astro';
-import { readingMinutes } from '@lib/reading';
+import { postProse, readingMinutes } from '@lib/reading';
 import Typography from './ui/Typography.astro';
+import DraftBadge from './DraftBadge.astro';
 
 /**
  * One post in a list of posts: title, description, date, reading time, tags.
@@ -16,7 +17,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, pubDate, description, tags } = post.data;
+const { title, pubDate, description, tags, draft } = post.data;
 ---
 
 <li data-tags={tags.join(' ')} class="border-b border-line [&[hidden]]:hidden">
@@ -50,9 +51,10 @@ const { title, pubDate, description, tags } = post.data;
       variant="data"
       class="flex flex-wrap items-center gap-x-3 gap-y-2"
     >
+      <DraftBadge draft={draft} />
       <span>{formatDay(pubDate)}</span>
       <span class="opacity-50">·</span>
-      <span>{readingMinutes(post.body)} min</span>
+      <span>{readingMinutes(postProse(post))} min</span>
       <span class="flex flex-wrap gap-1.5">
         {tags.map((tag) => <Chip size="mini">{tag}</Chip>)}
       </span>

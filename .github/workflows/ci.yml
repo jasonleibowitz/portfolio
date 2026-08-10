@@ -21,6 +21,25 @@ env:
   # nothing to remove.
   WORKER_NAME: portfolio
 
+  # The studio is a route on the site, built only when there is a project for
+  # it to open. Every build below sets these, so /admin ships with the site and
+  # `Build` gates the studio bundle rather than skipping it. A variable, not a
+  # secret: both values are compiled into the page a visitor downloads. Unset,
+  # the builds still pass and simply carry no /admin.
+  PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+  PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
+
+  # Sanity is the content source. Set on every job, including `verify`, so the
+  # gate builds the same site the deploy does -- a `Build` that reads the .mdx
+  # files while the deploy reads Sanity would pass on content nobody serves.
+  #
+  # It does mean a build needs the token and the network. A pull request from a
+  # fork gets no secrets, so its `verify` fails at the loader with the message
+  # in src/content.config.ts. That is the honest failure: this repo has no
+  # outside contributors, and a fork cannot deploy either.
+  CONTENT_SOURCE: sanity
+  SANITY_READ_TOKEN: ${{ secrets.SANITY_READ_TOKEN }}
+
 jobs:
   verify:
     name: Verify
@@ -195,6 +214,14 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    # Content publishes deploy this same Worker, from content-deploy.yml. The
+    # group is shared with that workflow so a push and a publish queue instead
+    # of racing, and it does not cancel: a half-uploaded version would leave
+    # the live URL pointing at nothing.
+    concurrency:
+      group: live-deploy
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v5

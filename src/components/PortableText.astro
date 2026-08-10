@@ -1,0 +1,152 @@
+---
+import Heading2 from '@components/markdown/Heading2.astro';
+import Heading3 from '@components/markdown/Heading3.astro';
+import CaptionedImage from '@components/CaptionedImage.astro';
+import Spans from '@components/Spans.astro';
+import { imageUrl } from '@lib/sanity';
+import type { PortableBlock } from '@lib/portable-text';
+
+/**
+ * Renders a Sanity Portable Text body using this site's own components.
+ *
+ * Portable Text is data rather than a compiled component, so it cannot go
+ * through `render()` the way MDX does. That is the one real cost of moving
+ * content out of the repo, and this file is where it is paid: every block type
+ * is mapped to markup once, here, instead of being written inline in a post.
+ *
+ * The upside is that the mapping is central. A change to how images or code
+ * blocks render moves every post at once.
+ */
+interface Props {
+  value: PortableBlock[];
+}
+
+const { value = [] } = Astro.props;
+
+/** The plain text of a block, used for heading ids and their TOC entries. */
+function blockText(node: PortableBlock) {
+  return (node.children ?? []).map((c) => c.text ?? '').join('');
+}
+
+/**
+ * The id a heading renders with, matching what rehype generates for MDX.
+ *
+ * Without these the table of contents links point at anchors that do not
+ * exist, which breaks both jump-to-section and the scroll spy that highlights
+ * the section currently in view.
+ */
+function headingId(node: PortableBlock) {
+  return blockText(node)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Consecutive items of one kind, gathered so they render as a single list. */
+type ListGroup = { list: string; items: PortableBlock[] };
+
+/** What the markup below walks: a block, or a run of them wrapped as a list. */
+type RenderNode = PortableBlock | ListGroup;
+
+const isListGroup = (node: RenderNode | undefined): node is ListGroup =>
+  !!node && 'list' in node;
+
+/**
+ * Groups runs of consecutive list items into a single list.
+ *
+ * Portable Text marks each item individually rather than nesting them, so
+ * rendering blocks one at a time puts every bullet in its own `<ul>` and the
+ * gaps between them read as separate lists.
+ */
+function groupBlocks(nodes: PortableBlock[]) {
+  const out: RenderNode[] = [];
+  for (const node of nodes) {
+    const listType = node._type === 'block' ? node.listItem : undefined;
+    const previous = out[out.length - 1];
+    if (listType && isListGroup(previous) && previous.list === listType)
+      previous.items.push(node);
+    else if (listType) out.push({ list: listType, items: [node] });
+    else out.push(node);
+  }
+  return out;
+}
+
+const blocks = groupBlocks(value);
+---
+
+{
+  blocks.map((node) => {
+    // The two list kinds are the only wrapped nodes, so every branch below
+    // this one is a plain block.
+    if (isListGroup(node)) {
+      if (node.list !== 'bullet' && node.list !== 'number') return null;
+      const Tag = node.list === 'bullet' ? 'ul' : 'ol';
+      return (
+        <Tag>
+          {node.items.map((item) => (
+            <li>
+              <Spans node={item} />
+            </li>
+          ))}
+        </Tag>
+      );
+    }
+
+    // An image block with no asset yet renders nothing rather than an <img>
+    // with an empty src, which every browser reports as a broken image.
+    if (node._type === 'image') {
+      const src = imageUrl(node, { width: 1400 });
+      if (!src) return null;
+      return (
+        <CaptionedImage
+          src={src}
+          alt={node.alt}
+          caption={node.caption}
+          attribution={
+            // An attribution needs both halves: a credit with no text renders
+            // as a bare link, and text with no link is not an attribution.
+            node.attribution?.href && node.attribution.text
+              ? { src: node.attribution.href, text: node.attribution.text }
+              : undefined
+          }
+        />
+      );
+    }
+
+    if (node._type === 'code')
+      return (
+        <pre>
+          <code>{node.code}</code>
+        </pre>
+      );
+
+    if (node._type !== 'block') return null;
+
+    if (node.style === 'h2')
+      return (
+        <Heading2 id={headingId(node)}>
+          <Spans node={node} />
+        </Heading2>
+      );
+
+    if (node.style === 'h3')
+      return (
+        <Heading3 id={headingId(node)}>
+          <Spans node={node} />
+        </Heading3>
+      );
+
+    if (node.style === 'blockquote')
+      return (
+        <blockquote>
+          <Spans node={node} />
+        </blockquote>
+      );
+
+    return (
+      <p>
+        <Spans node={node} />
+      </p>
+    );
+  })
+}

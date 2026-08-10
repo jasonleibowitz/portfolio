@@ -6,9 +6,12 @@ type Item = List['items'][number];
 
 /** Every entry in a list, whether it is grouped or flat. */
 export function allItems(list: List): Item[] {
+  // Copied rather than returned as-is. `List` is a union of the file-backed
+  // and Sanity schemas, so `items` is `A[] | B[]`, which TypeScript will not
+  // hand back as the `(A | B)[]` this promises. A fresh array is that type.
   return list.groups.length
-    ? list.groups.flatMap((group) => group.items)
-    : list.items;
+    ? list.groups.flatMap((group): Item[] => [...group.items])
+    : [...list.items];
 }
 
 /** Tags across a list with their counts, alphabetical. */

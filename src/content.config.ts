@@ -1,6 +1,102 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, type LoaderContext } from 'astro/loaders';
 import { z } from 'astro/zod';
+
+import { imageUrl, queries, sanityClient, usingSanity } from './lib/sanity';
+
+/**
+ * Reads a collection from Sanity instead of from disk.
+ *
+ * A loader is the whole integration point: routes keep calling
+ * `getPublished()` and never learn where an entry came from. Only the body
+ * differs, because Portable Text is data rather than a compiled component and
+ * has to be rendered by `<PortableText />` instead of `render()`.
+ */
+const sanityLoader = (query: string) => ({
+  name: 'sanity',
+  load: async ({ store, parseData, logger, generateDigest }: LoaderContext) => {
+    const entries = await sanityClient().fetch(query);
+
+    /*
+     * An empty answer is treated as a broken build, not an empty site.
+     *
+     * A private dataset does not refuse an unauthenticated read: it answers
+     * 200 with no documents. So a build with a missing or expired token
+     * succeeds, renders a site with nothing on it, and deploys that over the
+     * real one. Nobody switches a site to Sanity to publish nothing, so the
+     * empty case is worth failing on.
+     */
+    if (entries.length === 0) {
+      throw new Error(
+        `The Sanity query for this collection returned no documents. ` +
+          `Check SANITY_READ_TOKEN, PUBLIC_SANITY_PROJECT_ID and ` +
+          `PUBLIC_SANITY_DATASET: a private dataset answers an unauthorised ` +
+          `read with an empty result rather than an error.`
+      );
+    }
+
+    /*
+     * Every entry carries a digest, and unchanged ones are left alone.
+     *
+     * Clearing the store and rewriting it on each load looked equivalent and
+     * was not: with nothing to compare, the content layer treats each sync as
+     * a change, pushes a reload to the browser, and the reload triggers the
+     * next sync. The page reloaded forever. A digest is how Astro tells "the
+     * loader ran again" apart from "the content is different".
+     */
+    const seen = new Set<string>();
+    let changed = 0;
+
+    for (const entry of entries) {
+      if (!entry.id) continue;
+      seen.add(entry.id);
+
+      const digest = generateDigest(entry);
+      if (store.get(entry.id)?.digest === digest) continue;
+
+      store.set({
+        id: entry.id,
+        data: await parseData({ id: entry.id, data: entry }),
+        digest,
+      });
+      changed += 1;
+    }
+
+    // A document deleted in the studio has to leave the store as well, which
+    // clearing used to handle for free.
+    for (const existing of store.values()) {
+      if (!seen.has(existing.id)) store.delete(existing.id);
+    }
+
+    if (changed) logger.info(`${changed} of ${entries.length} entries changed`);
+  },
+});
+
+/**
+ * An uploaded asset, reshaped into the `{ url, alt }` the templates already
+ * read. Doing it here rather than in each template is what keeps the routes
+ * source-agnostic: only the body has to know which source it came from.
+ */
+const sanityImage = z
+  .object({
+    asset: z.object({ _ref: z.string() }).optional(),
+    alt: z.string().optional(),
+  })
+  /*
+   * Optional, unlike the file-backed schema which requires a cover.
+   *
+   * A draft is written before it is illustrated, and the preview build reads
+   * drafts. Requiring the image would fail that build at exactly the moment it
+   * is most wanted -- mid-draft -- so the missing case is modelled as an empty
+   * url instead of an error.
+   */
+  // `nullish`, not `optional`: GROQ returns null for a field a document does
+  // not have, and null is not undefined as far as zod is concerned.
+  .nullish()
+  .transform((value) => ({
+    url: imageUrl(value, { width: 1600 }) ?? '',
+    alt: value?.alt ?? '',
+  }));
 
 /**
  * Copy that is still waiting on Jason is marked rather than invented, so the
@@ -8,6 +104,23 @@ import { z } from 'astro/zod';
  * names a frontmatter field that renders with a dotted underline.
  */
 const placeholder = z.array(z.string()).default([]);
+
+/**
+ * Sanity keeps the body as Portable Text and images as asset references, so
+ * the schema differs by source. Everything a template reads by name -- title,
+ * pubDate, tags, draft -- stays identical, which is why the routes do not have
+ * to branch.
+ */
+const sanityBlogSchema = z.object({
+  title: z.string(),
+  pubDate: z.coerce.date(),
+  description: z.string().optional(),
+  author: z.string(),
+  image: sanityImage,
+  tags: z.array(z.string()).default([]),
+  draft: z.boolean().default(false),
+  body: z.array(z.any()).default([]),
+});
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
@@ -33,6 +146,13 @@ const blog = defineCollection({
     draft: z.boolean().default(false),
   }),
 });
+
+const blogCollection = usingSanity
+  ? defineCollection({
+      loader: sanityLoader(queries.posts),
+      schema: sanityBlogSchema,
+    })
+  : blog;
 
 const lists = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lists' }),
@@ -143,6 +263,90 @@ const lists = defineCollection({
   },
 });
 
+/**
+ * A list from Sanity.
+ *
+ * Artwork arrives as an asset reference and leaves as a CDN URL sized for the
+ * 56px column, so `<Artwork>` can render it without `astro:assets`. The
+ * `items` / `groups` rule is not repeated here: the studio already prevents
+ * the invalid combinations, and a second copy would be a second thing to keep
+ * in step.
+ */
+const sanityListItem = z.object({
+  name: z.string(),
+  href: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  image: z
+    .object({ asset: z.object({ _ref: z.string() }).optional() })
+    .nullish()
+    .transform((v) => imageUrl(v, { width: 168 })),
+  subtitle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  note: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  tags: z
+    .array(z.string())
+    .nullish()
+    .transform((v) => v ?? []),
+  placeholder: z.array(z.string()).default([]),
+});
+
+const sanityListSchema = z.object({
+  title: z.string(),
+  description: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
+  updated: z.coerce.date(),
+  ranked: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+  thumb: z
+    .enum(['square', 'poster'])
+    .nullish()
+    .transform((v) => v ?? 'square'),
+  items: z
+    .array(sanityListItem)
+    .nullish()
+    .transform((v) => v ?? []),
+  groups: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z
+          .string()
+          .nullish()
+          .transform((v) => v ?? undefined),
+        placeholder: z.array(z.string()).default([]),
+        items: z
+          .array(sanityListItem)
+          .nullish()
+          .transform((v) => v ?? []),
+      })
+    )
+    .nullish()
+    .transform((v) => v ?? []),
+  draft: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+  placeholder: z.array(z.string()).default([]),
+});
+
+const listsCollection = usingSanity
+  ? defineCollection({
+      loader: sanityLoader(queries.lists),
+      schema: sanityListSchema,
+    })
+  : lists;
+
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
   // A function of `image()` so an icon path resolves relative to its own entry
@@ -203,4 +407,8 @@ const projects = defineCollection({
     }),
 });
 
-export const collections = { blog, lists, projects };
+export const collections = {
+  blog: blogCollection,
+  lists: listsCollection,
+  projects,
+};

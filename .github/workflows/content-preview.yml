@@ -1,0 +1,108 @@
+name: Content preview
+
+# Content changes do not touch the repo, so nothing pushes and nothing opens a
+# pull request. The build is triggered instead: Sanity posts a
+# `repository_dispatch` when a document changes, and the button in the studio
+# does the same thing by hand.
+on:
+  repository_dispatch:
+    types: [sanity-preview]
+  workflow_dispatch:
+
+# A burst of edits should publish the last one, not queue five builds. Unlike
+# CI this does not cancel in progress: a half-uploaded version would leave the
+# alias pointing at nothing.
+concurrency:
+  group: content-preview
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WORKER_NAME: portfolio
+  # A stable alias, not `pr-<n>`. There is no pull request here, and the URL
+  # has to be bookmarkable: the same address always shows the newest draft.
+  PREVIEW_ALIAS: content
+
+jobs:
+  preview:
+    name: Publish content preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve preview URL
+        id: preview
+        run: |
+          host="$PREVIEW_ALIAS-$WORKER_NAME.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          echo "url=https://$host" >> "$GITHUB_OUTPUT"
+
+      # Two switches make this a preview rather than production:
+      #
+      #   SANITY_PERSPECTIVE=drafts  reads unpublished documents as if live, so
+      #                              an unpublished edit renders.
+      #   SHOW_DRAFTS=true           keeps entries flagged `draft` in the build,
+      #                              which is the site's own separate notion.
+      #
+      # Both are absent from the production build, which is what keeps
+      # unfinished work off the real site.
+      - name: Build from Sanity drafts
+        env:
+          SITE_URL: ${{ steps.preview.outputs.url }}
+          CONTENT_SOURCE: sanity
+          SANITY_PERSPECTIVE: drafts
+          SHOW_DRAFTS: 'true'
+          # `PUBLIC_` is Astro's prefix for a value the browser may see, and
+          # the studio at /admin is browser code. Both values are variables
+          # rather than secrets for the same reason CF_WORKERS_SUBDOMAIN is:
+          # they are compiled into the build and shipped. The read token is a
+          # real secret, keeps its bare name, and stays on the server.
+          PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
+          SANITY_READ_TOKEN: ${{ secrets.SANITY_READ_TOKEN }}
+        run: pnpm build
+
+      # Drafts must never be indexed. Cloudflare adds its own noindex header to
+      # preview URLs as well, so this is the belt to that pair of braces.
+      - name: Mark as noindex
+        run: node scripts/noindex.mjs
+
+      # `versions upload` publishes a version behind an alias without touching
+      # what production serves. That is the whole reason this is safe to run on
+      # every content change.
+      - name: Upload version to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Sanity sends the document that changed, so the version history says
+          # what caused the build rather than "Manually deployed".
+          DOC: ${{ github.event.client_payload.title || 'manual run' }}
+        run: |
+          pnpm exec wrangler versions upload \
+            --preview-alias "$PREVIEW_ALIAS" \
+            --tag "drafts" \
+            --message "Content preview: $DOC"
+
+      - name: Summary
+        env:
+          URL: ${{ steps.preview.outputs.url }}
+        run: |
+          {
+            echo "## Content preview"
+            echo
+            echo "[$URL/]($URL/)"
+            echo
+            echo "Built from Sanity drafts. Not indexed. Production untouched."
+          } >> "$GITHUB_STEP_SUMMARY"
