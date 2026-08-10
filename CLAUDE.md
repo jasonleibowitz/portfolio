@@ -121,6 +121,12 @@ MDX bodies can import Astro components — `CaptionedImage` is the one in use.
 | `/writing/tags/[tag]` | Tag archive — the filter on the index is not a linkable URL   |
 | `/lists`              | Card grid                                                     |
 | `/lists/[...slug]`    | Ranked or grouped, with a tag rail                            |
+| `/404`                | Not found. Placeholder layout, real copy                      |
+
+`404.astro` needs `not_found_handling: "404-page"` in `wrangler.jsonc`. Cloudflare returns an
+empty 404 without it, and the page is never seen. Its `page` key is `missing`, which
+`NAV_FOR_PAGE` maps to `null`: the page is in no section, so no nav item is marked current
+and `MobileNav`'s corner control names the menu instead.
 
 **`/writing` is canonical.** `/blog/*` redirects to it via `redirects` in
 `astro.config.mjs`; the old posts have a decade of inbound links. Astro validates redirect
