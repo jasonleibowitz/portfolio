@@ -1,18 +1,18 @@
-# Sanity spike: what is left
+# Sanity: what is left
 
-Running notes for the Sanity evaluation. Everything here lives on
-`worktree-keystatic-spike` and nothing has been merged.
+Sanity is the content source. Issue #28 tracks each task that remains, and this
+file keeps the reasoning that a checkbox cannot hold.
 
-## Parked until Sanity is chosen
+## Parked until the site is stable
 
 **Drop the `draft` boolean in favour of Sanity's publish state.** Two controls
-answer the same question today, and the field is the one that can lie: a
-document can be published in Sanity and still invisible on the site. Deliberately
-not done yet, because both content sources are live behind `CONTENT_SOURCE` and
-removing the field would make them behave differently while they are being
-compared.
+answer the same question, and the field is the one that can lie: a document can
+be published in Sanity and stay invisible on the site. The change waits because
+it changes which entries a visitor sees, and that must not ride along with the
+switch to Sanity. One deploy would then make two changes, and neither could be
+checked alone.
 
-When Sanity wins:
+The steps:
 
 1. Drop `draft` from the three schemas and from the loader.
 2. `getPublished()` keeps sorting; the perspective does the filtering.
