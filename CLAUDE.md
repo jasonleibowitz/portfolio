@@ -159,10 +159,10 @@ of the title is a second thing to drift.
 
 | Page            | Share card                                                    |
 | --------------- | ------------------------------------------------------------- |
-| `/writing`      | `og/writing.jpg`, the section title beside its 3 newest posts |
+| `/writing`      | `og/writing.jpg`, the section title beside its 2 newest posts |
 | `/lists`        | `og/lists.jpg`, the page title beside a fan per list          |
-| A post          | `og/post/<id>.jpg`, its cover beside its title and date       |
-| A list          | `og/list/<id>.jpg`, its artwork fan over its title and counts |
+| A post          | `og/post/<id>.jpg`, its cover beside its title                |
+| A list          | `og/list/<id>.jpg`, its artwork fan over its title            |
 | A project       | its `icon`, re-encoded to PNG by `getImage()`                 |
 | Everything else | `og/default.jpg`, the orbit avatar with the name and role     |
 

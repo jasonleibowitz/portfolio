@@ -149,15 +149,6 @@ function published(dir, dateField) {
     .sort((a, b) => new Date(b.data[dateField]) - new Date(a.data[dateField]));
 }
 
-/** Matches `formatDay()` in `src/lib/dates.ts`: a plain day, read in UTC. */
-const formatDay = (value) =>
-  new Date(value).toLocaleDateString('en-US', {
-    timeZone: 'UTC',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
 /** Every item of a list, flat, the way `allItems()` in `src/lib/lists.ts` does. */
 const allItems = (data) =>
   data.items?.length ? data.items : (data.groups ?? []).flatMap((g) => g.items);
@@ -202,17 +193,24 @@ const shell = (main) => `<!doctype html>
 
   main { flex: 1; display: flex; align-items: center; min-height: 0; }
 
-  /* Uppercase mono label, the caption role in src/lib/typography.ts. */
+  /*
+    Nothing on a card is set below 30px.
+
+    A card is 1200px wide and a chat bubble shows it at roughly 350, so every
+    size here divides by about three and a half before anyone reads it. The
+    page's own scale does not survive that: the caption role is 12px, which
+    lands under 4px. So a card carries few things, each of them large, and
+    counts and dates that would earn their place on the page are left off it.
+  */
   .eyebrow {
-    font: 400 20px/1 'JetBrains Mono';
+    font: 400 30px/1 'JetBrains Mono';
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: ${FAINT};
   }
-  .meta { font: 400 20px/1.6 'JetBrains Mono'; letter-spacing: 0.06em; color: ${FAINT}; }
 
   h1 { font-family: 'Space Grotesk'; font-weight: 700; letter-spacing: -0.04em; color: ${INK}; }
-  .lead { font: 500 30px/1.35 'Inter'; color: ${MUTED}; }
+  .lead { font: 500 34px/1.35 'Inter'; color: ${MUTED}; }
 
   .rule {
     width: 116px;
@@ -223,9 +221,9 @@ const shell = (main) => `<!doctype html>
 
   /* The signature. Every card ends the same way, so the family is legible even
      when the cards themselves are not alike. */
-  footer { display: flex; align-items: center; gap: 14px; flex: none; }
-  footer img { width: 34px; height: 34px; }
-  footer span { font: 600 24px/1 'Inter'; letter-spacing: 0.01em; color: ${VIOLET}; }
+  footer { display: flex; align-items: center; gap: 16px; flex: none; }
+  footer img { width: 44px; height: 44px; }
+  footer span { font: 600 32px/1 'Inter'; letter-spacing: 0.01em; color: ${VIOLET}; }
 </style>
 ${main}
 <footer>
@@ -288,7 +286,7 @@ const defaultCard = () =>
 </main>`);
 
 /**
- * `/writing`, showing the three most recent posts.
+ * `/writing`, showing the two most recent posts.
  *
  * A section index has no single picture, so the card shows what the page is a
  * list of. Real titles say "writing" more plainly than any icon would.
@@ -296,33 +294,39 @@ const defaultCard = () =>
 const writingCard = (posts) =>
   shell(`
 <style>
-  main { gap: 56px; }
-  .side { flex: none; width: 470px; }
-  h1 { font-size: 108px; line-height: 1; }
+  main { gap: 52px; }
+  .copy { flex: 1; min-width: 0; }
+  h1 { font-size: 104px; line-height: 1; }
   .eyebrow + h1 { margin-top: 16px; }
-  .lead { margin-top: 20px; font-size: 26px; }
-  .rule { margin-top: 28px; }
+  .lead { margin-top: 22px; }
+  .rule { margin-top: 30px; }
+  /* Two titles, not three, and no dates. Both cuts buy size: a third row
+     forces every title down to the floor, and a date beside one has to be
+     smaller still to stay subordinate to it. */
   .recent {
+    flex: none;
+    width: 520px;
     border: 1px solid ${LINE};
     border-radius: 18px;
     background: ${PANEL};
-    padding: 8px 30px;
+    padding: 4px 32px;
   }
-  .recent li { list-style: none; padding: 22px 0; border-top: 1px solid ${LINE}; }
+  .recent li { list-style: none; padding: 34px 0; border-top: 1px solid ${LINE}; }
   .recent li:first-child { border-top: 0; }
-  .recent .date { font: 400 17px/1 'JetBrains Mono'; letter-spacing: 0.06em; color: ${FAINT}; }
-  .recent .title {
-    margin-top: 10px;
-    font: 600 25px/1.25 'Inter';
-    color: ${INK};
+  /* The clamp is on an inner box, not on the padded one: a padded
+     -webkit-box adds its ellipsis at line two and then paints line three
+     into the padding anyway, straight through the panel's edge. */
+  .recent span {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font: 600 40px/1.25 'Inter';
+    color: ${INK};
   }
 </style>
 <main>
-  <div>
+  <div class="copy">
     <p class="eyebrow">Archive</p>
     <h1>Writing</h1>
     <p class="lead">${escape(
@@ -330,15 +334,10 @@ const writingCard = (posts) =>
     )}</p>
     <div class="rule"></div>
   </div>
-  <ul class="recent side">
+  <ul class="recent">
     ${posts
-      .slice(0, 3)
-      .map(
-        (post) => `<li>
-      <p class="date">${formatDay(post.data.pubDate).toUpperCase()}</p>
-      <p class="title">${escape(post.data.title)}</p>
-    </li>`
-      )
+      .slice(0, 2)
+      .map((post) => `<li><span>${escape(post.data.title)}</span></li>`)
       .join('')}
   </ul>
 </main>`);
@@ -385,43 +384,35 @@ const FAN_CSS = `
  * says which section this is, and repeating it wastes the one line that could
  * say what the section is for.
  */
-const listsCard = (lists) => {
-  const entries = lists.reduce(
-    (sum, list) => sum + allItems(list.data).length,
-    0
-  );
-
-  return shell(`
+const listsCard = (lists) =>
+  shell(`
 <style>
   ${FAN_CSS}
-  main { gap: 56px; }
+  main { gap: 52px; }
   .copy { flex: 1; min-width: 0; }
-  h1 { font-size: 66px; line-height: 1.06; }
+  h1 { font-size: 68px; line-height: 1.06; }
   .eyebrow + h1 { margin-top: 16px; }
-  .rule { margin-top: 28px; }
-  .meta { margin-top: 24px; text-transform: uppercase; }
-  .stacks { flex: none; display: flex; flex-direction: column; gap: 34px; align-items: flex-end; }
-  .stack .name { margin-bottom: 12px; text-align: right; font: 600 22px/1 'Inter'; color: ${INK}; }
+  .rule { margin-top: 30px; }
+  .stacks { flex: none; display: flex; flex-direction: column; gap: 32px; align-items: flex-end; }
+  .stack .name { margin-bottom: 14px; text-align: right; font: 600 32px/1 'Inter'; color: ${INK}; }
 </style>
 <main>
   <div class="copy">
     <p class="eyebrow">Lists</p>
     <h1>Things, ranked and sorted</h1>
     <div class="rule"></div>
-    <p class="meta">${lists.length} lists · ${entries} entries</p>
   </div>
   <div class="stacks">
     ${lists
       .map(
         (list) => `<div class="stack">
       <p class="name">${escape(list.data.title)}</p>
-      ${fan(list, { width: 88, limit: 5 })}
+      ${fan(list, { width: 108, limit: 5 })}
     </div>`
       )
       .join('')}
   </div>
 </main>`);
-};
 
 /**
  * A post's own card: its cover beside its title.
@@ -456,7 +447,7 @@ const postCard = (post) => {
 </style>
 <main>
   <div class="copy">
-    <p class="eyebrow">Writing · ${formatDay(post.data.pubDate)}</p>
+    <p class="eyebrow">Writing</p>
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
@@ -464,38 +455,29 @@ const postCard = (post) => {
 </main>`);
 };
 
-/** A list's own card: the fan from its page, over its title and its counts. */
-const listCard = (list) => {
-  const items = allItems(list.data);
-  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  const shape = list.data.ranked
-    ? 'Ranked'
-    : list.data.groups?.length
-      ? plural(list.data.groups.length, 'section', 'sections')
-      : null;
-  const meta = [
-    plural(items.length, 'entry', 'entries'),
-    shape,
-    `Updated ${formatDay(list.data.updated)}`,
-  ].filter(Boolean);
-
-  return shell(`
+/**
+ * A list's own card: the fan from its page, over its title.
+ *
+ * The entry count, the shape and the updated date all belong on the page and
+ * none of them belong here. Each is subordinate to the title, so each would
+ * have to be set smaller than it, and there is no room under 76px for a line
+ * that still reads at a third of this size.
+ */
+const listCard = (list) =>
+  shell(`
 <style>
   ${FAN_CSS}
-  main { flex-direction: column; align-items: flex-start; justify-content: center; gap: 40px; }
-  h1 { font-size: 76px; line-height: 1.05; }
-  .eyebrow + h1 { margin-top: 16px; }
-  .meta { margin-top: 16px; text-transform: uppercase; }
+  main { flex-direction: column; align-items: flex-start; justify-content: center; gap: 46px; }
+  h1 { font-size: 80px; line-height: 1.05; }
+  .eyebrow + h1 { margin-top: 18px; }
 </style>
 <main>
-  ${fan(list, { width: list.data.thumb === 'poster' ? 116 : 134, limit: 6 })}
+  ${fan(list, { width: list.data.thumb === 'poster' ? 124 : 148, limit: 6 })}
   <div>
     <p class="eyebrow">Lists</p>
     <h1>${escape(list.data.title)}</h1>
-    <p class="meta">${meta.join(' · ')}</p>
   </div>
 </main>`);
-};
 
 /* ------------------------------------------------------------------ render */
 
