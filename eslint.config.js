@@ -5,9 +5,10 @@ import astro from 'eslint-plugin-astro';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default defineConfig([
-  /* `.claude/` is agent state, and `.claude/worktrees/` holds whole checkouts of
-     this repo on other branches. Linting one reports another branch's problems
-     as this branch's, and nothing in this config could fix them. */
+  /* `.claude/` contains the data of an agent, and `.claude/worktrees/` contains
+     a full copy of this repository on a different branch. If ESLint reads one,
+     it reports the errors of that branch as errors of this branch, and no
+     change to this file can correct them. */
   globalIgnores([
     'dist/',
     '.astro/',

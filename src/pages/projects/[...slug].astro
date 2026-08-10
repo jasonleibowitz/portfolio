@@ -30,10 +30,10 @@ const { data } = project;
 const { Content } = await render(project);
 
 /**
- * The app's own icon is the share card, re-encoded as PNG. The icons ship as
- * webp, which the page wants and which iMessage reads, but LinkedIn's scraper
- * still drops a webp and shows no picture at all. A project with no icon falls
- * through to the site's default card.
+ * The share card is the icon of the app, in the PNG format. The icons are webp
+ * files, which the page uses and which iMessage reads, but the crawler of
+ * LinkedIn does not read a webp file and shows no image. A project with no icon
+ * gets the default card of the site.
  */
 const shareIcon = data.icon
   ? await getImage({ src: data.icon, format: 'png' })

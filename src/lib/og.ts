@@ -1,18 +1,19 @@
 import { existsSync } from 'node:fs';
 
 /**
- * The share card for a page. `scripts/og-card.ts` draws these into
- * `public/og/` as the first half of `pnpm build`, so this is the one place that
- * knows how a card is named and the script is the other.
+ * Gives the address of the share card of a page. `scripts/og-card.ts` makes
+ * these files in `public/og/`, as the first part of `pnpm build`. This function
+ * and that script are the only two places that know the name of a card.
  *
- * The check is a disagreement detector, not a reminder. The generator and Astro
- * decide separately which entries are published, one from frontmatter and one
- * through `getPublished`, and if they ever part company a page ships with an
- * `og:image` that 404s. Nothing else would notice: the gates do not fetch the
- * tags they emit, and a scraper fails much later, in someone else's chat
- * window.
+ * The test finds a disagreement. It is not a reminder. The script and Astro
+ * each decide which entries the site publishes: the script reads the
+ * frontmatter, and Astro uses `getPublished`. If the two do not agree, a page
+ * gives an `og:image` address that has no file, and nothing else finds this
+ * error. The four gates do not request the addresses that they write, and a web
+ * crawler finds the error much later.
  *
- * It runs only in a build, because `pnpm dev` does not draw the cards.
+ * The test operates in a build only, because `pnpm dev` does not make the
+ * cards.
  */
 export function shareCard(name: string): string {
   const url = `/og/${name}.jpg`;

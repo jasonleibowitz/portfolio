@@ -18,9 +18,9 @@ export type PageKey =
 export type NavKey = 'home' | 'about' | 'projects' | 'writing' | 'lists';
 
 /**
- * Which nav item lights up for a given page. `null` for a page that is in no
- * section: the 404 belongs to none of them, and lighting one would tell the
- * reader they are somewhere they are not.
+ * Which nav item the site shows as current, for each page. A page that is in no
+ * section gives `null`. The 404 page is in no section, and a nav item shown as
+ * current would tell the reader that they are at a place where they are not.
  */
 export const NAV_FOR_PAGE: Record<PageKey, NavKey | null> = {
   home: 'home',
@@ -132,14 +132,14 @@ const LISTS_LEAD =
   'Recommendations I get asked for often enough that it was easier to write them down';
 
 /**
- * The `/lists` masthead, in the same shape, and for one more reason: the share
- * card is drawn outside Astro by `scripts/og-card.ts`, which reads this file.
- * Copy left inline in the page would have to be typed a second time in the
- * script, and the card would then keep the old wording after an edit.
+ * The heading of `/lists`, in the same shape as `WRITING`, and for one more
+ * reason. `scripts/og-card.ts` makes the share card outside Astro, and it reads
+ * this file. Text that stays in the page must be typed a second time in the
+ * script, and the card then keeps the old text after a change.
  *
- * `headline` is separate from `title` because this page's masthead is a
- * sentence and its nav label is a word. Writing's are the same word, which is
- * why both of its keys hold it.
+ * `headline` is not the same key as `title`, because the heading of this page
+ * is a sentence and its nav label is one word. For Writing the two are the same
+ * word, thus both of its keys contain it.
  */
 export const LISTS = {
   eyebrow: 'Lists',

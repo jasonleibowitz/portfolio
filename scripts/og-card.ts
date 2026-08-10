@@ -369,13 +369,15 @@ const shell = ({ css, html }: Part) => `<!doctype html>
   main { flex: 1; display: flex; align-items: center; min-height: 0; }
 
   /*
-    Nothing on a card is set below 30px.
+    No text on a card is smaller than 30px.
 
-    A card is 1200px wide and a chat bubble shows it at roughly 350, so every
-    size here divides by about three and a half before anyone reads it. The
-    page's own scale does not survive that: the caption role is 12px, which
-    lands under 4px. So a card carries few things, each of them large, and
-    counts and dates that would earn their place on the page are left off it.
+    A card is 1200px wide, and a message program shows it at approximately
+    350px. Thus divide each size here by 3.5 to get the size that a person sees.
+    The type sizes of the site are too small for this: the caption size is 12px,
+    which becomes less than 4px.
+
+    Thus a card shows a small number of things, and each one is large. A count
+    or a date is correct on a page, but this card does not show it.
   */
   .eyebrow {
     font: 400 30px/1 'JetBrains Mono';

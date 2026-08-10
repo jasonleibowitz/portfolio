@@ -1,7 +1,7 @@
 # build output
 dist/
-# share cards: `pnpm build` draws them from current content, so a committed copy
-# would only ever be a stale one. See "Link previews" in CLAUDE.md.
+# Share cards. `pnpm build` makes them again from the current content, thus a
+# copy in git is always an old one. See "Link previews" in CLAUDE.md.
 public/og/
 # generated types
 .astro/
@@ -29,7 +29,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# git worktrees live here, each one its own checkout of this repo
+# Each directory here is a git worktree: a full copy of this repository.
 .claude/worktrees/
 
 # Local design exploration: hand-built mockup rounds, direction notes, and the

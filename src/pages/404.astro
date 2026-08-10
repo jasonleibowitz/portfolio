@@ -5,17 +5,18 @@ import Section from '@components/layout/Section.astro';
 import Link from '@components/ui/Link.astro';
 
 /**
- * Placeholder. The copy is real, the layout is not designed yet.
+ * A temporary page. The text is correct, but no person has designed the layout.
  *
- * It exists now because the site has a decade of inbound links. The redirects
- * in `astro.config.mjs` cover the `/blog/*` addresses that still resolve, and
- * anything else used to land on Cloudflare's own page: no header, no way back.
+ * The page is necessary now, because links to this site are 10 years old. The
+ * redirects in `astro.config.mjs` send each `/blog/*` address that is still
+ * correct. Each other address went to a page of Cloudflare, which has no header
+ * and no link back to the site.
  *
- * One link out, and no button. A gradient button is the shape this site gives
- * to an action that a reader came to do, and nobody comes here to do anything.
+ * One link, and no button. On this site a gradient button is an action that the
+ * reader came to do, and no reader comes here to do an action.
  *
- * `not_found_handling` in `wrangler.jsonc` must stay `404-page`, or this file
- * builds and nobody ever sees it.
+ * `not_found_handling` in `wrangler.jsonc` must stay `404-page`. If it does not,
+ * the build makes this page and no person sees it.
  */
 ---
 
@@ -25,8 +26,9 @@ import Link from '@components/ui/Link.astro';
   description="Nothing lives at this address."
 >
   {
-    /* No eyebrow. Every other masthead uses it to name the section, and this
-      page is in none. The headline already gives the status code. */
+    /* This page has no small label above the heading. On each other page that
+      label gives the name of the section, and this page is in no section. The
+      heading already gives the status code. */
   }
   <PageHead
     title="This is a 404. It's either my fault or yours."
@@ -35,8 +37,8 @@ import Link from '@components/ui/Link.astro';
 
   <Section>
     {
-      /* The arrow of `ListRow`: it moves and takes the accent color when the
-        link has the pointer. It is decoration, thus it is hidden. */
+      /* The arrow of `ListRow`. It moves and gets the accent color when the
+        pointer is on the link. It is decoration, thus it is hidden. */
     }
     <Link href="/" variant="body" class="group text-ink hover:text-violet">
       Back home<span

@@ -17,15 +17,15 @@ interface Props {
   /** Drives the active nav state and the reading-progress bar. */
   page: PageKey;
   /**
-   * The share card's picture. A page holding a real image passes its own; the
-   * rest fall back to the headshot card, so no link shares as a bare text
-   * bubble. iMessage in particular renders a plain row without one.
+   * The image of the share card. A page that has its own image gives it here.
+   * A page with no image gets the default card. Thus a link always has an
+   * image: without one, iMessage shows a line of text only.
    */
   image?: string;
   imageAlt?: string;
   /**
-   * A square picture is an app icon, and cropping one to 1.91:1 cuts the top
-   * and bottom off it, so those pages ask for the small card instead.
+   * A square image is an app icon. A card of 1.91:1 removes the top and the
+   * bottom of a square image, thus such a page asks for the small card.
    */
   imageShape?: 'wide' | 'square';
 }
@@ -58,8 +58,8 @@ const showProgress = page === 'post' || page === 'project';
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 /**
- * The card behind every page that names none of its own: the orbit avatar, the
- * name and the role line, set in the site's own type.
+ * The alternative text of the default card. That card shows the orbit avatar,
+ * the name and the role, thus this text says the same.
  */
 const DEFAULT_SHARE_ALT = 'Jason Leibowitz, full-stack engineer in New York';
 
@@ -82,9 +82,9 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {
-      /* The monogram again as a raster square. Apple's link previews and its
-        home screen both ignore an SVG favicon, and iOS masks the corners
-        itself, which is why this one is not rounded. */
+      /* The mark again, as a square image. A link preview of Apple and the
+        home screen of iOS do not read an SVG favicon. iOS makes the corners
+        round, thus the corners of this image are square. */
     }
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link

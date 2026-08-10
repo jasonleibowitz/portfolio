@@ -30,9 +30,9 @@ const active = NAV_FOR_PAGE[page];
 const section = NAV.find((item) => item.key === active);
 
 /**
- * The closed control names the section the reader is in. A page in no section,
- * the 404, has none, so the control names the menu itself rather than a place
- * the reader is not.
+ * The name on the closed control. It is the section that the reader is in. The
+ * 404 page is in no section, thus the control gives the name of the menu, and
+ * not the name of a place where the reader is not.
  */
 const current = section ?? { label: 'Menu', icon: 'lucide:compass' };
 ---
