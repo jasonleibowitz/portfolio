@@ -76,8 +76,6 @@ const lists = defineCollection({
       title: z.string(),
       description: z.string().optional(),
       updated: z.coerce.date(),
-      /* A list has no share-image field: `scripts/og-card.mjs` builds its card
-         out of the artwork and the title already in here. */
       /** Ranked lists are numbered and never grouped. */
       ranked: z.boolean().default(false),
       /**

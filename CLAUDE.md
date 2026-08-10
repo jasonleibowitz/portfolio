@@ -165,11 +165,11 @@ of the title is a second thing to drift.
 | A project       | its `icon`, re-encoded to PNG by `getImage()`                 |
 | Everything else | `og/default.jpg`, the orbit avatar with the name and role     |
 
-`scripts/og-card.mjs` draws all of those except the project icons, and it runs as the first
+`scripts/og-card.ts` draws all of those except the project icons, and it runs as the first
 half of `pnpm build`:
 
 ```json
-"build": "node scripts/og-card.mjs && astro build"
+"build": "node scripts/og-card.ts && astro build"
 ```
 
 **Nothing under `public/og/` is committed.** It is gitignored, and every build redraws it from
@@ -226,6 +226,12 @@ The cards are laid out in HTML and shot with headless Chrome, because sharp rast
 text with system fonts and this site's typefaces are npm packages. Frontmatter is read with
 `yaml`. The script cannot call `getPublished`, but it must agree with it, so it drops drafts
 itself: no page, no card.
+
+The script is **TypeScript run straight by `node`**, with no build step: Node 24 strips the
+types on the way in, which is also how it imports `src/lib/site.ts`. `tsconfig.json` includes
+`**/*`, so `pnpm check` typechecks it, which was verified by planting an error rather than
+assumed. That only works for erasable syntax, so no enums and no namespaces in here.
+`scripts/noindex.mjs` stays `.mjs`; four lines gain nothing from a type.
 
 **Every card is dark, in both themes, and that is not an oversight.** `og:image` is one URL
 and a scrape carries no theme signal, so a page cannot ship a light card and a dark card and

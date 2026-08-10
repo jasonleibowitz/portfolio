@@ -55,14 +55,14 @@ import { LISTS, WRITING } from '../src/lib/site.ts';
  * which ships one. `CHROME_PATH` covers anything else.
  */
 function findChrome() {
-  const candidates = [
+  const candidates: string[] = [
     process.env.CHROME_PATH,
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/usr/bin/google-chrome',
     '/usr/bin/google-chrome-stable',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
-  ].filter(Boolean);
+  ].filter((path) => path !== undefined);
 
   const found = candidates.find((path) => existsSync(path));
   if (found) return found;
@@ -128,7 +128,7 @@ const DOMAIN = 'leibowitz.me';
 
 /* ------------------------------------------------------------------ assets */
 
-const MIME = {
+const MIME: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -137,11 +137,19 @@ const MIME = {
   '.woff2': 'font/woff2',
 };
 
-/** Chrome gets every asset inline, so a card never depends on a served file. */
-const dataUri = (path) =>
-  `data:${MIME[extname(path).toLowerCase()]};base64,${readFileSync(
-    path
-  ).toString('base64')}`;
+/**
+ * Chrome gets every asset inline, so a card never depends on a served file.
+ *
+ * An unknown extension throws rather than interpolating `undefined` into the
+ * URI, which browsers accept and then render as nothing: the card would come
+ * out missing a picture with no error anywhere.
+ */
+function dataUri(path: string): string {
+  const type = MIME[extname(path).toLowerCase()];
+  if (!type) throw new Error(`No MIME type known for ${path}`);
+
+  return `data:${type};base64,${readFileSync(path).toString('base64')}`;
+}
 
 const grotesk = dataUri(
   'node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2'
@@ -160,13 +168,57 @@ const monogram = dataUri('public/favicon.svg');
 /* ----------------------------------------------------------------- content */
 
 /**
+ * The frontmatter these cards read, which is a subset of the schemas in
+ * `src/content.config.ts`.
+ *
+ * Declared rather than imported because zod's inferred types describe the
+ * parsed entry, and this script reads the file before Astro ever sees it: dates
+ * are still strings here, and a list's artwork is still a relative path rather
+ * than an `ImageMetadata`.
+ */
+interface Draftable {
+  draft?: boolean;
+}
+
+interface PostData extends Draftable {
+  title: string;
+  pubDate: string;
+  image: { url: string; alt: string };
+}
+
+interface ListItem {
+  name: string;
+  /** Relative to the entry file, e.g. `./artwork/podcasts/up-first.webp`. */
+  image?: string;
+}
+
+interface ListData extends Draftable {
+  title: string;
+  updated: string;
+  ranked?: boolean;
+  thumb?: 'square' | 'poster';
+  items?: ListItem[];
+  groups?: { name: string; items: ListItem[] }[];
+}
+
+interface Entry<T> {
+  id: string;
+  /** The collection directory, so an item's relative artwork path resolves. */
+  dir: string;
+  data: T;
+}
+
+/**
  * Published entries of a collection, newest first, read straight from the
  * frontmatter.
  *
  * The script runs outside Astro and so cannot call `getPublished`, but it must
  * agree with it: a draft has no page, so it must have no card either.
  */
-function published(dir, dateField) {
+function published<T extends Draftable>(
+  dir: string,
+  date: (data: T) => string
+): Entry<T>[] {
   return readdirSync(dir)
     .filter((file) => /\.mdx?$/.test(file))
     .map((file) => ({
@@ -174,21 +226,27 @@ function published(dir, dateField) {
       dir,
       data: parseYaml(
         readFileSync(join(dir, file), 'utf8').split(/^---$/m)[1] ?? ''
-      ),
+      ) as T,
     }))
     .filter((entry) => entry.data.draft !== true)
-    .sort((a, b) => new Date(b.data[dateField]) - new Date(a.data[dateField]));
+    .sort(
+      (a, b) =>
+        new Date(date(b.data)).valueOf() - new Date(date(a.data)).valueOf()
+    );
 }
 
 /** Every item of a list, flat, the way `allItems()` in `src/lib/lists.ts` does. */
-const allItems = (data) =>
+const allItems = (data: ListData): ListItem[] =>
   data.items?.length ? data.items : (data.groups ?? []).flatMap((g) => g.items);
 
-const escape = (text) =>
-  String(text).replace(
-    /[&<>]/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]
-  );
+const ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+};
+
+const escape = (text: string): string =>
+  text.replace(/[&<>]/g, (c) => ESCAPES[c]!);
 
 /* ------------------------------------------------------------------- shell */
 
@@ -198,7 +256,7 @@ const escape = (text) =>
  * One shell rather than five, so a link preview reads as one family whichever
  * page produced it, and so the palette lives in one place.
  */
-const shell = (main) => `<!doctype html>
+const shell = (main: string) => `<!doctype html>
 <meta charset="utf-8" />
 <style>
   @font-face { font-family: 'Space Grotesk'; src: url('${grotesk}') format('woff2-variations'); font-weight: 300 700; }
@@ -322,7 +380,7 @@ const defaultCard = () =>
  * A section index has no single picture, so the card shows what the page is a
  * list of. Real titles say "writing" more plainly than any icon would.
  */
-const writingCard = (posts) =>
+const writingCard = (posts: Entry<PostData>[]) =>
   shell(`
 <style>
   main { gap: 52px; }
@@ -376,16 +434,19 @@ const writingCard = (posts) =>
  * overlapped, each cover ringed in the canvas colour so two similar covers do
  * not merge.
  */
-function fan(entry, { width, limit }) {
+function fan(
+  entry: Entry<ListData>,
+  { width, limit }: { width: number; limit: number }
+) {
   const poster = entry.data.thumb === 'poster';
   const height = poster ? Math.round((width * 3) / 2) : width;
   const covers = allItems(entry.data)
-    .filter((item) => item.image)
+    .filter((item) => item.image !== undefined)
     .slice(0, limit);
 
   return `<div class="fan">${covers
     .map((item, i) => {
-      const file = resolve(entry.dir, item.image);
+      const file = resolve(entry.dir, item.image!);
       return `<img src="${dataUri(file)}" alt="" style="
         width: ${width}px;
         height: ${height}px;
@@ -413,7 +474,7 @@ const FAN_CSS = `
  * says which section this is, and repeating it wastes the one line that could
  * say what the section is for.
  */
-const listsCard = (lists) =>
+const listsCard = (lists: Entry<ListData>[]) =>
   shell(`
 <style>
   ${FAN_CSS}
@@ -451,7 +512,7 @@ const listsCard = (lists) =>
  * shown. Here the cover is one element of a 1200x630 card that also carries
  * the title, the date and the site's signature.
  */
-const postCard = (post) => {
+const postCard = (post: Entry<PostData>) => {
   const title = post.data.title;
   /* Set by length, so a 52-character headline and a 20-character one both fill
      the column instead of one overflowing it. */
@@ -492,7 +553,7 @@ const postCard = (post) => {
  * have to be set smaller than it, and there is no room under 76px for a line
  * that still reads at a third of this size.
  */
-const listCard = (list) =>
+const listCard = (list: Entry<ListData>) =>
   shell(`
 <style>
   ${FAN_CSS}
@@ -531,7 +592,10 @@ const scratch = mkdtempSync(join(tmpdir(), 'og-card-'));
  * the difference is invisible on the headline, the only part a lossy codec
  * could hurt.
  */
-async function shootBatch(batch) {
+/** An output path and the HTML that becomes it. */
+type Card = [out: string, html: string];
+
+async function shootBatch(batch: Card[]) {
   const pages = batch.map(([out], i) => {
     const file = join(scratch, `card-${i}.html`);
     writeFileSync(file, batch[i][1]);
@@ -587,25 +651,31 @@ ${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
  */
 const BATCH = 12;
 
-async function shoot(cards) {
+async function shoot(cards: Card[]) {
   for (let i = 0; i < cards.length; i += BATCH) {
     await shootBatch(cards.slice(i, i + BATCH));
   }
 }
 
-const posts = published('src/content/blog', 'pubDate');
-const lists = published('src/content/lists', 'updated');
+const posts = published<PostData>('src/content/blog', (d) => d.pubDate);
+const lists = published<ListData>('src/content/lists', (d) => d.updated);
 
 /* Cleared first, so a card whose post was deleted or drafted does not linger
    in `public/` as an orphan nothing links to. */
 rmSync('public/og', { recursive: true, force: true });
 
-const cards = [
+const cards: Card[] = [
   ['public/og/default.jpg', defaultCard()],
   ['public/og/writing.jpg', writingCard(posts)],
   ['public/og/lists.jpg', listsCard(lists)],
-  ...posts.map((post) => [`public/og/post/${post.id}.jpg`, postCard(post)]),
-  ...lists.map((list) => [`public/og/list/${list.id}.jpg`, listCard(list)]),
+  ...posts.map((post): Card => [
+    `public/og/post/${post.id}.jpg`,
+    postCard(post),
+  ]),
+  ...lists.map((list): Card => [
+    `public/og/list/${list.id}.jpg`,
+    listCard(list),
+  ]),
 ];
 
 await shoot(cards);

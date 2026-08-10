@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 
 /**
- * The share card for a page. `scripts/og-card.mjs` draws these into
+ * The share card for a page. `scripts/og-card.ts` draws these into
  * `public/og/` as the first half of `pnpm build`, so this is the one place that
  * knows how a card is named and the script is the other.
  *
@@ -20,7 +20,7 @@ export function shareCard(name: string): string {
   if (import.meta.env.PROD && !existsSync(`public${url}`)) {
     throw new Error(
       `No share card at ${url}, but a page asked for one. ` +
-        'scripts/og-card.mjs and getPublished disagree about what is published.'
+        'scripts/og-card.ts and getPublished disagree about what is published.'
     );
   }
 

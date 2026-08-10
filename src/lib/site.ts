@@ -127,7 +127,7 @@ const LISTS_LEAD =
 
 /**
  * The `/lists` masthead, in the same shape, and for one more reason: the share
- * card is drawn outside Astro by `scripts/og-card.mjs`, which reads this file.
+ * card is drawn outside Astro by `scripts/og-card.ts`, which reads this file.
  * Copy left inline in the page would have to be typed a second time in the
  * script, and the card would then keep the old wording after an edit.
  *
