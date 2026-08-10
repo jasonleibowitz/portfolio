@@ -577,15 +577,25 @@ const MAX_STACKS = 3;
  * The card for `/lists`. It shows the artwork of the most recent lists, below
  * the title of each one.
  *
+ * A list with no artwork does not go on this card. `image` is optional on an
+ * item, thus such a list is correct content, but it gives a title above an
+ * empty space, which reads as a picture that did not arrive. Do not draw a
+ * substitute picture: a fan is five tiles wide, and five copies of the same
+ * tile take more attention than the space does and say less. Such a list keeps
+ * its page and its own card, and it goes on this card when it gets artwork.
+ *
  * The heading is the heading of the page, not the word "Lists". The small label
  * above it already gives the name of the section. If the heading gives it a
  * second time, the card does not tell the reader what the section contains.
  */
 function listsCard(lists: Entry<ListData>[]): Part {
-  const stacks = lists.slice(0, MAX_STACKS).map((list) => ({
-    list,
-    art: Fan(list, { width: 108, limit: 5 }),
-  }));
+  const stacks = lists
+    .filter((list) => allItems(list.data).some((item) => item.image))
+    .slice(0, MAX_STACKS)
+    .map((list) => ({
+      list,
+      art: Fan(list, { width: 108, limit: 5 }),
+    }));
 
   return card(
     `
