@@ -39,13 +39,17 @@ const { src, width, height, class: className, style } = Astro.props;
     />
   ) : (
     /* Quality 92 and 3x density: the box is too small for a default encode to
-       have spare pixels to lose. */
+       have spare pixels to lose.
+
+       `contain` so nothing is cut off. The caller's class sets the same, and
+       both are needed: this one decides how the file is re-encoded, that one
+       decides how the element paints what it is given. */
     <Image
       src={src}
       alt=""
       width={width}
       height={height}
-      fit="cover"
+      fit="contain"
       densities={[2, 3]}
       quality={92}
       loading="lazy"

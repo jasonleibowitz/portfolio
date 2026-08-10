@@ -16,8 +16,14 @@ import Typography from './ui/Typography.astro';
  * column child holds all of the text, so the entry is one grid row at any
  * length.
  */
+/*
+ * `contain`, not `cover`: a logo is not a photograph, and cropping one to fill
+ * a square cuts the wordmark off. The white tile is what makes the letterboxing
+ * read as deliberate, and it is the background most logos are drawn for. Square
+ * artwork fills the box, so the tile never shows for a podcast or an album.
+ */
 const artwork = tv({
-  base: 'mt-1 w-14 rounded-md border border-line object-cover',
+  base: 'mt-1 w-14 rounded-md border border-line bg-white object-contain',
   variants: {
     shape: {
       square: 'aspect-square',
