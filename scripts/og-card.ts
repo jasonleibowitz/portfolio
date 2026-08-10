@@ -13,46 +13,48 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { parse as parseYaml } from 'yaml';
-/* Node 24 strips the types on the way in, so the masthead copy is read from
-   the file the pages read it from rather than typed out a second time here.
-   `.nvmrc` pins that version; on Node 22 this import needs
-   --experimental-strip-types. */
+/* Node 24 removes the types when it reads this file. Thus the script can read
+   the page headings from the same file as the pages, and no person must type
+   them a second time. `.nvmrc` sets that version of Node. Node 22 needs the
+   option --experimental-strip-types for this import. */
 import { LISTS, WRITING } from '../src/lib/site.ts';
 
 /**
- * Draws every raster a link preview needs, into `public/`, as the first half of
- * `pnpm build`:
+ * Makes each image that a link preview needs. It writes them into `public/`.
+ * It is the first part of `pnpm build`.
  *
- *   og/default.jpg       the card for any page with nothing of its own
+ *   og/default.jpg       the card for a page that has no image of its own
  *   og/writing.jpg       /writing
  *   og/lists.jpg         /lists
- *   og/post/<id>.jpg     one per published post
- *   og/list/<id>.jpg     one per published list
- *   apple-touch-icon.png what iMessage and iOS fall back to
+ *   og/post/<id>.jpg     one for each published post
+ *   og/list/<id>.jpg     one for each published list
+ *   apple-touch-icon.png the image that iMessage and iOS use if there is no
+ *                        other one
  *
- * Nothing here is committed: `public/og/` is ignored, and the cards are rebuilt
- * from current content on every build, including in CI. That is the whole point
- * of running here rather than by hand. A card cannot be older than the post it
- * describes, a renamed post cannot keep its old title on its card, and a deleted
- * one cannot leave a card behind, because none of them survive the next build.
+ * These files are not in git. `public/og/` is in `.gitignore`, and each build
+ * makes the cards again from the current content. CI does this also.
  *
- * `pnpm dev` does not run this, since a card is only ever read by a scraper. Run
- * `pnpm cards` if you want to look at one while developing.
+ * Thus a card always agrees with its page. If you change the title of a post,
+ * the next build makes a new card with the new title. If you delete a post, the
+ * next build does not make its card. No person must remember to do this.
  *
- * Cards are laid out in HTML and shot with headless Chrome rather than composed
- * in sharp, because sharp rasterizes SVG text with system fonts and this site's
- * typefaces are npm packages. Chrome loads the same woff2 files the site serves.
- * The GitHub runner ships Chrome, so CI needs nothing installed for this.
+ * `pnpm dev` does not run this script, because only a web crawler reads a card.
+ * Use `pnpm cards` if you must look at a card during development.
  *
- * Every card is dark, in both themes. `og:image` is one URL and a scrape
- * carries no theme signal, so a page cannot offer a light card and a dark card
- * and let the client choose. One card serves both, and the dark one is the
- * better of the two in iMessage, where most bubbles are dark already.
+ * Each card is an HTML page, and Chrome makes an image of it. sharp cannot do
+ * this: sharp shows the text of an SVG file in a font of the operating system,
+ * and this site gets its two fonts from npm. Chrome reads the same woff2 files
+ * as the site. The GitHub runner has Chrome, thus CI installs nothing.
+ *
+ * Each card is dark, in the light theme also. `og:image` gives one address, and
+ * a web crawler does not tell you which theme it must use. Thus a page cannot
+ * supply a light card and a dark card. One card must do both. The dark card is
+ * better in iMessage, where most message areas are already dark.
  */
 
 /**
- * Chrome, wherever this is running. macOS locally, Linux on the GitHub runner,
- * which ships one. `CHROME_PATH` covers anything else.
+ * Finds Chrome on this computer. It is macOS here and Linux on the GitHub
+ * runner, which has Chrome. Set `CHROME_PATH` for a different location.
  */
 function findChrome() {
   const candidates: string[] = [
@@ -75,7 +77,7 @@ function findChrome() {
 
 const CHROME = findChrome();
 
-/** Shared by every card, and folded into the fingerprint below. */
+/** Each card uses these settings. */
 const JPEG = { quality: 92, chromaSubsampling: '4:4:4' };
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -85,11 +87,11 @@ const HEIGHT = 630;
 const THEME_CSS = 'src/styles/theme.css';
 
 /**
- * One declaration block of `theme.css`, by the text that opens it.
+ * Gets one block of `theme.css`. `opener` is the text before the block.
  *
- * A block ends at the first `}` in column one. Everything nested inside, the
- * `@keyframes` in `@theme` included, is indented, so the brace that closes a
- * nested rule never terminates the search early.
+ * A block stops at the first `}` in column one. Each rule in a block has an
+ * indent, the `@keyframes` rules in `@theme` also. Thus the `}` of a rule in a
+ * block does not stop the search too soon.
  */
 function block(css: string, opener: string): string {
   const start = css.indexOf(opener);
@@ -103,21 +105,18 @@ function block(css: string, opener: string): string {
 }
 
 /**
- * The dark palette, read from the stylesheet that owns it rather than restated
- * here.
+ * Reads the dark colors from `theme.css`, which is the file that holds them.
  *
- * These values used to be a hand-copied list, which is a second place to edit
- * and one nothing checks: changing `--color-canvas` moved the site and left
- * every share card on the old colour, silently and for as long as nobody
- * happened to compare them.
+ * Do not copy these values into this script. A copy is a second place to
+ * change, and no test compares the two. If you change `--color-canvas` and the
+ * script has a copy, the site changes but each card keeps the old color.
  *
- * The two blocks are read in cascade order, the same way a browser resolves
- * them: `@theme` is the base and `:root[data-theme='dark']` overrides it. So a
- * token the dark block does not bother to restate still resolves, and does not
- * have to be redundantly overridden just to keep this script working.
+ * The function reads two blocks, in the sequence that a browser uses: `@theme`
+ * first, then `:root[data-theme='dark']` over it. Thus a color that the dark
+ * block does not give again is still correct.
  */
 function darkPalette(): (name: string) => string {
-  /* Comments go first: one of them could otherwise contribute a stray `;`. */
+  /* Remove the comments first. A comment can contain a `;`. */
   const css = readFileSync(THEME_CSS, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const tokens = new Map<string, string>();
 
@@ -134,8 +133,8 @@ function darkPalette(): (name: string) => string {
 
   return (name) => {
     const value = tokens.get(name);
-    /* Loud, because the alternative is `background: undefined` and a card that
-       renders wrong with a green build. */
+    /* Stop here. If the script continues, the CSS gets the value `undefined`,
+       and the build makes an incorrect card and reports no error. */
     if (!value) throw new Error(`No ${name} in ${THEME_CSS}`);
     return value;
   };
@@ -155,15 +154,17 @@ const CYAN = token('--color-cyan');
 const GLOW_A = token('--color-glow-a');
 const GLOW_B = token('--color-glow-b');
 const LIFT = token('--shadow-lift');
-/* The same 100deg ramp as `spectrum-fill` and `text-gradient` in
-   utilities.css, which are Tailwind utilities and so cannot be read from
-   here. */
+/* The same 100deg gradient as `spectrum-fill` and `text-gradient` in
+   utilities.css. Those are Tailwind utilities, not tokens, thus this script
+   cannot read them. */
 const SPECTRUM = `linear-gradient(100deg, ${VIOLET}, ${CYAN})`;
 
 /**
- * The orbit avatar, measured off the running hero and scaled up. Every value
- * is a ratio of the hero's 250px ring, so the card cannot drift from
- * `OrbitAvatar.astro` by a rounding decision made twice.
+ * The orbit avatar. The values come from the home page, measured in a browser,
+ * and this script increases them.
+ *
+ * Each value is a ratio of the 250px ring on the home page. Thus the card and
+ * `OrbitAvatar.astro` agree, and no person calculates the same value two times.
  */
 const RING = 300;
 const SCALE = RING / 250;
@@ -171,19 +172,19 @@ const INSET = Math.round(14 * SCALE);
 const DOT = Math.round(8 * SCALE);
 
 /**
- * Where the orbiting dot rests, read as a clock face.
+ * The position of the dot, as a position on a clock face.
  *
- * The hero's dot never stops, so no angle is the true one. This one avoids the
- * two that read as something other than an orbit: 12 looks like a deliberate
- * mark on the crown, and 3 lines up with the role line and becomes a bullet
- * pointing at it.
+ * The dot on the home page moves continuously, thus no angle is the correct
+ * one. Do not use 12 or 3. At 12 the dot looks like a mark on the top of the
+ * head. At 3 the dot is level with the role text, and looks like a mark that
+ * points at it.
  */
 const DOT_OCLOCK = 2;
 const dotAngle = (DOT_OCLOCK / 12) * 2 * Math.PI;
 const dotLeft = Math.round((RING + RING * Math.sin(dotAngle) - DOT) / 2);
 const dotTop = Math.round((RING - RING * Math.cos(dotAngle) - DOT) / 2);
 
-/** The same two lines the homepage `<title>` states, so a card cannot drift. */
+/** The same two lines as the `<title>` of the home page. */
 const NAME = 'Jason Leibowitz';
 const ROLE = 'Full-stack engineer in New York';
 const DOMAIN = 'leibowitz.me';
@@ -200,11 +201,12 @@ const MIME: Record<string, string> = {
 };
 
 /**
- * Chrome gets every asset inline, so a card never depends on a served file.
+ * Puts a file into the HTML as data. Thus Chrome does not request a file from a
+ * server, and a card is complete without one.
  *
- * An unknown extension throws rather than interpolating `undefined` into the
- * URI, which browsers accept and then render as nothing: the card would come
- * out missing a picture with no error anywhere.
+ * If the extension is not in the list, the function stops. If it continues, the
+ * address contains the word `undefined`. A browser accepts that address and
+ * shows no image, thus the card has no picture and there is no error message.
  */
 function dataUri(path: string): string {
   const type = MIME[extname(path).toLowerCase()];
@@ -223,20 +225,19 @@ const mono = dataUri(
   'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2'
 );
 const headshot = dataUri('src/images/headshot.png');
-/* The favicon is already a hand-kept copy of `Monogram.astro`. Reading it here
-   keeps the mark at two copies rather than three. */
+/* The favicon is already a copy of `Monogram.astro` that a person keeps
+   correct. Read it here, and there are two copies of the mark and not three. */
 const monogram = dataUri('public/favicon.svg');
 
 /* ----------------------------------------------------------------- content */
 
 /**
- * The frontmatter these cards read, which is a subset of the schemas in
+ * The frontmatter fields that these cards use. This is a part of the schemas in
  * `src/content.config.ts`.
  *
- * Declared rather than imported because zod's inferred types describe the
- * parsed entry, and this script reads the file before Astro ever sees it: dates
- * are still strings here, and a list's artwork is still a relative path rather
- * than an `ImageMetadata`.
+ * Do not import the types from zod. Those types show the entry after Astro
+ * reads it, but this script reads the file first. Here a date is still a
+ * string, and the artwork of a list is still a relative path.
  */
 interface Draftable {
   draft?: boolean;
@@ -265,17 +266,18 @@ interface ListData extends Draftable {
 
 interface Entry<T> {
   id: string;
-  /** The collection directory, so an item's relative artwork path resolves. */
+  /** The collection directory. Use it to find the artwork of an item. */
   dir: string;
   data: T;
 }
 
 /**
- * Published entries of a collection, newest first, read straight from the
- * frontmatter.
+ * Reads the frontmatter of each entry in a collection. It gives the published
+ * entries, the most recent one first.
  *
- * The script runs outside Astro and so cannot call `getPublished`, but it must
- * agree with it: a draft has no page, so it must have no card either.
+ * This script does not run in Astro, thus it cannot call `getPublished`. But it
+ * must agree with that function. A draft has no page, thus it must have no
+ * card. This function removes the drafts.
  */
 function published<T extends Draftable>(
   dir: string,
@@ -297,7 +299,7 @@ function published<T extends Draftable>(
     );
 }
 
-/** Every item of a list, flat, the way `allItems()` in `src/lib/lists.ts` does. */
+/** Each item of a list, in one array, as `allItems()` in `src/lib/lists.ts`. */
 const allItems = (data: ListData): ListItem[] =>
   data.items?.length ? data.items : (data.groups ?? []).flatMap((g) => g.items);
 
@@ -313,10 +315,11 @@ const escape = (text: string): string =>
 /* ------------------------------------------------------------------- shell */
 
 /**
- * The frame every card shares: the canvas, the aurora, and the signature.
+ * The parts that each card has: the background, the glow, and the name of the
+ * site at the bottom.
  *
- * One shell rather than five, so a link preview reads as one family whichever
- * page produced it, and so the palette lives in one place.
+ * There is one shell and not five. Thus each link preview looks like part of
+ * one set, and the colors are in one place.
  */
 const shell = (main: string) => `<!doctype html>
 <meta charset="utf-8" />
@@ -335,7 +338,7 @@ const shell = (main: string) => `<!doctype html>
     flex-direction: column;
     padding: 56px 76px;
     background-color: ${CANVAS};
-    /* The page's aurora, in px because a card has a fixed size. */
+    /* The glow of the site, in px because a card has one size. */
     background-image:
       radial-gradient(460px 460px at 12% 8%, ${GLOW_A}, transparent 62%),
       radial-gradient(410px 410px at 88% 22%, ${GLOW_B}, transparent 60%),
@@ -370,8 +373,8 @@ const shell = (main: string) => `<!doctype html>
     background-image: ${SPECTRUM};
   }
 
-  /* The signature. Every card ends the same way, so the family is legible even
-     when the cards themselves are not alike. */
+  /* The bottom of each card is the same. Thus a person sees that the cards are
+     part of one set, although the cards show different things. */
   footer { display: flex; align-items: center; gap: 16px; flex: none; }
   footer img { width: 44px; height: 44px; }
   footer span { font: 600 32px/1 'Inter'; letter-spacing: 0.01em; color: ${VIOLET}; }
@@ -385,13 +388,13 @@ ${main}
 
 /* ------------------------------------------------------------------- cards */
 
-/** Home, About, Projects and anything else with no picture of its own. */
+/** For the home page, About, Projects, and each page with no image. */
 const defaultCard = () =>
   shell(`
 <style>
-  /* The hero's OrbitAvatar, held still. The ring and the dot are the shape a
-     reader already associates with the site, so the card and the page it opens
-     read as the same object. */
+  /* The OrbitAvatar of the home page, but it does not move. A person knows the
+     ring and the dot from the site. Thus the card and the page look the
+     same. */
   .orbit {
     position: relative;
     width: ${RING}px;
@@ -411,8 +414,8 @@ const defaultCard = () =>
     background-image: ${SPECTRUM};
     box-shadow: 0 0 ${Math.round(12 * SCALE)}px ${GLOW_A};
   }
-  /* Sized, not just inset: an absolutely positioned replaced element falls
-     back to its intrinsic 500px if width and height are left to the insets. */
+  /* Give a width and a height. An image with position absolute uses its own
+     size of 500px if you give only the insets. */
   .orbit img {
     position: absolute;
     inset: ${INSET}px;
@@ -437,10 +440,10 @@ const defaultCard = () =>
 </main>`);
 
 /**
- * `/writing`, showing the two most recent posts.
+ * The card for `/writing`. It shows the two most recent posts.
  *
- * A section index has no single picture, so the card shows what the page is a
- * list of. Real titles say "writing" more plainly than any icon would.
+ * This page has no single image, thus the card shows the items on the page. The
+ * titles of real posts show the subject of the page better than an icon.
  */
 const writingCard = (posts: Entry<PostData>[]) =>
   shell(`
@@ -451,9 +454,9 @@ const writingCard = (posts: Entry<PostData>[]) =>
   .eyebrow + h1 { margin-top: 16px; }
   .lead { margin-top: 22px; }
   .rule { margin-top: 30px; }
-  /* Two titles, not three, and no dates. Both cuts buy size: a third row
-     forces every title down to the floor, and a date beside one has to be
-     smaller still to stay subordinate to it. */
+  /* Two titles, not three, and no dates. Both changes give more space for the
+     text. A third row makes each title too small. A date must be smaller than
+     the title, and text that small is not legible on a card. */
   .recent {
     flex: none;
     width: 520px;
@@ -464,9 +467,9 @@ const writingCard = (posts: Entry<PostData>[]) =>
   }
   .recent li { list-style: none; padding: 34px 0; border-top: 1px solid ${LINE}; }
   .recent li:first-child { border-top: 0; }
-  /* The clamp is on an inner box, not on the padded one: a padded
-     -webkit-box adds its ellipsis at line two and then paints line three
-     into the padding anyway, straight through the panel's edge. */
+  /* Put the line-clamp property on the inner element, not on the element with
+     the padding. An element with padding shows the three dots at line two, but
+     it also shows line three in the padding, across the edge of the panel. */
   .recent span {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -492,9 +495,9 @@ const writingCard = (posts: Entry<PostData>[]) =>
 </main>`);
 
 /**
- * One list's artwork, fanned the way `ListRow.astro` fans it: leftmost on top,
- * overlapped, each cover ringed in the canvas colour so two similar covers do
- * not merge.
+ * The artwork of one list, in the arrangement that `ListRow.astro` uses. The
+ * images overlap, the image on the left is on top, and each image has a border
+ * in the background color. Thus two images of similar color stay separate.
  */
 function fan(
   entry: Entry<ListData>,
@@ -530,11 +533,12 @@ const FAN_CSS = `
   }`;
 
 /**
- * `/lists`, showing each published list's own fan under its title.
+ * The card for `/lists`. It shows the artwork of each published list, below the
+ * title of that list.
  *
- * The headline is the page's own, not the word "Lists": the eyebrow already
- * says which section this is, and repeating it wastes the one line that could
- * say what the section is for.
+ * The heading is the heading of the page, not the word "Lists". The small label
+ * above it already gives the name of the section. If the heading gives it a
+ * second time, the card does not tell the reader what the section contains.
  */
 const listsCard = (lists: Entry<ListData>[]) =>
   shell(`
@@ -567,17 +571,17 @@ const listsCard = (lists: Entry<ListData>[]) =>
 </main>`);
 
 /**
- * A post's own card: its cover beside its title.
+ * The card for one post. It shows the cover image of the post and its title.
  *
- * The cover alone used to be the `og:image`, which made every post's card a
- * different shape and told a reader nothing about which post they were being
- * shown. Here the cover is one element of a 1200x630 card that also carries
- * the title, the date and the site's signature.
+ * Do not use the cover image as the `og:image`. Each cover image has a
+ * different size, and a cover image alone does not tell the reader which post
+ * it is. This card is always 1200x630, and it also shows the title and the name
+ * of the site.
  */
 const postCard = (post: Entry<PostData>) => {
   const title = post.data.title;
-  /* Set by length, so a 52-character headline and a 20-character one both fill
-     the column instead of one overflowing it. */
+  /* The size comes from the number of characters. Thus a title of 52
+     characters and a title of 20 characters both fill the column. */
   const size = title.length > 46 ? 54 : title.length > 30 ? 64 : 76;
 
   return shell(`
@@ -608,12 +612,12 @@ const postCard = (post: Entry<PostData>) => {
 };
 
 /**
- * A list's own card: the fan from its page, over its title.
+ * The card for one list. It shows the artwork of the list and its title.
  *
- * The entry count, the shape and the updated date all belong on the page and
- * none of them belong here. Each is subordinate to the title, so each would
- * have to be set smaller than it, and there is no room under 76px for a line
- * that still reads at a third of this size.
+ * Do not add the number of entries, the type of list, or the date. Each of
+ * these is less important than the title, thus each must be smaller than the
+ * title. The title is 80px, and a smaller line is not legible when a person
+ * sees the card at one third of this size.
  */
 const listCard = (list: Entry<ListData>) =>
   shell(`
@@ -636,25 +640,26 @@ const listCard = (list: Entry<ListData>) =>
 const scratch = mkdtempSync(join(tmpdir(), 'og-card-'));
 
 /**
- * Shoots a batch of cards in one Chrome and writes each as JPEG.
+ * Makes an image of a group of cards with one Chrome, and writes each card as a
+ * JPEG file.
  *
- * The cards are stacked in one tall page as iframes and cut apart afterwards,
- * because launching Chrome costs about 2.5 seconds and rendering a card costs
- * almost nothing. Ten cards one at a time took 28 seconds; the same ten in one
- * launch take about four, which is the difference between a step a build can
- * afford and one it cannot.
+ * The script puts the cards in one tall page, as iframes, and cuts the image
+ * into parts after. Chrome needs approximately 2.5 seconds to start, but it
+ * needs almost no time to show a card. Ten cards, one at a time, needed 28
+ * seconds. The same ten cards in one Chrome need approximately four seconds. A
+ * build can include a step of four seconds, but not a step of 28 seconds.
  *
- * Iframes rather than ten divs in one document: each card brings its own CSS,
- * written against bare `h1` and short class names, and a shared document would
- * have them overwrite each other. An iframe is a separate document, so the card
- * templates stay exactly as they would be on their own.
+ * Use iframes, and not ten `div` elements in one page. Each card has its own
+ * CSS, and that CSS uses `h1` and short class names. In one page, the CSS of
+ * one card would change the other cards. An iframe is a different page, thus
+ * each card is the same as when it is alone.
  *
  * Each card is JPEG because every one carries a photograph, which PNG stores
  * losslessly at four times the weight. At quality 92 with no chroma subsampling
  * the difference is invisible on the headline, the only part a lossy codec
  * could hurt.
  */
-/** An output path and the HTML that becomes it. */
+/** The path of the file to write, and the HTML that makes it. */
 type Card = [out: string, html: string];
 
 async function shootBatch(batch: Card[]) {
@@ -670,9 +675,9 @@ async function shootBatch(batch: Card[]) {
     sheet,
     `<!doctype html><meta charset="utf-8" />
 <style>
-  /* Every pixel of this sheet is covered by an iframe, so the backing colour
-     is never cropped into a card. It takes the canvas anyway: if a crop ever
-     misaligned, the seam should be the site's colour and not a black band. */
+  /* An iframe covers all of this page, thus no part of this background is in a
+     card. Use the background color of the site. If a cut is not in the correct
+     position, the line is the color of the site and not black. */
   html, body { margin: 0; padding: 0; background: ${CANVAS}; }
   iframe { display: block; width: ${WIDTH}px; height: ${HEIGHT}px; border: 0; }
 </style>
@@ -685,9 +690,10 @@ ${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
     '--disable-gpu',
     '--hide-scrollbars',
     '--force-device-scale-factor=1',
-    /* Chrome's own sandbox is off because CI runs this too, and the only page
-       it ever opens is one this script just wrote. `/dev/shm` is small on some
-       CI hosts, and Chrome crashes rather than falling back on its own. */
+    /* The sandbox of Chrome is off, because CI runs this script also, and
+       Chrome opens only a page that this script wrote. On some CI computers
+       `/dev/shm` is small, and Chrome stops instead of using a different
+       memory area. */
     '--no-sandbox',
     '--disable-dev-shm-usage',
     `--window-size=${WIDTH},${HEIGHT * batch.length}`,
@@ -695,8 +701,8 @@ ${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
     `file://${sheet}`,
   ]);
 
-  /* One decode, many crops. Re-reading the sheet per card would decode a
-     12000px PNG once for every card cut out of it. */
+  /* Read the image one time, then cut each card from it. If the script reads
+     the file again for each card, it decodes a PNG of 12000px each time. */
   const sheetPixels = await sharp(shot)
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -710,9 +716,11 @@ ${pages.map((file) => `<iframe src="file://${file}"></iframe>`).join('\n')}`
 }
 
 /**
- * Chrome stops rendering somewhere past 16384px of viewport, so a long enough
- * sheet would come back part black. Twelve cards is 7560px, comfortably under
- * it, and still one launch for a site this size.
+ * The maximum number of cards in one image.
+ *
+ * Chrome does not show a page that is more than approximately 16384px high, and
+ * part of the image is black. Twelve cards are 7560px, which is less than the
+ * limit. This site has fewer cards than this, thus it uses one Chrome.
  */
 const BATCH = 12;
 
@@ -725,8 +733,8 @@ async function shoot(cards: Card[]) {
 const posts = published<PostData>('src/content/blog', (d) => d.pubDate);
 const lists = published<ListData>('src/content/lists', (d) => d.updated);
 
-/* Cleared first, so a card whose post was deleted or drafted does not linger
-   in `public/` as an orphan nothing links to. */
+/* Delete the directory first. If you delete a post, or make it a draft, its
+   card must not stay in `public/`. */
 rmSync('public/og', { recursive: true, force: true });
 
 const cards: Card[] = [
@@ -746,13 +754,13 @@ const cards: Card[] = [
 await shoot(cards);
 
 /**
- * The touch icon comes straight from the favicon, whose monogram is drawn in
- * paths -- no text, so sharp can rasterize it without a font.
+ * Makes the touch icon from the favicon. The favicon contains only paths and no
+ * text, thus sharp can make an image of it without a font.
  *
- * Two changes on the way through. The corner radius goes, because iOS masks the
- * icon itself and a rounded source leaves the mask's corners empty; and the
- * result is flattened, because a touch icon with an alpha channel renders over
- * black on some surfaces.
+ * The script makes two changes. It removes the corner radius, because iOS makes
+ * the corners round, and a source that is already round leaves an empty area in
+ * each corner. It also removes the alpha channel, because some surfaces show a
+ * transparent icon on a black background.
  */
 const squared = readFileSync('public/favicon.svg', 'utf8').replace(
   / rx="[\d.]+"/,
