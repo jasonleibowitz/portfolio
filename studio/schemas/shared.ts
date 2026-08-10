@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
 
+import { ArtworkFieldInput } from '../ArtworkFieldInput';
+
 /**
  * The one rich text shape, shared by post bodies and project sections.
  *
@@ -153,6 +155,9 @@ export const listItem = defineType({
       // Hotspot lets one upload serve any ratio: the crop is stored with the
       // asset, so adding a ratio later re-crops rather than re-uploads.
       options: { hotspot: true },
+      // Adds "Fetch artwork" beneath the upload field, for items that already
+      // exist. The search row on the array only helps when adding a new one.
+      components: { input: ArtworkFieldInput },
     }),
     defineField({
       name: 'subtitle',
