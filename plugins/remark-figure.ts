@@ -73,8 +73,9 @@ export default function remarkFigure() {
       const image = imageAlone(node);
       if (image === undefined) return;
 
-      // `visit` corrects the index itself when you remove a node after the
-      // current one, so the caption can go without a new index.
+      // The walk has not reached the caption yet, so removing it here just
+      // means the next step lands on the node after it. Removing a node before
+      // the current index would shift the walk and skip one.
       const caption = captionAlone(parent.children[index + 1]);
       if (caption !== undefined) parent.children.splice(index + 1, 1);
 
