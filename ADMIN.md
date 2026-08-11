@@ -4,34 +4,25 @@ The plan for a bespoke content editor that keeps the `.mdx` files as the source
 of truth. This file holds the reasoning. Issue #29 holds the work breakdown and
 the acceptance criteria, and does not repeat what is here.
 
-## Why, after three CMS spikes and a Sanity build
+## Why, after several editors were tried
 
-Keystatic, Tina and Decap were spiked and removed in `77d077f`. Sanity was then
-built far enough to load `blog` and `lists`, lock the dataset, and deploy on
-publish. Three complaints survived all of it:
+Both hosted and file-backed editors were evaluated over a long stretch, and none
+of them fit. Three complaints survived every one:
 
-1. **Content left the repo.** No git history, no grep, no pull request review,
-   no agent editing, and `git clone` no longer gives a working site.
-2. **The writing experience.** The body was a small field with a full-screen
-   toggle, the forms were poorly organized, and Portable Text is not markdown.
+1. **Content leaves the repo.** No git history, no grep, no pull request review,
+   no agent editing, and `git clone` stops giving you a working site.
+2. **The writing experience.** A cramped body field with a full-screen toggle,
+   poorly organized forms, and a body format that is not markdown.
 3. **A vendor sits between Jason and his own writing.**
 
-Operational weight was explicitly _not_ a complaint. Sanity's tokens, CORS
-origins and webhooks were fine. The three above are what a file-backed admin
-fixes, and they are the whole reason this is worth 19 days.
+Operational weight was explicitly _not_ a complaint. Tokens, CORS origins and
+webhooks were all fine. The three above are what a file-backed admin fixes, and
+they are the whole reason this is worth 19 days.
 
-### What abandoning Sanity costs
-
-One draft list. Checked against the dataset on 2026-08-10:
-
-- `my-favorite-nyc-coffee-shops`, 6 items with 6 uploaded artwork assets, exists
-  only in Sanity. It is what the Google Places picker was built for.
-- `my-favorite-podcasts` is a 2 group variant of the 6 group `podcasts` that is
-  already in a file, so it reads as an experiment.
-- All 5 posts match their `.mdx` files. All 3 project write-ups are still empty.
-
-**Do not delete the Sanity dataset until Phase 2 ships.** Places is what
-rebuilds the coffee shops list.
+The general version of this already exists and was rejected: Keystatic is
+config-driven collections, a field type system, a form renderer and both file
+and GitHub modes. It did not fit either. What makes a bespoke admin worth
+building is exactly what a package cannot encode, which is the next section.
 
 ## The shape
 
@@ -49,8 +40,8 @@ cannot exist in a build.
 **A save is a file write.** Astro's `glob()` loader already watches
 `src/content/**` in development, so writing a file re-syncs the content layer
 and updates the open page. Editing through the admin and editing in an editor
-become the same operation, which is the thing Sanity could not do and why
-`integrations/sanity-live.mjs` had to exist.
+become the same operation. That is the property no external content store can
+have, and each one needed its own machinery to fake it.
 
 **Publishing is git.** A publish view lists uncommitted work grouped by entry,
 takes a commit message with a smart default, and commits and pushes. CI runs the
@@ -58,10 +49,14 @@ four gates and deploys.
 
 ### The three seams
 
-Built bespoke, not as a package. Keystatic is the generic version of this and it
-was already rejected; a field type system and a generic form renderer would walk
-back toward the fit problem. Three seams keep extraction tractable later without
-paying for it now, and each is good design on its own:
+Built bespoke, not as a package. A field type system and a generic form renderer
+would walk back toward the fit problem described above. What a bespoke admin can
+encode is exactly what a package cannot: a list carries `items` or `groups` and
+never both, artwork is 56px wide in two ratios, a ranked list must not renumber
+when filtered, a Places result fills the subtitle with a neighborhood.
+
+Three seams keep extraction tractable later without paying for it now, and each
+is good design on its own:
 
 ```
 src/admin/
@@ -75,9 +70,10 @@ src/admin/
   ui/             specific to this content and this design
 ```
 
-No API key reaches the browser, because search goes through the dev server. The
-Sanity studio had to ship the Maps key to `/admin` and needed two separately
-restricted keys as a result. That problem does not exist here.
+No API key reaches the browser, because search goes through the dev server. A
+picker that searched from the browser would have to ship the Maps key to whoever
+opens `/admin`, which then needs a referrer restriction and a quota to bound the
+damage. This removes the problem rather than managing it.
 
 ## Decisions
 
@@ -208,7 +204,7 @@ shift goes away whether or not the admin is ever built.
 Phase 1 opens with the MDXEditor spike, half a day, against a real post plus a
 test file holding footnotes, a code block, nested lists and images. It is the
 exit ramp: the footnote answer arrives before anything is built on it, and
-walking back to Sanity at that point costs 3 days rather than 19.
+abandoning the admin at that point costs 3 days rather than 19.
 
 ### Phase 0
 
