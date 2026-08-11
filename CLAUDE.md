@@ -31,7 +31,7 @@ Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _
 
 | Collection | Directory              | Route base  | Required frontmatter                                      |
 | ---------- | ---------------------- | ----------- | --------------------------------------------------------- |
-| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, image{url,alt}, tags[]`          |
+| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, image, imageAlt, tags[]`         |
 | `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]` |
 | `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`        |
 
@@ -55,9 +55,19 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 ### URLs and ordering
 
-Posts are named `YYYY-MM-DD-kebab-title.mdx`. The glob loader derives `entry.id` from the filename, so the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. Ordering comes from `pubDate`, not the filename — renaming a file changes its URL but not its position.
+**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so `entry.id` is the folder name and the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
 
-Post images live in `public/blog-images/YYYY-MM-DD/` and are referenced by absolute path.
+The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything, and moving the images into the post is what made it visible enough to delete. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
+
+Ordering comes from `pubDate`, not the folder name — renaming a folder changes its URL but not its position.
+
+A path under `public/` is copied byte for byte, so an image there is never resized, never re-encoded and never given a `srcset`, even when markdown references it. A relative one goes through `sharp` instead. The espresso post carried 4.5 MB of images that way and now transfers 349 kB at a 1280px viewport, and 186 kB at 390px.
+
+`image: { layout: 'constrained' }` in `astro.config.mjs` is what reaches the images in a post body. A body writes them as `![]()`, so there is no component to hang a `widths` prop on, and `layout` is the setting that applies to markdown images as well as to `<Image>`. Its `sizes` is derived from each image's own width, not from the 46rem column, so a body image is still larger than it has to be: a source wider than the viewport falls back to `100vw`, and at 1280px the three largest on the espresso post ship 1280px files into a 736px column, 230 kB of that page's 349 kB. A per-image `sizes` is the remaining win, and there is no way to write one in markdown today. `PostHero` writes its own, which is why the hero is not affected.
+
+The hero is `image` plus `imageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
+
+**The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<slug>.mdx` and `<slug>/index.mdx` and must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
 
 ### Creating a post
 
@@ -67,7 +77,7 @@ Post images live in `public/blog-images/YYYY-MM-DD/` and are referenced by absol
 pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
-Generates `src/content/blog/<today>-<dash-case-title>.mdx` with `draft: true` and a placeholder image. Replace the placeholder before publishing.
+Generates `src/content/blog/<today>-<dash-case-title>/index.mdx` with `draft: true`, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into `{ { expr } }`, which breaks the generator silently.
 
@@ -78,14 +88,14 @@ A post body must start at `##`. The page already renders the title as its `h1`, 
 An image alone in a paragraph renders as a `<figure>`, and an italic line in the paragraph directly below it becomes its `<figcaption>`:
 
 ```markdown
-![Alt text](/blog-images/2023-05-21/jura-z10.jpg)
+![Alt text](./jura-z10.jpg)
 
 _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines/Z10-Diamond-Black-NAA-15464)_
 ```
 
 `plugins/remark-figure.ts` does this. It is registered through `markdown.processor: unified({ remarkPlugins: [...] })` from `@astrojs/markdown-remark`, because `markdown.remarkPlugins` is deprecated in Astro 7 and warns on every run of `astro check`. `markdown.shikiConfig` is not deprecated and stays where it is. The caption line is ordinary markdown, so an attribution link needs no markup of its own, and the emphasis is dropped from the output: `figcaption` already carries the design's caption style. An image with no caption line still becomes a `<figure>`, which is what gives every image in a post the same width, radius and shadow.
 
-**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
+**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. A hero has no caption, so `imageAlt` is the only thing a screen reader gets and it always describes the frame; where a hero is someone else's photo the credit goes at the end of that sentence, since there is nowhere else on the page to put it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
 
 **A link inside a caption takes the caption's color.** The caption is `--color-faint`, so a link at the full violet would be more visible than the caption around it, and the attribution would draw the eye before the caption does. The plugin puts `[&_a]:text-faint` on the `figcaption` it builds, and `Link` still supplies the weight and the underline, so it still reads as a link. The class goes on the element rather than into `content.css` because a markdown `a` is a component, and that file says it has no `& a` rule for that reason. Tailwind scans `plugins/`, so a utility written there compiles like any other.
 

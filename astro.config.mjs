@@ -14,6 +14,14 @@ export default defineConfig({
   // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), sitemap(), icon()],
+  // A post body writes an image as `![]()`, thus no component can take a prop.
+  // `layout` is the only control that reaches these images. It gives each one a
+  // `srcset` and a `sizes`. Without it a browser gets the full file to draw a
+  // 736px column.
+  //
+  // `responsiveStyles` adds the CSS for the attributes that `layout` writes.
+  // Without that CSS the image does not scale to its column.
+  image: { layout: 'constrained', responsiveStyles: true },
   markdown: {
     // `markdown.remarkPlugins` is deprecated in Astro 7. A plugin goes to
     // `unified()` now, and `shikiConfig` stays where it is.

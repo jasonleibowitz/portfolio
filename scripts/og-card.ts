@@ -233,7 +233,8 @@ interface Draftable {
 interface PostData extends Draftable {
   title: string;
   pubDate: string;
-  image: { url: string; alt: string };
+  /** Relative to the entry file, e.g. `./cover.webp`. */
+  image: string;
 }
 
 interface ListItem {
@@ -253,7 +254,7 @@ interface ListData extends Draftable {
 
 interface Entry<T> {
   id: string;
-  /** The collection directory. Use it to find the artwork of an item. */
+  /** The directory holding the entry file. Use it to find its images. */
   dir: string;
   data: T;
 }
@@ -270,6 +271,33 @@ interface Entry<T> {
 const SHOW_DRAFTS = process.env.SHOW_DRAFTS === 'true';
 
 /**
+ * Finds the file of each entry in a collection, and the id Astro gives it.
+ *
+ * An entry is either `<slug>.mdx` or `<slug>/index.mdx`. The second form is
+ * what lets a post hold its own images. This must give the same ids as the
+ * glob loader in `src/content.config.ts`, which reads `**\/*.{md,mdx}` and
+ * drops the `/index`: an id that disagrees names a card that no page asks for,
+ * and leaves the card a page does ask for undrawn.
+ */
+function entryFiles(dir: string): { id: string; file: string }[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((item) => {
+    if (item.isDirectory()) {
+      const file = join(dir, item.name, 'index.mdx');
+      return existsSync(file) ? [{ id: item.name, file }] : [];
+    }
+
+    return /\.mdx?$/.test(item.name)
+      ? [
+          {
+            id: basename(item.name, extname(item.name)),
+            file: join(dir, item.name),
+          },
+        ]
+      : [];
+  });
+}
+
+/**
  * Reads the frontmatter of each entry in a collection. It gives the published
  * entries, the most recent one first.
  *
@@ -281,14 +309,11 @@ function published<T extends Draftable>(
   dir: string,
   date: (data: T) => string
 ): Entry<T>[] {
-  return readdirSync(dir)
-    .filter((file) => /\.mdx?$/.test(file))
-    .map((file) => ({
-      id: basename(file, extname(file)),
-      dir,
-      data: parseYaml(
-        readFileSync(join(dir, file), 'utf8').split(/^---$/m)[1] ?? ''
-      ) as T,
+  return entryFiles(dir)
+    .map(({ id, file }) => ({
+      id,
+      dir: dirname(file),
+      data: parseYaml(readFileSync(file, 'utf8').split(/^---$/m)[1] ?? '') as T,
     }))
     .filter((entry) => SHOW_DRAFTS || entry.data.draft !== true)
     .sort(
@@ -666,7 +691,7 @@ function postCard(post: Entry<PostData>): Part {
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
-  <img class="cover" src="${dataUri(join('public', post.data.image.url))}" alt="" />
+  <img class="cover" src="${dataUri(resolve(post.dir, post.data.image))}" alt="" />
 </main>`
   );
 }
