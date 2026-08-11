@@ -1,5 +1,6 @@
 ---
 import type { MarkdownHeading } from 'astro';
+import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import { formatDay, isoDay } from '@lib/dates';
@@ -19,7 +20,7 @@ interface Props {
 }
 
 const { post, headings, next } = Astro.props;
-const { title, pubDate, description, tags, image } = post.data;
+const { title, pubDate, description, tags, image, imageAlt } = post.data;
 
 const minutes = readingMinutes(post.body);
 const words = wordCount(post.body);
@@ -101,17 +102,21 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
 
       <div class:list={[measure, 'toc:row-start-2']}>
         {
-          image?.url && (
-            <figure class="mb-12">
-              <img
-                src={image.url}
-                alt={image.alt}
-                class="aspect-video w-full rounded-card object-cover shadow-lift"
-                loading="eager"
-              />
-            </figure>
-          )
+          /* `width` is the measure, not the file: the column is 46rem and never
+            wider, so asking for more only makes the srcset offer sizes nobody
+            downloads. The 16:9 crop is the design's, so the ratio the file
+            happens to carry does not have to match it. */
         }
+        <figure class="mb-12">
+          <Image
+            src={image}
+            alt={imageAlt}
+            width={736}
+            sizes="(min-width: 46rem) 736px, 100vw"
+            class="aspect-video w-full rounded-card object-cover shadow-lift"
+            loading="eager"
+          />
+        </figure>
 
         <Typography variant="longform" class="markdown"><slot /></Typography>
 

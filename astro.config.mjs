@@ -14,6 +14,12 @@ export default defineConfig({
   // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), sitemap(), icon()],
+  // A post body writes its images as `![]()`, so there is no component to hang
+  // a `widths` prop on. `layout` is the only way to reach them: it gives every
+  // image a `srcset` and a `sizes`, markdown ones included. Without it a
+  // markdown image is emitted at its source resolution and the browser
+  // downloads all of it to draw a 736px column.
+  image: { layout: 'constrained', responsiveStyles: true },
   markdown: {
     // `markdown.remarkPlugins` is deprecated in Astro 7. A plugin goes to
     // `unified()` now, and `shikiConfig` stays where it is.

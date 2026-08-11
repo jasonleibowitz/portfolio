@@ -11,27 +11,36 @@ const placeholder = z.array(z.string()).default([]);
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
-  schema: z.object({
-    title: z.string(),
-    pubDate: z.coerce.date(),
-    description: z.string().optional(),
-    author: z.string(),
-    /**
-     * The hero image. The share card shows the same image.
-     *
-     * Use an absolute path in `public/blog-images/YYYY-MM-DD/`. Do not use a
-     * remote URL. The build stops if you use one.
-     *
-     * A remote host can remove its files. Then the page and the share card
-     * show no image, and the build does not report an error.
-     */
-    image: z.object({
-      url: z.string().startsWith('/', 'a local path under public/, not a URL'),
-      alt: z.string(),
+  // A function of `image()`, the same shape `lists` and `projects` use, so the
+  // hero resolves relative to its own entry and goes through astro:assets.
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      pubDate: z.coerce.date(),
+      description: z.string().optional(),
+      author: z.string(),
+      /**
+       * The hero image, e.g. './images/2023-05-21/cover.webp'. The share card
+       * shows the same picture.
+       *
+       * A path relative to this file rather than one under `public/`, because
+       * `public/` is copied byte for byte: an image there is never resized, never
+       * re-encoded and never given a `srcset`, even when markdown references it.
+       * The espresso post alone shipped 4.5 MB that way.
+       *
+       * Not a remote URL, for the reason list artwork is not one: every build
+       * would refetch it, and a dead host would fail the deploy.
+       */
+      image: image(),
+      /**
+       * Describes the hero. A hero carries no caption, unlike an image in a
+       * body, so this is the only thing a screen reader gets and it has to say
+       * what is in the frame.
+       */
+      imageAlt: z.string(),
+      tags: z.array(z.string()),
+      draft: z.boolean().default(false),
     }),
-    tags: z.array(z.string()),
-    draft: z.boolean().default(false),
-  }),
 });
 
 const lists = defineCollection({
