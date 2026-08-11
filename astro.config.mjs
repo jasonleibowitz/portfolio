@@ -4,6 +4,8 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
 import tailwindcss from '@tailwindcss/vite';
+import { unified } from '@astrojs/markdown-remark';
+import remarkFigure from './plugins/remark-figure.ts';
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,6 +14,9 @@ export default defineConfig({
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), icon()],
   markdown: {
+    // `markdown.remarkPlugins` is deprecated in Astro 7. A plugin goes to
+    // `unified()` now, and `shikiConfig` stays where it is.
+    processor: unified({ remarkPlugins: [remarkFigure] }),
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
     },

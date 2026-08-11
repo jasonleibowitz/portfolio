@@ -10,8 +10,6 @@ tags: ['apple', 'gadgets', 'how-to']
 draft: false
 ---
 
-import CaptionedImage from '../../components/CaptionedImage.astro';
-
 Last year’s iPhone Xs models were the first to support dual-SIM technology, via eSIM. For every previous iPhone upgrade, transferring my number was extremely easy — just put your old SIM card in your new phone. However, since my iPhone Xs’s primary Verizon line was an eSIM, switching was a _major_ pain.
 
 Setting up your new phone from an iCloud Backup or even through phone to phone transfer _does not_ transfer your eSIM as well. You are going to have to contact Verizon Customer Service and have them send you a new QR Code to activate the eSIM on your new phone. This is not at all a straightforward procedure, and unfortunately most Verizon customer services reps have no idea how to do this. Many people are experiencing these same issues…
@@ -70,7 +68,7 @@ Once you’ve verified your identity to Verizon, you’ll have to provide them w
 
 Once you provide Verizon all the info they need, they will email you a QR code. You should go to Settings > Cellular > Add Cellular Plan. From this screen scan the QR code they provided. If you see the following error modal, ensure WiFi is enabled, then try scanning the QR Code again.
 
-<CaptionedImage src="/blog-images/2019-09-21/esim-unable-to-change-plan.webp" />
+![An iPhone alert reading “Unable to Complete Cellular Plan Change. Your cellular plan could not be set up. Try again later.”](/blog-images/2019-09-21/esim-unable-to-change-plan.webp)
 
 Hopefully by this point you will be set up with everything working. That wasn’t the case for me. This is the point at which the two customer service reps I spoke with by phone stopped — they couldn’t figure out what to do next. I finally was able to speak to someone via Verizon chat who informed me that even though their reference material says they should be able to transfer a number from one eSIM to another, in practice that doesn’t work.
 
