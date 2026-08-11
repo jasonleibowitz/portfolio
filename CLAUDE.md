@@ -116,7 +116,10 @@ directly below it becomes its `<figcaption>`:
 _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines/Z10-Diamond-Black-NAA-15464)_
 ```
 
-`plugins/remark-figure.mjs` does this, wired in through `markdown.remarkPlugins`. The
+`plugins/remark-figure.ts` does this. It is registered through
+`markdown.processor: unified({ remarkPlugins: [...] })` from `@astrojs/markdown-remark`,
+because `markdown.remarkPlugins` is deprecated in Astro 7 and warns on every run of
+`astro check`. `markdown.shikiConfig` is not deprecated and stays where it is. The
 caption line is ordinary markdown, so an attribution link needs no markup of its own, and
 the emphasis is dropped from the output: `figcaption` already carries the design's caption
 style. An image with no caption line still becomes a `<figure>`, which is what gives every
