@@ -1,6 +1,5 @@
 ---
 import type { MarkdownHeading } from 'astro';
-import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import { formatDay, isoDay } from '@lib/dates';
@@ -9,6 +8,7 @@ import Section from '@components/layout/Section.astro';
 import Typography from '@components/ui/Typography.astro';
 import Breadcrumb from '@components/ui/Breadcrumb.astro';
 import Toc from '@components/Toc.astro';
+import PostHero from '@components/PostHero.astro';
 import { readingMinutes, wordCount } from '@lib/reading';
 import { shareCard } from '@lib/og';
 import Link from '@components/ui/Link.astro';
@@ -101,22 +101,7 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
       <Toc headings={headings} />
 
       <div class:list={[measure, 'toc:row-start-2']}>
-        {
-          /* `width` is the measure, not the file: the column is 46rem and never
-            wider, so asking for more only makes the srcset offer sizes nobody
-            downloads. The 16:9 crop is the design's, so the ratio the file
-            happens to carry does not have to match it. */
-        }
-        <figure class="mb-12">
-          <Image
-            src={image}
-            alt={imageAlt}
-            width={736}
-            sizes="(min-width: 46rem) 736px, 100vw"
-            class="aspect-video w-full rounded-card object-cover shadow-lift"
-            loading="eager"
-          />
-        </figure>
+        <PostHero src={image} alt={imageAlt} />
 
         <Typography variant="longform" class="markdown"><slot /></Typography>
 
