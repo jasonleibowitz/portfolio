@@ -105,7 +105,31 @@ placeholder image. Replace the placeholder before publishing.
 A post body must start at `##`. The page already renders the title as its `h1`, so a `#`
 in the body produces a second one.
 
-MDX bodies can import Astro components — `CaptionedImage` is the one in use.
+### Images in a post body
+
+An image alone in a paragraph renders as a `<figure>`, and an italic line in the paragraph
+directly below it becomes its `<figcaption>`:
+
+```markdown
+![Alt text](/blog-images/2023-05-21/jura-z10.jpg)
+
+_Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines/Z10-Diamond-Black-NAA-15464)_
+```
+
+`plugins/remark-figure.mjs` does this, wired in through `markdown.remarkPlugins`. The
+caption line is ordinary markdown, so an attribution link needs no markup of its own, and
+the emphasis is dropped from the output: `figcaption` already carries the design's caption
+style. An image with no caption line still becomes a `<figure>`, which is what gives every
+image in a post the same width, radius and shadow.
+
+It replaced a `CaptionedImage.astro` component with an object-valued `attribution` prop.
+The point of the rule is that **a post body is plain markdown**: no imports, and nothing an
+editor would need a JSX plugin to open. Reach for a component in a body only when there is
+no way to express the thing in markdown, and expect to be asked why.
+
+The exception, and it is a real one: two posts still carry embeds written as raw HTML, a
+YouTube `<iframe>` and two Twitter blockquotes with their widget `<script>`. MDX parses
+those as JSX. Nothing else in `src/content/blog` does.
 
 ## Routing
 

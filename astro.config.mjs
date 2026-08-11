@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
 import tailwindcss from '@tailwindcss/vite';
+import remarkFigure from './plugins/remark-figure.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,6 +13,7 @@ export default defineConfig({
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), icon()],
   markdown: {
+    remarkPlugins: [remarkFigure],
     shikiConfig: {
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
     },
