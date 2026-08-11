@@ -1,13 +1,13 @@
 ---
 /**
- * The JL monogram: one module drawn twice, in ink on warm paper with the
- * aurora in the corners. Each letter is a stem and a turn, and the only
- * difference between them is that the J turns on a radius and the L turns
- * square. Thus the pair is one constructed mark rather than two letters.
+ * JL monogram — gradient squircle, the J's bowl and the L's stem sharing a
+ * baseline. Also the favicon at 32px (public/favicon.svg, kept in sync by hand).
  *
- * `public/favicon.svg` is the same mark, kept correct by hand. Change the two
- * together, then run `pnpm cards` to draw the touch icon again. The gradients
- * are in this file, thus the mark is complete anywhere a person puts it.
+ * The gradient is defined inside the SVG rather than in a shared <defs> block,
+ * so the mark works anywhere it is dropped without a hidden dependency.
+ *
+ * TODO: redesign. This is a placeholder mark, and `public/favicon.svg` is a
+ * hand-kept copy of it, so both change together.
  */
 interface Props {
   class?: string;
@@ -16,40 +16,25 @@ interface Props {
 const { class: className } = Astro.props;
 ---
 
-<svg class={className} viewBox="0 0 100 100" aria-hidden="true">
+<svg class={className} viewBox="0 0 32 32" aria-hidden="true">
   <defs>
-    <radialGradient id="jl-a" cx="12%" cy="8%" r="32%">
-      <stop offset="0" stop-color="#5b3df5" stop-opacity=".34"></stop>
-      <stop offset="1" stop-color="#5b3df5" stop-opacity="0"></stop>
-    </radialGradient>
-    <radialGradient id="jl-b" cx="88%" cy="22%" r="32%">
-      <stop offset="0" stop-color="#0e9fb8" stop-opacity=".28"></stop>
-      <stop offset="1" stop-color="#0e9fb8" stop-opacity="0"></stop>
-    </radialGradient>
-    <radialGradient id="jl-c" cx="60%" cy="92%" r="32%">
-      <stop offset="0" stop-color="#5b3df5" stop-opacity=".19"></stop>
-      <stop offset="1" stop-color="#5b3df5" stop-opacity="0"></stop>
-    </radialGradient>
+    <linearGradient id="jl-monogram" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b3df5"></stop>
+      <stop offset="100%" stop-color="#0e9fb8"></stop>
+    </linearGradient>
   </defs>
-  <rect
-    width="100"
-    height="100"
-    rx="28"
-    fill="#fcfaf6"
-    stroke="#131220"
-    stroke-opacity=".16"
-    stroke-width="5"></rect>
-  <rect width="100" height="100" rx="28" fill="url(#jl-a)"></rect>
-  <rect width="100" height="100" rx="28" fill="url(#jl-b)"></rect>
-  <rect width="100" height="100" rx="28" fill="url(#jl-c)"></rect>
-  <g
+  <rect width="32" height="32" rx="9" fill="url(#jl-monogram)"></rect>
+  <path
+    d="M12.6 8.5v11.2c0 2.2-1.4 3.6-3.5 3.6-1.1 0-2-.35-2.7-1"
     fill="none"
-    stroke="#131220"
-    stroke-width="14"
-    stroke-linecap="butt"
-    stroke-linejoin="miter"
-  >
-    <path d="M42 21V56A17 17 0 0 1 25 73"></path>
-    <path d="M60 21V72H83"></path>
-  </g>
+    stroke="#fff"
+    stroke-width="2.4"
+    stroke-linecap="round"></path>
+  <path
+    d="M17.8 8.5v14.4h7.4"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
 </svg>
