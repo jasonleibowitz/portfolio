@@ -1,62 +1,34 @@
 # A local admin for leibowitz.me
 
-The plan for a bespoke content editor that keeps the `.mdx` files as the source
-of truth. This file holds the reasoning. Issue #29 holds the work breakdown and
-the acceptance criteria, and does not repeat what is here.
+Why the content editor for this site is bespoke and file-backed. Issue #29 holds the work breakdown, the phases and the acceptance criteria; this file does not repeat them. A decision that has shipped moves to `CLAUDE.md` and leaves here, so this stays a list of what is still only decided.
 
-## Why, after several editors were tried
+## Why it is bespoke
 
-Both hosted and file-backed editors were evaluated over a long stretch, and none
-of them fit. Three complaints survived every one:
+Hosted and file-backed editors were evaluated over a long stretch. Three complaints survived every one:
 
-1. **Content leaves the repo.** No git history, no grep, no pull request review,
-   no agent editing, and `git clone` stops giving you a working site.
-2. **The writing experience.** A cramped body field with a full-screen toggle,
-   poorly organized forms, and a body format that is not markdown.
+1. **Content leaves the repo.** No git history, no grep, no pull request review, no agent editing, and `git clone` stops giving you a working site.
+2. **The writing experience.** A cramped body field with a full-screen toggle, poorly organized forms, and a body format that is not markdown.
 3. **A vendor sits between Jason and his own writing.**
 
-Operational weight was explicitly _not_ a complaint. Tokens, CORS origins and
-webhooks were all fine. The three above are what a file-backed admin fixes, and
-they are the whole reason this is worth 19 days.
+Operational weight was explicitly _not_ a complaint. Tokens, CORS origins and webhooks were all fine.
 
-The general version of this already exists and was rejected: Keystatic is
-config-driven collections, a field type system, a form renderer and both file
-and GitHub modes. It did not fit either. What makes a bespoke admin worth
-building is exactly what a package cannot encode, which is the next section.
+Keystatic is the general version of this, and it was rejected too: config-driven collections, a field type system, a form renderer, file and GitHub modes. What justifies a bespoke admin is what no package can encode. A list carries `items` or `groups` and never both. Artwork is 56px wide in two ratios. A ranked list must not renumber when filtered. A Places result fills the subtitle with a neighborhood.
 
 ## The shape
 
 Nothing new is deployed. The admin exists only while `astro dev` runs.
 
-**Backend.** An integration registers dev server middleware at `/_admin/*` in
-the `astro:server:setup` hook, backed by `node:fs`. That hook cannot fire during
-a build, so there is nothing to authenticate and no Worker. `wrangler.jsonc`
-still declares no `main`, and the production `dist/` is unchanged.
+**Backend.** An integration registers dev server middleware at `/_admin/*` in the `astro:server:setup` hook, backed by `node:fs`. That hook cannot fire during a build, so there is nothing to authenticate and no Worker.
 
-**Frontend.** The same integration injects `/admin/[...path]` only when
-`command === 'dev'`, rendering one `client:only="react"` island. The route
-cannot exist in a build.
+**Frontend.** The same integration injects `/admin/[...path]` only when `command === 'dev'`, rendering one `client:only="react"` island. The route cannot exist in a build.
 
-**A save is a file write.** Astro's `glob()` loader already watches
-`src/content/**` in development, so writing a file re-syncs the content layer
-and updates the open page. Editing through the admin and editing in an editor
-become the same operation. That is the property no external content store can
-have, and each one needed its own machinery to fake it.
+**A save is a file write.** Astro's `glob()` loader already watches `src/content/**` in development, so writing a file re-syncs the content layer and updates the open page. Editing through the admin and editing in an editor become the same operation, which is the property no external content store has.
 
-**Publishing is git.** A publish view lists uncommitted work grouped by entry,
-takes a commit message with a smart default, and commits and pushes. CI runs the
-four gates and deploys.
+**Publishing is git.** A publish view lists uncommitted work grouped by entry, takes a commit message, and commits and pushes. CI runs the four gates and deploys.
 
 ### The three seams
 
-Built bespoke, not as a package. A field type system and a generic form renderer
-would walk back toward the fit problem described above. What a bespoke admin can
-encode is exactly what a package cannot: a list carries `items` or `groups` and
-never both, artwork is 56px wide in two ratios, a ranked list must not renumber
-when filtered, a Places result fills the subtitle with a neighborhood.
-
-Three seams keep extraction tractable later without paying for it now, and each
-is good design on its own:
+Three seams keep extraction tractable later without paying for it now, and each is good design on its own:
 
 ```
 src/admin/
@@ -70,206 +42,40 @@ src/admin/
   ui/             specific to this content and this design
 ```
 
-No API key reaches the browser, because search goes through the dev server. A
-picker that searched from the browser would have to ship the Maps key to whoever
-opens `/admin`, which then needs a referrer restriction and a quota to bound the
-damage. This removes the problem rather than managing it.
+No API key reaches the browser, because search goes through the dev server. A picker that searched from the browser would ship the Maps key to whoever opens `/admin`, which then needs a referrer restriction and a quota to bound the damage.
 
 ## Decisions
 
-### Captioned images become markdown
+**Post images move into `src/`.** Astro's docs are explicit that images in `public/` "are never optimized", even from markdown, and that responsive images are not supported for them. Measured: 4.9 MB across 25 files, and the espresso post alone carries about 4.5 MB. Body and hero images both move next to their post, so `sharp` processes them the way it already processes list artwork. Hero frontmatter becomes `image()` plus `imageAlt`, the shape `lists` and `projects` already use, and `og:image` becomes `new URL(image.src, site)`. The cost is that `/blog-images/*` stops resolving.
 
-`CaptionedImage.astro` is deleted. A remark plugin turns "an image alone in a
-paragraph, followed by an italic line" into `<figure><figcaption>`. The caption
-is real markdown, so an attribution link comes free instead of needing an
-object valued JSX prop.
+**The URL stops being the filename.** A `slug` field owns the URL, and `getStaticPaths` uses `data.slug ?? entry.id`. The 5 existing posts set `slug` to their current id, because those URLs have a decade of inbound links. New posts get clean slugs with no date. Filenames keep the `YYYY-MM-DD-` prefix so the directory sorts chronologically. Uniqueness is enforced on the slug, not the title.
 
-The payoff is larger than the markup: **post bodies then contain no JSX and no
-imports at all**, so the editor needs no JSX plugin, no component descriptors
-and no custom node editors. That is the difference between configuring an editor
-and extending one.
+**The editor is MDXEditor.** Chosen on one axis: whether markdown is the document or an export format. TipTap, Lexical, BlockNote and Plate all hold a JSON document and serialize to markdown, which is lossy at the edges. MDXEditor parses and writes the file itself through remark, so the round trip is lossless by construction. These files are also edited by hand and by agents, which is what makes that matter. Its bundle is large and irrelevant, because the route never deploys.
 
-19 call sites across 5 posts convert.
+**Footnotes are the open risk.** Issue #194 on `mdx-editor/editor` is the only footnote issue ever filed, and the maintainer's answer is: "Foot notes are not supported at the moment. They can probably be handled with a plugin, but it's not trivial I believe." The reported behavior is that `foo[^1]` is written back escaped as `foo\[^1]`, even in source mode. That is corruption on save. No current post uses footnotes, but `src/lib/footnotes.ts` and its popovers were built for the feature, so a spike answers this before anything is built on top of it.
 
-### Post images move into `src/`
+**Projects keep three write-ups.** The body carries three fixed `##` sections, shown as three labelled rich text fields that serialize under those headings in a fixed order. On load the body is split on the same headings, and if it does not match, the form says so and drops to a raw body editor rather than guessing.
 
-`public/` is a verbatim copy directory. The Astro docs are explicit that images
-there "are never optimized", even when referenced from markdown, and that
-responsive images are not supported for them. So today every post image ships at
-full size with no `width`, `height`, `loading` or `decoding`, which also means
-text reflows as each image loads.
+**Screenshots go inside the existing frame.** `DeviceFrame.astro` keeps its chrome, border, radius, aspect and shadow, and its drawn slabs are replaced by an `<Image>`. A project with no screenshots keeps rendering the drawn version, so nothing regresses while captures are made.
 
-Measured: `public/blog-images` is 4.9 MB across 25 files. 8 are raw PNG or JPG,
-and the espresso post alone carries about 4.5 MB of them, including a 1.5 MB
-PNG.
+**A commit is an entry, not a file.** Because images live in `src/`, a missing relative image is a build failure rather than a broken `<img>`, so committing a post without its images pushes a red build. The publish view lists entries, and staging one stages its `.mdx`, every image it references, and any deletion from a rename.
 
-Body images and hero images both move next to their post and are referenced
-relatively, so `sharp` processes them the way it already processes list artwork.
-Hero frontmatter becomes `image()` plus `imageAlt`, which is the shape `lists`
-and `projects` already use, so all three collections finally agree. `og:image`
-becomes `new URL(image.src, site)`.
+**Prettier runs on write.** `lint-staged` runs `prettier --write` over `*.mdx`, so git would otherwise reformat everything the admin writes and leave the admin's copy stale.
 
-The cost is that `/blog-images/*` stops resolving.
-
-### The URL stops being the filename
-
-A `slug` frontmatter field owns the URL. `getStaticPaths` uses
-`data.slug ?? entry.id`.
-
-The 5 existing posts set `slug` to their current id, so their URLs do not change
-and no redirects are needed. Those URLs have a decade of inbound links, which is
-why `/blog/*` redirects exist at all. New posts get clean slugs with no date.
-Filenames keep the `YYYY-MM-DD-` prefix so the directory sorts chronologically.
-
-Uniqueness is enforced on the slug, not the title.
-
-### The editor is MDXEditor
-
-Chosen on one axis: whether markdown is the document or an export format. TipTap
-(13.6M weekly), Lexical (4.6M), BlockNote and Plate all hold a JSON document and
-serialize to markdown, which is lossy at the edges. MDXEditor (1.16M) parses and
-writes the file itself through remark, so the round trip is lossless by
-construction. That matters because these files are also edited by hand and by
-agents.
-
-It ships its own CSS and a Radix toolbar, so "modern and Medium-like" means
-restyling its parts. Its bundle is large and irrelevant, because the route never
-deploys.
-
-**Footnotes are the open risk.** Issue #194 on `mdx-editor/editor` is the only
-footnote issue ever filed, and the maintainer's answer is: "Foot notes are not
-supported at the moment. They can probably be handled with a plugin, but it's
-not trivial I believe." The reported behavior is that `foo[^1]` is written back
-as `foo\[^1]`, escaped, even in source mode. That is corruption on save, not a
-missing button.
-
-No current post uses footnotes, so nothing is at risk today, but
-`src/lib/footnotes.ts` and its popovers were built for the feature. Phase 1
-opens with a spike that answers this before anything is built on top of it.
-
-### Projects keep three write-ups
-
-The project body carries three fixed `##` sections. The form shows three
-labelled rich text fields that serialize under those headings in a fixed order.
-On load the body is split on the same headings, and if it does not match, the
-form says so and drops to a raw body editor rather than guessing.
-
-### Screenshots go inside the existing frame
-
-`DeviceFrame.astro` keeps its chrome, border, radius, 9:19 or 4:3 aspect and
-shadow, and its drawn slabs are replaced by an `<Image>`. A project with no
-screenshots yet keeps rendering the drawn version, so nothing regresses while
-captures are made. The `frame` field stays meaningful.
-
-### A commit is an entry, not a file
-
-Because images now live in `src/`, a missing relative image is a build failure
-rather than a broken `<img>`. Committing a post without its images pushes a red
-build. So the publish view lists entries, and staging one stages its `.mdx`,
-every image it references, and any deletion from a rename. Entries can still be
-committed one at a time or all at once.
-
-### Prettier runs on write
-
-`lint-staged` runs `prettier --write` over `*.mdx`, so git would otherwise
-reformat everything the admin writes and leave the admin's copy stale. Running
-Prettier's API on the serialized file before writing keeps diffs minimal and the
-file stable.
-
-### The list source decides the artwork ratio
-
-A list picks a data source first, and the source knows both how to search and
-what shape its artwork is. Apple Podcasts gives square art and fills name,
-hosts, link and cover. Movies give poster ratio. Places gives square, and fills
-name, neighborhood, website and logo.
-
-The admin writes `thumb` from the source and records `source` on the list so it
-can offer the right search next time. The site schema barely changes.
-
-## Phases
-
-| Phase | Work                                                                                  | Days |
-| ----- | ------------------------------------------------------------------------------------- | ---- |
-| 0     | Site prerequisites. Own pull request, justified without the admin.                    | 2.5  |
-| 1     | Spike, foundation, Writing, publish. A CMS worth writing in.                          | 9    |
-| 2     | Lists: form, groups, drag and drop, the picker across Apple, Places, TMDB and manual. | 5    |
-| 3     | Projects: form, three write-ups, screenshots.                                         | 1.5  |
-| 4     | Polish and docs.                                                                      | 1    |
-
-Total about 19 days. A usable writing CMS lands at about day 11.5.
-
-Phase 0 stands alone. The espresso post stops shipping 4.5 MB and the layout
-shift goes away whether or not the admin is ever built.
-
-Phase 1 opens with the MDXEditor spike, half a day, against a real post plus a
-test file holding footnotes, a code block, nested lists and images. It is the
-exit ramp: the footnote answer arrives before anything is built on it, and
-abandoning the admin at that point costs 3 days rather than 19.
-
-### Phase 0
-
-Remark figure plugin. Delete `CaptionedImage` and convert 19 call sites. Move 25
-images into `src/`. Hero becomes `image()` and renders through `<Image>`.
-`og:image` from `site`. `slug` field wired into `getStaticPaths` and set on the
-5 existing posts.
-
-### Phase 1
-
-Dev only integration and injected route. React shell in the site's Tailwind
-theme. Storage seam. YAML serialization with Prettier on write. Zod validation
-shared with `content.config.ts`. Collections as data. Entry index with search,
-filter and delete confirmation. MDXEditor restyled, with headings, bold, italic,
-code, links, ordered and unordered lists, indentation, blockquotes, code blocks
-with a language picker, and image insert with caption and upload. Frontmatter
-form with smart defaults, editable slug with a uniqueness check, tag
-autocomplete, hero upload. Publish view.
-
-### Phase 2
-
-List form, flat versus grouped with group descriptions, item fields, drag to
-reorder, drag between groups. The picker across Apple, Places, TMDB and manual,
-with artwork downloaded and written into the list's folder.
-
-### Phase 3
-
-Project frontmatter including spec rows, stack chips, CTA, TestFlight, featured,
-order and icon. Three rich text write-ups with raw fallback. Placeholder
-marking. Screenshot upload and the `DeviceFrame` rework.
-
-### Phase 4
-
-Admin dark mode, keyboard shortcuts, empty states. CLAUDE.md and README.
-Delete plop and `plop-templates/`, since the admin creates entries now.
+**The list source decides the artwork ratio.** A list picks a data source first, and the source knows both how to search and what shape its artwork is. Podcasts give square art and fill name, hosts, link and cover; movies give poster ratio; Places gives square, and fills name, neighborhood, website and logo. The admin writes `thumb` from the source and records `source` on the list, so it can offer the right search next time.
 
 ## Open
 
-- **Footnotes.** Answered by the Phase 1 spike. If a plugin is needed it adds 2
-  to 3 days.
-- **Underline.** Asked for, and MDXEditor offers it, but markdown has no
-  underline and it serializes to `<u>`, putting an HTML node back into bodies
-  that would otherwise be clean. It also reads as a dead link in prose.
-  Recommendation is to drop it from the toolbar.
-- **Placeholder body copy.** Today it is raw `<p class="placeholder-copy">`,
-  which is the last HTML in the bodies. A remark directive would keep bodies
-  clean, and needs deciding in Phase 3.
-- **What the publish view may touch.** Assumed to be `src/content/**` and image
-  paths only, showing but never staging other changes. The admin is not a git
-  client.
-- **Save semantics.** Assumed explicit save with a dirty state guard. The side
-  by side preview was dropped, so there is no reason to write on every
-  keystroke. `localhost:4321/writing/<slug>` always renders the saved state.
-- **Validation outside Astro.** The admin cannot call Astro's `image()` helper,
-  so image fields validate as "a path that exists" rather than through the
-  content schema.
+- **Footnotes.** Answered by the spike. If a plugin is needed it adds 2 to 3 days.
+- **Underline.** Asked for, and MDXEditor offers it, but markdown has no underline and it serializes to `<u>`, which puts an HTML node back into bodies that would otherwise be clean. It also reads as a dead link in prose. Recommendation is to drop it from the toolbar.
+- **Embeds.** Two posts hold a YouTube `<iframe>` and two Twitter blockquotes with their widget `<script>`, which MDX parses as JSX. The editor needs a descriptor for them, a source-mode fallback, or a markdown-native replacement.
+- **Placeholder body copy.** Today it is raw `<p class="placeholder-copy">`. A remark directive would keep bodies clean, and needs deciding before Projects.
+- **What the publish view may touch.** Assumed `src/content/**` and image paths only, showing but never staging other changes. The admin is not a git client.
+- **Save semantics.** Assumed explicit save with a dirty state guard. The side by side preview was dropped, so there is no reason to write on every keystroke.
+- **Validation outside Astro.** The admin cannot call Astro's `image()` helper, so image fields validate as "a path that exists" rather than through the content schema.
 
 ## Not being built
 
-- **A deployed `/admin`.** Wanted eventually at `leibowitz.me/admin`, with
-  authentication so only Jason can open it. It needs a Worker script, a GitHub
-  API write path and a real auth surface, and it roughly doubles the work. The
-  storage seam is what keeps it possible.
-- **A side by side live preview.** Dropped, possibly revisited. It would need
-  autosave, and an Astro content change triggers a full page reload rather than
-  in place HMR, so the preview would flash and jump on every pause unless scroll
-  position were restored.
+- **A deployed `/admin`.** Wanted eventually at `leibowitz.me/admin`, with authentication so only Jason can open it. It needs a Worker script, a GitHub API write path and a real auth surface, and it roughly doubles the work. The storage seam is what keeps it possible.
+- **A side by side live preview.** Dropped, possibly revisited. It would need autosave, and an Astro content change triggers a full page reload rather than in place HMR, so the preview would flash and jump on every pause unless scroll position were restored.
 - **An open source package.** See the seams above.
