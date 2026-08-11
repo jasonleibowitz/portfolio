@@ -57,7 +57,7 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 **A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so `entry.id` is the folder name and the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
 
-The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post has carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
+The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything, and moving the images into the post is what made it visible enough to delete. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
 
 Ordering comes from `pubDate`, not the folder name — renaming a folder changes its URL but not its position.
 
