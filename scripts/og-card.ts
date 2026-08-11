@@ -25,10 +25,12 @@ import { CARD, LISTS, WRITING } from '../src/lib/site.ts';
  *   og/lists.jpg         /lists
  *   og/post/<id>.jpg     one for each published post
  *   og/list/<id>.jpg     one for each published list
- *   apple-touch-icon.png what iMessage and iOS use if there is no other image
  *
  * No card is in git. Each build makes them again, in CI also, thus a card
  * always agrees with its page and no person must remember to make one.
+ *
+ * With `--touch-icon` it also draws `apple-touch-icon.png`, which `pnpm cards`
+ * gives and `pnpm build` does not. That file is in git; see `touchIcon()`.
  *
  * Each card is an HTML page and Chrome makes the image, because sharp shows SVG
  * text in a font of the operating system and this site gets its fonts from npm.
@@ -785,24 +787,36 @@ await shoot(cards);
  * Makes the touch icon from the favicon. The favicon contains only paths and no
  * text, thus sharp can make an image of it without a font.
  *
- * The script makes two changes. It removes the corner radius, because iOS makes
- * the corners round, and a source that is already round leaves an empty area in
- * each corner. It also removes the alpha channel, because some surfaces show a
- * transparent icon on a black background.
+ * The function makes two changes. It removes the corner radius, because iOS
+ * makes the corners round, and a source that is already round leaves an empty
+ * area in each corner. It also removes the alpha channel, because some surfaces
+ * show a transparent icon on a black background.
  */
-const squared = readFileSync('public/favicon.svg', 'utf8').replace(
-  / rx="[\d.]+"/,
-  ''
-);
+async function touchIcon(out: string) {
+  const squared = readFileSync('public/favicon.svg', 'utf8').replace(
+    / rx="[\d.]+"/,
+    ''
+  );
 
-await sharp(Buffer.from(squared), { density: 720 })
-  .resize(180, 180)
-  .flatten()
-  .png()
-  .toFile('public/apple-touch-icon.png');
+  await sharp(Buffer.from(squared), { density: 720 })
+    .resize(180, 180)
+    .flatten()
+    .png()
+    .toFile(out);
+}
+
+/**
+ * The touch icon is in git and a build must not write over it: a browser reads
+ * it, and `pnpm dev` does not run this script. Redraw it with `pnpm cards`
+ * after a change to `public/favicon.svg`, and commit the result.
+ */
+const ICON = 'public/apple-touch-icon.png';
+const drawIcon = process.argv.includes('--touch-icon');
+
+if (drawIcon) await touchIcon(ICON);
 
 let total = 0;
-for (const [out] of [...cards, ['public/apple-touch-icon.png']]) {
+for (const [out] of drawIcon ? [...cards, [ICON]] : cards) {
   const { size } = statSync(out);
   total += size;
   console.log(`${String(Math.round(size / 1024)).padStart(5)}kB  ${out}`);

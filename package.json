@@ -12,7 +12,7 @@
     "build": "node scripts/og-card.ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "cards": "node scripts/og-card.ts",
+    "cards": "node scripts/og-card.ts --touch-icon",
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",

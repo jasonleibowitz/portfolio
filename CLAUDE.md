@@ -299,6 +299,16 @@ which is the wrong trade for the one image a stranger sees first.
 The touch icon is the favicon with its corner radius stripped and its alpha flattened. iOS
 masks the icon itself, so a rounded source leaves the mask's corners empty.
 
+**It is the one image here that is committed rather than built, and `pnpm build` does not
+write it.** `pnpm cards` draws it, behind the script's `--touch-icon` flag; a plain build
+leaves the committed file alone. It is not a card: a browser fetches it, and `pnpm dev` never
+runs the generator, so a build-only file 404s in every dev session. Committing it also gives
+it one owner. sharp rasterizes the SVG through its own renderer rather than through the
+Chrome that makes the cards byte-reproducible, so the copy the Linux runner draws can differ
+from the copy here, and nothing compares them. Redraw and commit it after editing
+`public/favicon.svg`, the same hand-kept agreement that file already has with
+`Monogram.astro`.
+
 ## Styling
 
 Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no PostCSS config —
