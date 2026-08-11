@@ -1,4 +1,5 @@
 ---
+import Link from './ui/Link.astro';
 import { Icon } from 'astro-icon/components';
 import { SOCIALS, AVATAR_SOCIALS, type Social } from '@lib/site';
 
@@ -28,17 +29,14 @@ const items: Social[] = variant === 'full' ? SOCIALS : AVATAR_SOCIALS;
 <div class:list={['flex flex-wrap gap-1', className]}>
   {
     items.map((social) => (
-      <a
+      <Link
         href={social.href}
         aria-label={social.label}
         data-swap={swap ? social.key : undefined}
-        {...(social.key === 'rss'
-          ? {}
-          : { target: '_blank', rel: 'noreferrer noopener' })}
-        class="inline-flex size-11 items-center justify-center rounded-full text-faint no-underline transition-[color,background] duration-150 not-data-showing:hover:bg-panel not-data-showing:hover:text-ink data-showing:spectrum-fill"
+        class="size-11 justify-center rounded-full text-faint transition-[color,background] duration-150 not-data-showing:hover:bg-panel not-data-showing:hover:text-ink data-showing:spectrum-fill"
       >
         <Icon name={social.icon} class="size-5 shrink-0" />
-      </a>
+      </Link>
     ))
   }
 </div>
