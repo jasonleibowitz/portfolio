@@ -44,8 +44,15 @@ export interface Figure extends Parent {
 export interface Figcaption extends Parent {
   type: 'figcaption';
   children: PhrasingContent[];
-  data: { hName: 'figcaption' };
+  data: { hName: 'figcaption'; hProperties: { className: string[] } };
 }
+
+/**
+ * The caption text is faint. A link with the full violet color is more visible
+ * than the caption. This gives the link the color of the text. The weight and
+ * the underline from `Link` show that it is a link.
+ */
+const CAPTION_LINK = '[&_a]:text-faint';
 
 /** The image, if the paragraph holds an image and no words. */
 function imageAlone(node: Paragraph): Image | undefined {
@@ -100,7 +107,10 @@ export default function remarkFigure() {
                 image,
                 {
                   type: 'figcaption',
-                  data: { hName: 'figcaption' },
+                  data: {
+                    hName: 'figcaption',
+                    hProperties: { className: [CAPTION_LINK] },
+                  },
                   children: caption,
                 },
               ],
