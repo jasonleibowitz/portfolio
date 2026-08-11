@@ -1,4 +1,16 @@
 ---
+import Link from '@components/ui/Link.astro';
+
+/**
+ * An image with a caption under it, and an optional credit that links to the
+ * source. Imported by MDX bodies.
+ *
+ * The credit goes through `Link` rather than a bare `<a>`. The `components`
+ * map on the post route rewrites only the anchors that markdown syntax makes,
+ * and this one is written here, thus it gets no map and `content.css` carries
+ * no `& a` rule to catch it. A bare anchor here renders in the caption's own
+ * color with no underline, and a person cannot see that it is a link.
+ */
 interface Props {
   alt?: string;
   src: string;
@@ -16,11 +28,16 @@ const { alt = null, src, caption, attribution = null } = Astro.props;
   {
     caption && (
       <p class="text-sm pt-2 text-center">
-        {caption}
+        {caption}{' '}
         {attribution && (
-          <a target="_blank" rel="noopener noreferrer" href={attribution.src}>
+          <Link
+            kind="text"
+            href={attribution.src}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {attribution.text}
-          </a>
+          </Link>
         )}
       </p>
     )

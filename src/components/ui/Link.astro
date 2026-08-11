@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import { tv } from '@lib/tv';
 import { text, type TypographyVariant } from '@lib/typography';
 
@@ -25,7 +26,7 @@ const link = tv({
   defaultVariants: { kind: 'chrome' },
 });
 
-interface Props {
+interface Props extends HTMLAttributes<'a'> {
   href: string;
   kind?: 'chrome' | 'text';
   /** Type role. Omit on a `text` link, which inherits from its sentence. */
