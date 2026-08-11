@@ -26,9 +26,51 @@ jobs:
     name: Verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # `paths-filter` reads a pull request's file list from the API rather than
+    # from git history, which is what lets the checkout above stay shallow.
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v5
+
+      # `public/apple-touch-icon.png` is committed rather than built, so a
+      # favicon edit that skips `pnpm cards` leaves it stale with every gate
+      # still green. Nothing else in CI would notice.
+      #
+      # These two steps come first: they need no install, and the filter reads
+      # the file list from the API on a pull request. On a push to the default
+      # branch it compares against the commit before the push, so both events
+      # are covered. The action is pinned to a commit, because a tag can move.
+      - name: Check if apple-touch-icon.png is outdated
+        id: changed
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            favicon:
+              - 'public/favicon.svg'
+            icon:
+              - 'public/apple-touch-icon.png'
+
+      - name: Fail if apple-touch-icon.png is outdated
+        if:
+          steps.changed.outputs.favicon == 'true' && steps.changed.outputs.icon
+          != 'true'
+        run: |
+          echo "::error file=public/favicon.svg::favicon.svg changed but apple-touch-icon.png did not. Run 'pnpm cards', then commit public/apple-touch-icon.png."
+          cat <<'EOF'
+
+          The touch icon is committed, not built: a plain `pnpm build` leaves it
+          alone, so it is now stale.
+
+          Redraw it and add it to the commit:
+
+              pnpm cards
+              git add public/apple-touch-icon.png
+
+          EOF
+          exit 1
 
       # pnpm reads its version from the `packageManager` field, so CI matches
       # local.

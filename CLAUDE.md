@@ -308,7 +308,8 @@ it one owner. sharp rasterizes the SVG through its own renderer rather than thro
 Chrome that makes the cards byte-reproducible, so the copy the Linux runner draws can differ
 from the copy here, and nothing compares them. Redraw and commit it after editing
 `public/favicon.svg`, the same hand-kept agreement that file already has with
-`Monogram.astro`.
+`Monogram.astro`. Forgetting is a CI failure rather than a silent stale icon:
+`verify` fails when the favicon moved and the icon did not.
 
 ## Styling
 
