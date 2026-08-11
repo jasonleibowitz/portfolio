@@ -443,6 +443,18 @@ are ordinary links on every device, which is the point. A chip's tap is spoken
 for permanently, so the interaction belongs on the one element in the group that
 owns no gesture, and nothing has to be cancelled to make room for it.
 
+### Signature: The Monogram
+
+A tile in Warm Paper with the aurora in its corners and the JL initials in Ink
+over it, cut from one 14 stroke with flat terminals. Each letter is a stem and
+a turn; the J turns on a radius where the L turns square, and that shared
+construction is what makes the pair read as one drawn mark rather than as two
+letters set side by side.
+
+One mark serves both themes, since a favicon is a single file and a scrape
+carries no theme signal. `src/components/Monogram.astro` and
+`public/favicon.svg` are the same drawing, kept in agreement by hand.
+
 ## Do's and Don'ts
 
 ### Do:

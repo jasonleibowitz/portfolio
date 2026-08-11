@@ -296,8 +296,9 @@ white reads as a bright disc, and it is meant to: the hero shows the same disc i
 Knocking the background out makes a quieter card and a card that no longer matches the page,
 which is the wrong trade for the one image a stranger sees first.
 
-The touch icon is the favicon with its corner radius stripped and its alpha flattened. iOS
-masks the icon itself, so a rounded source leaves the mask's corners empty.
+The touch icon is the favicon with every corner radius stripped and its alpha flattened. iOS
+masks the icon itself, so a rounded source leaves the mask's corners empty. The strip is
+global because the tile and the aurora washes over it each carry the same radius.
 
 **It is the one image here that is committed rather than built, and `pnpm build` does not
 write it.** `pnpm cards` draws it, behind the script's `--touch-icon` flag; a plain build

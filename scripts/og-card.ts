@@ -787,14 +787,17 @@ await shoot(cards);
  * Makes the touch icon from the favicon. The favicon contains only paths and no
  * text, thus sharp can make an image of it without a font.
  *
- * The function makes two changes. It removes the corner radius, because iOS
+ * The function makes two changes. It removes every corner radius, because iOS
  * makes the corners round, and a source that is already round leaves an empty
- * area in each corner. It also removes the alpha channel, because some surfaces
- * show a transparent icon on a black background.
+ * area in each corner. The mark is four stacked rects that share one radius,
+ * the paper tile and the three aurora washes over it, thus the replacement is
+ * global: square one and leave three round, and each corner shows bare paper
+ * with no aurora on it. It also removes the alpha channel, because some
+ * surfaces show a transparent icon on a black background.
  */
 async function touchIcon(out: string) {
   const squared = readFileSync('public/favicon.svg', 'utf8').replace(
-    / rx="[\d.]+"/,
+    / rx="[\d.]+"/g,
     ''
   );
 
