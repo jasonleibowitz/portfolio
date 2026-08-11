@@ -16,22 +16,12 @@ interface Props {
   description?: string;
   /** Drives the active nav state and the reading-progress bar. */
   page: PageKey;
-  /**
-   * The image of the share card. A page that has its own image gives it here.
-   * A page with no image gets the default card. Thus a link always has an
-   * image: without one, iMessage shows a line of text only.
-   */
+  /** The share card picture. A page with none gets the default card. */
   image?: string;
   imageAlt?: string;
-  /**
-   * A square image is an app icon. A card of 1.91:1 removes the top and the
-   * bottom of a square image, thus such a page asks for the small card.
-   */
+  /** `square` asks for the small card: a 1.91:1 crop cuts an app icon. */
   imageShape?: 'wide' | 'square';
-  /**
-   * The size of `image`, in pixels. A page that gives its own image gives this
-   * also. A page that leaves both out gets a generated card, which is `CARD`.
-   */
+  /** The size of `image`, in pixels. A generated card is `CARD`. */
   imageWidth?: number;
   imageHeight?: number;
 }

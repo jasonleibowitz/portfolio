@@ -1,13 +1,11 @@
 import { existsSync } from 'node:fs';
 
 /**
- * Gives the address of the share card of a page. `scripts/og-card.ts` makes the
- * files, and these two are the only places that know the name of a card.
+ * Gives the address of the share card of a page.
  *
- * The test finds a disagreement between that script and `getPublished` about
- * which entries the site publishes. Nothing else finds one: the four gates do
- * not request the addresses that they write. It operates in a build only,
- * because `pnpm dev` does not make the cards.
+ * The check finds a disagreement with `scripts/og-card.ts` about what the site
+ * publishes. No gate requests the addresses that a page writes, thus a card
+ * that the script did not draw becomes an `og:image` that no scraper can get.
  */
 export function shareCard(name: string): string {
   const url = `/og/${name}.jpg`;
