@@ -142,28 +142,11 @@ components:
 
 **Creative North Star: "The Daylit Observatory"**
 
-Every motif in this system is borrowed from deep space — an aurora, an orbit, a
-spectrum, a status light — and every one of them is rendered in full daylight on
-warm paper. That inversion is the whole idea. The obvious way to build a sci-fi
-interface is neon on black; this one refuses that and puts the same instruments
-on `#FCFAF6`, where they have to earn their presence through precision instead
-of contrast. The result reads as an observatory at midday rather than a console
-at night.
+Every motif in this system is borrowed from deep space — an aurora, an orbit, a spectrum, a status light — and every one of them is rendered in full daylight on warm paper. That inversion is the whole idea. The obvious way to build a sci-fi interface is neon on black; this one refuses that and puts the same instruments on `#FCFAF6`, where they have to earn their presence through precision instead of contrast. The result reads as an observatory at midday rather than a console at night.
 
-The system's governing tension is that the **atmosphere is alive while the
-objects are still.** Behind everything, a three-gradient aurora drifts on a
-34-second loop, a dot orbits the portrait, a status light pulses, and a pulse
-travels up the career timeline. In front of it, the components are almost
-severe: hairline borders, flat translucent fills, pill geometry, monospace
-labels, and exactly one accent. Nothing in the foreground competes with the
-motion behind it. When a new component is ambiguous, resolve it toward
-restraint — the luminosity is already handled by the field it sits on.
+The system's governing tension is that the **atmosphere is alive while the objects are still.** Behind everything, a three-gradient aurora drifts on a 34-second loop, a dot orbits the portrait, a status light pulses, and a pulse travels up the career timeline. In front of it, the components are almost severe: hairline borders, flat translucent fills, pill geometry, monospace labels, and exactly one accent. Nothing in the foreground competes with the motion behind it. When a new component is ambiguous, resolve it toward restraint — the luminosity is already handled by the field it sits on.
 
-Depth comes from light rather than from shadow, which is why the standard
-surface is a translucent fill over the aurora rather than a card floating above
-a flat page. The palette is near-monochrome ink on paper with a single
-violet-to-cyan spectrum that marks anything active, anywhere, and marks nothing
-else.
+Depth comes from light rather than from shadow, which is why the standard surface is a translucent fill over the aurora rather than a card floating above a flat page. The palette is near-monochrome ink on paper with a single violet-to-cyan spectrum that marks anything active, anywhere, and marks nothing else.
 
 **Key Characteristics:**
 
@@ -176,8 +159,7 @@ else.
 
 ## Colors
 
-Near-monochrome ink on warm paper, lit from behind by a single two-hue spectrum
-that appears only where something is active.
+Near-monochrome ink on warm paper, lit from behind by a single two-hue spectrum that appears only where something is active.
 
 ### Primary
 
@@ -204,38 +186,21 @@ that appears only where something is active.
 
 ### Named Rules
 
-**The One Spectrum Rule.** There is exactly one accent in this system and it is a
-gradient: `linear-gradient(100deg, Ultraviolet, Aurora Teal)`. It marks active
-navigation, primary buttons, the progress bar, status pulses, and gradient text.
-Introducing a third hue — a red error, a green success, a category color — is a
-change to the system, not a use of it.
+**The One Spectrum Rule.** There is exactly one accent in this system and it is a gradient: `linear-gradient(100deg, Ultraviolet, Aurora Teal)`. It marks active navigation, primary buttons, the progress bar, status pulses, and gradient text. Introducing a third hue — a red error, a green success, a category color — is a change to the system, not a use of it.
 
-**The Cyan Never Reads Rule.** Aurora Teal is 3.1:1 on the light base. It may
-terminate a gradient, fill a dot, or mark a state beside ink. It may never carry
-body text, and it may never be the sole signal of meaning.
+**The Cyan Never Reads Rule.** Aurora Teal is 3.1:1 on the light base. It may terminate a gradient, fill a dot, or mark a state beside ink. It may never carry body text, and it may never be the sole signal of meaning.
 
-**The Re-derive Rule.** Dark mode overrides the same custom properties rather
-than adding `dark:` variants, so every utility recomputes automatically. Reach
-for the `dark:` variant only when a property genuinely has no token behind it.
+**The Re-derive Rule.** Dark mode overrides the same custom properties rather than adding `dark:` variants, so every utility recomputes automatically. Reach for the `dark:` variant only when a property genuinely has no token behind it.
 
 ## Typography
 
-**Display Font:** Space Grotesk Variable (with Avenir Next, system-ui)
-**Body Font:** Inter Variable (with -apple-system, Segoe UI)
-**Label/Mono Font:** JetBrains Mono (with ui-monospace, SFMono-Regular, Menlo)
+**Display Font:** Space Grotesk Variable (with Avenir Next, system-ui) **Body Font:** Inter Variable (with -apple-system, Segoe UI) **Label/Mono Font:** JetBrains Mono (with ui-monospace, SFMono-Regular, Menlo)
 
-**Character:** Space Grotesk's slightly mechanical geometry gives the display
-type an instrument-panel quality without tipping into novelty; Inter disappears
-underneath it and does the reading; JetBrains Mono handles anything that is
-data rather than prose. The pairing is contemporary and technical, and it is
-tightly tracked at large sizes — display type sets at `-0.042em`, which is what
-keeps a 76px headline from feeling loose.
+**Character:** Space Grotesk's slightly mechanical geometry gives the display type an instrument-panel quality without tipping into novelty; Inter disappears underneath it and does the reading; JetBrains Mono handles anything that is data rather than prose. The pairing is contemporary and technical, and it is tightly tracked at large sizes — display type sets at `-0.042em`, which is what keeps a 76px headline from feeling loose.
 
 ### Hierarchy
 
-Every role below is a variant of the `Typography` component, and the component
-is the only way text gets styled. The names here and the variant names are the
-same string on purpose: if they ever disagree, that is a bug you can see.
+Every role below is a variant of the `Typography` component, and the component is the only way text gets styled. The names here and the variant names are the same string on purpose: if they ever disagree, that is a bug you can see.
 
 - **Display** (700, `clamp(2.625rem, 1.4rem + 5.4vw, 4.75rem)`, 0.96): The homepage headline only. Line breaks are explicit, never emergent. Deliberately **not** a `Typography` variant, because a shared component exists to make a style easy to reuse and this one must not be. It lives inline in `Hero.astro`.
 - **heading1** (700, `clamp(2rem, 1.45rem + 2.4vw, 3.25rem)`): Page titles. Renders an `h1`.
@@ -251,72 +216,33 @@ same string on purpose: if they ever disagree, that is a bug you can see.
 
 ### Named Rules
 
-**The Three Voices Rule.** Space Grotesk states, Inter explains, JetBrains Mono
-labels. Every piece of text belongs to exactly one of those three jobs. A fourth
-family is a defect, not an addition.
+**The Three Voices Rule.** Space Grotesk states, Inter explains, JetBrains Mono labels. Every piece of text belongs to exactly one of those three jobs. A fourth family is a defect, not an addition.
 
-**The Mono Means Data Rule.** Monospace is not a decorative texture here — it
-marks content that is a value rather than a sentence: dates, tenures, counts,
-stacks, tags, file paths, captions. Prose never sets in mono, and a date never
-sets in Inter.
+**The Mono Means Data Rule.** Monospace is not a decorative texture here — it marks content that is a value rather than a sentence: dates, tenures, counts, stacks, tags, file paths, captions. Prose never sets in mono, and a date never sets in Inter.
 
-**The Explicit Break Rule.** Display headlines break where they are told. The
-homepage headline contains a word that changes at runtime, so an emergent break
-would recompose the type every few seconds; the breaks are hard-coded and
-collapse to inline only below 26rem. `text-wrap: balance` does not solve this.
+**The Explicit Break Rule.** Display headlines break where they are told. The homepage headline contains a word that changes at runtime, so an emergent break would recompose the type every few seconds; the breaks are hard-coded and collapse to inline only below 26rem. `text-wrap: balance` does not solve this.
 
-**The Fluid Scale Rule.** Every size above Compact is a `clamp()` fluid from
-320px up. There is no viewport where type is sized for a different screen than
-the one it is on, and there are no size breakpoints.
+**The Fluid Scale Rule.** Every size above Compact is a `clamp()` fluid from 320px up. There is no viewport where type is sized for a different screen than the one it is on, and there are no size breakpoints.
 
 ## Layout
 
-The page is a single centered column: a 70rem shell (`--container-page`) with a
-fluid gutter (`clamp(20px, 12px + 2vw, 36px)`), narrowing to 46rem for long-form
-reading (`--container-measure`) and 52rem for the About bio (`--container-bio`).
-There is no multi-column grid at the page level; rhythm does the work that
-columns do elsewhere.
+The page is a single centered column: a 70rem shell (`--container-page`) with a fluid gutter (`clamp(20px, 12px + 2vw, 36px)`), narrowing to 46rem for long-form reading (`--container-measure`) and 52rem for the About bio (`--container-bio`). There is no multi-column grid at the page level; rhythm does the work that columns do elsewhere.
 
-Vertical rhythm is a single value. Every band on every page uses
-`py-(--section)` — `clamp(44px, 24px + 2.6vw, 72px)` — and the spacing ladder
-inside a band is Tailwind's default 4/8/12/16/24/32/40/48/64 scale.
+Vertical rhythm is a single value. Every band on every page uses `py-(--section)` — `clamp(44px, 24px + 2.6vw, 72px)` — and the spacing ladder inside a band is Tailwind's default 4/8/12/16/24/32/40/48/64 scale.
 
-Breakpoints are named after the layout decision each one makes rather than after
-a device size: `hero` (26rem, headline breaks collapse), `card` (46rem, card
-internals go horizontal), `nav` (50rem, header nav replaces the dock), `rail`
-(52rem, tag rails move beside content), `spec` (54rem, the spec rail becomes
-sticky), `bio` (56rem, the About photo floats), `feature` (58rem, a featured
-project brief gains its second column), and `toc` (68rem, a post's contents
-leave the body and become a rail beside it).
+Breakpoints are named after the layout decision each one makes rather than after a device size: `hero` (26rem, headline breaks collapse), `card` (46rem, card internals go horizontal), `nav` (50rem, header nav replaces the dock), `rail` (52rem, tag rails move beside content), `spec` (54rem, the spec rail becomes sticky), `bio` (56rem, the About photo floats), `feature` (58rem, a featured project brief gains its second column), and `toc` (68rem, a post's contents leave the body and become a rail beside it).
 
 ### Named Rules
 
-**The One Rhythm Rule.** Bands are spaced by `--section` and nothing else.
-Per-block vertical padding is what made the gaps drift in the first revision;
-if a band needs more air, the value changes for every band or not at all.
+**The One Rhythm Rule.** Bands are spaced by `--section` and nothing else. Per-block vertical padding is what made the gaps drift in the first revision; if a band needs more air, the value changes for every band or not at all.
 
-**The Add-Don't-Clear Rule.** A `--spacing-*` key may be added to `@theme`; the
-namespace may not be cleared. `--spacing-header: 88px` generates
-`scroll-mt-header` and `top-header` and leaves Tailwind's `--spacing` base
-intact, verified on 4.3.3. Clearing a namespace does silently delete utilities,
-which is what `--radius-*: initial` does on purpose. `--section` and `--gutter`
-stay in plain `:root` because they are page rhythm rather than a step on a
-scale: nothing should generate a `p-section`.
+**The Add-Don't-Clear Rule.** A `--spacing-*` key may be added to `@theme`; the namespace may not be cleared. `--spacing-header: 88px` generates `scroll-mt-header` and `top-header` and leaves Tailwind's `--spacing` base intact, verified on 4.3.3. Clearing a namespace does silently delete utilities, which is what `--radius-*: initial` does on purpose. `--section` and `--gutter` stay in plain `:root` because they are page rhythm rather than a step on a scale: nothing should generate a `p-section`.
 
-**The Zero-Overflow Rule.** `document.documentElement.scrollWidth` must not
-exceed the viewport at 320/360/390/414/768/1280 in both themes on every page.
-Grid children need `min-width: 0` and `minmax(0, 1fr)` tracks; a flex row of
-chips in an auto-sized track measures to max-content and drags a 320px page
-~400px wide.
+**The Zero-Overflow Rule.** `document.documentElement.scrollWidth` must not exceed the viewport at 320/360/390/414/768/1280 in both themes on every page. Grid children need `min-width: 0` and `minmax(0, 1fr)` tracks; a flex row of chips in an auto-sized track measures to max-content and drags a 320px page ~400px wide.
 
 ## Elevation & Depth
 
-This system layers with **light**, not with shadow. A fixed three-gradient
-aurora sits behind every page at `z-index: -1`, drifting on a 34-second loop,
-and surfaces are translucent fills laid over it. Because the aurora never
-scrolls, those surfaces can use a flat `rgb(255 255 255 / 0.72)` fill instead of
-a live `backdrop-filter` — which would cost GPU work on every frame and buy
-nothing visually.
+This system layers with **light**, not with shadow. A fixed three-gradient aurora sits behind every page at `z-index: -1`, drifting on a 34-second loop, and surfaces are translucent fills laid over it. Because the aurora never scrolls, those surfaces can use a flat `rgb(255 255 255 / 0.72)` fill instead of a live `backdrop-filter` — which would cost GPU work on every frame and buy nothing visually.
 
 There is exactly one shadow token in the system.
 
@@ -327,63 +253,27 @@ There is exactly one shadow token in the system.
 
 ### Named Rules
 
-**The Surface/Object Rule.** Flat surfaces never cast; objects do. `Panel` — the
-translucent fill behind every card, stat tile, and container — carries no shadow,
-ever. `shadow-lift` is reserved for things that behave like physical objects
-resting on the page: photographs, screenshots, device frames. Buttons borrow it
-on hover, which is exactly why the hover reads as picking the button up. When a
-new component is ambiguous, ask whether it is a surface or an object; there is no
-third answer.
+**The Surface/Object Rule.** Flat surfaces never cast; objects do. `Panel` — the translucent fill behind every card, stat tile, and container — carries no shadow, ever. `shadow-lift` is reserved for things that behave like physical objects resting on the page: photographs, screenshots, device frames. Buttons borrow it on hover, which is exactly why the hover reads as picking the button up. When a new component is ambiguous, ask whether it is a surface or an object; there is no third answer.
 
-**The Two Blurs Rule.** `backdrop-filter` appears in exactly two places — the
-sticky header and the floating dock — because those are the only elements that
-composite against content that moves beneath them. Everywhere else it is
-forbidden: a dozen blurred elements per page is the single most likely thing to
-fail a performance audit, and over a static aurora it is invisible anyway.
+**The Two Blurs Rule.** `backdrop-filter` appears in exactly two places — the sticky header and the floating dock — because those are the only elements that composite against content that moves beneath them. Everywhere else it is forbidden: a dozen blurred elements per page is the single most likely thing to fail a performance audit, and over a static aurora it is invisible anyway.
 
-**The One Kill Switch Rule.** Reduced motion is handled once, globally:
-`transitions.css` stops every animation and transition in the system with a
-`*, *::before, *::after` block at `!important`. Do not gate an animation a
-second time with `motion-safe:`; a fifth perpetual loop is covered the moment it
-is written.
+**The One Kill Switch Rule.** Reduced motion is handled once, globally: `transitions.css` stops every animation and transition in the system with a `*, *::before, *::after` block at `!important`. Do not gate an animation a second time with `motion-safe:`; a fifth perpetual loop is covered the moment it is written.
 
-What the switch cannot do is decide what a stopped animation should look like.
-Three of the four ambient loops — the aurora's 34s drift, the ring's 26s
-rotation, the status dot's 2.6s pulse — freeze into a legible resting state. The
-timeline's 6.5s travel does not: its keyframe animates `top`, so it has a path
-and no rest position, and stopping it parks a blurred bar at the head of the
-spine. It carries `motion-reduce:after:opacity-0` for that reason. **An
-animation whose resting frame is wrong needs its own rule; one whose resting
-frame is fine needs nothing.**
+What the switch cannot do is decide what a stopped animation should look like. Three of the four ambient loops — the aurora's 34s drift, the ring's 26s rotation, the status dot's 2.6s pulse — freeze into a legible resting state. The timeline's 6.5s travel does not: its keyframe animates `top`, so it has a path and no rest position, and stopping it parks a blurred bar at the head of the spine. It carries `motion-reduce:after:opacity-0` for that reason. **An animation whose resting frame is wrong needs its own rule; one whose resting frame is fine needs nothing.**
 
 ## Shapes
 
-Four radii, and no others. **Pill** (`rounded-full`) marks anything interactive
-or token-like: buttons, chips, nav links, the tab bar, the theme toggle, the
-avatar. **Card** (`18px`) marks surfaces: panels, code blocks, images, embeds.
-**Medium** (`14px`) is for smaller surfaces that sit inside one, like a list
-entry's artwork or a post row. **Small** (`6px`) is for inline marks: code,
-focus outlines, the footnote popover and its backref.
+Four radii, and no others. **Pill** (`rounded-full`) marks anything interactive or token-like: buttons, chips, nav links, the tab bar, the theme toggle, the avatar. **Card** (`18px`) marks surfaces: panels, code blocks, images, embeds. **Medium** (`14px`) is for smaller surfaces that sit inside one, like a list entry's artwork or a post row. **Small** (`6px`) is for inline marks: code, focus outlines, the footnote popover and its backref.
 
-Tailwind's own seven-step radius scale is cleared in `@theme`, so `rounded-lg`
-and `rounded-xl` do not exist here. Anything outside these four is either a
-circle (`50%`), the app icon's superellipse (`22.37%`), or a component already
-marked for removal.
+Tailwind's own seven-step radius scale is cleared in `@theme`, so `rounded-lg` and `rounded-xl` do not exist here. Anything outside these four is either a circle (`50%`), the app icon's superellipse (`22.37%`), or a component already marked for removal.
 
-The form language is defined by hairlines rather than fills. A `1px` border in
-`line` or `line-strong` is the default way to bound anything, and the aurora
-supplies the tonal separation that a heavier border would otherwise provide.
+The form language is defined by hairlines rather than fills. A `1px` border in `line` or `line-strong` is the default way to bound anything, and the aurora supplies the tonal separation that a heavier border would otherwise provide.
 
-Two shapes break the rules deliberately. The **dock** uses per-position radii so
-its first and last tabs take the capsule's own end caps (`999px 18px 18px
-999px`), leaving no uncolored gap around the active tab. The **orbit ring**
-around the portrait is a dashed circle — the only dashed border in the system.
+Two shapes break the rules deliberately. The **dock** uses per-position radii so its first and last tabs take the capsule's own end caps (`999px 18px 18px 999px`), leaving no uncolored gap around the active tab. The **orbit ring** around the portrait is a dashed circle — the only dashed border in the system.
 
 ### Named Rules
 
-**The Pill-or-Card Rule.** If a user can act on it, it is a pill. If it holds
-content, it is an 18px card. A new radius value needs a reason that neither
-covers.
+**The Pill-or-Card Rule.** If a user can act on it, it is a pill. If it holds content, it is an 18px card. A new radius value needs a reason that neither covers.
 
 ## Components
 
@@ -423,37 +313,19 @@ covers.
 
 ### Signature: The Aurora
 
-A fixed, `aria-hidden` layer at `z-index: -1`, inset `-20vh -10vw`, composed of
-three radial gradients in the two glow colors positioned at 12%/8%, 88%/22%, and
-60%/92%. It drifts between two transforms over 34 seconds on an infinite
-alternating ease. It is the reason every surface above it can be flat, and it is
-the single element most responsible for the system's character.
+A fixed, `aria-hidden` layer at `z-index: -1`, inset `-20vh -10vw`, composed of three radial gradients in the two glow colors positioned at 12%/8%, 88%/22%, and 60%/92%. It drifts between two transforms over 34 seconds on an infinite alternating ease. It is the reason every surface above it can be flat, and it is the single element most responsible for the system's character.
 
 ### Signature: The Orbit Ring
 
-A dashed `line-strong` circle around the homepage portrait, rotating once every
-26 seconds. The portrait inside it cross-fades to a social profile picture, and
-the chip for that platform fills with the spectrum.
+A dashed `line-strong` circle around the homepage portrait, rotating once every 26 seconds. The portrait inside it cross-fades to a social profile picture, and the chip for that platform fills with the spectrum.
 
-**The portrait is the control; the chips are the display.** Tapping the portrait
-cycles through the four platforms and back to Jason. Pointing at a chip, by
-mouse or by keyboard, previews that platform and leaving it returns to whatever
-the portrait was last set to. The chips themselves are never intercepted: they
-are ordinary links on every device, which is the point. A chip's tap is spoken
-for permanently, so the interaction belongs on the one element in the group that
-owns no gesture, and nothing has to be cancelled to make room for it.
+**The portrait is the control; the chips are the display.** Tapping the portrait cycles through the four platforms and back to Jason. Pointing at a chip, by mouse or by keyboard, previews that platform and leaving it returns to whatever the portrait was last set to. The chips themselves are never intercepted: they are ordinary links on every device, which is the point. A chip's tap is spoken for permanently, so the interaction belongs on the one element in the group that owns no gesture, and nothing has to be cancelled to make room for it.
 
 ### Signature: The Monogram
 
-A tile in Warm Paper with the aurora in its corners and the JL initials in Ink
-over it, cut from one 14 stroke with flat terminals. Each letter is a stem and
-a turn; the J turns on a radius where the L turns square, and that shared
-construction is what makes the pair read as one drawn mark rather than as two
-letters set side by side.
+A tile in Warm Paper with the aurora in its corners and the JL initials in Ink over it, cut from one 14 stroke with flat terminals. Each letter is a stem and a turn; the J turns on a radius where the L turns square, and that shared construction is what makes the pair read as one drawn mark rather than as two letters set side by side.
 
-One mark serves both themes, since a favicon is a single file and a scrape
-carries no theme signal. `src/components/Monogram.astro` and
-`public/favicon.svg` are the same drawing, kept in agreement by hand.
+One mark serves both themes, since a favicon is a single file and a scrape carries no theme signal. `src/components/Monogram.astro` and `public/favicon.svg` are the same drawing, kept in agreement by hand.
 
 ## Do's and Don'ts
 
