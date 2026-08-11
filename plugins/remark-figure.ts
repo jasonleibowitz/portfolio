@@ -79,6 +79,15 @@ export default function remarkFigure() {
       const caption = captionAlone(parent.children[index + 1]);
       if (caption !== undefined) parent.children.splice(index + 1, 1);
 
+      // An image with no alt text and no caption reaches a screen reader as
+      // nothing at all. With a caption, an empty alt is a real choice: the
+      // caption describes the image, and an alt repeating it says it twice.
+      if (caption === undefined && !image.alt?.trim()) {
+        console.warn(
+          `[remark-figure] no alt text and no caption: ${image.url}`
+        );
+      }
+
       // The emphasis does not stay. A `figcaption` reads as a caption already,
       // and the design gives it a style. Italics would say the same thing again.
       const figure: Figure = {
