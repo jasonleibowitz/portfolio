@@ -55,9 +55,11 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 ### URLs and ordering
 
-Posts are named `YYYY-MM-DD-kebab-title.mdx`. The glob loader derives `entry.id` from the filename, so the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. Ordering comes from `pubDate`, not the filename — renaming a file changes its URL but not its position.
+**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so `entry.id` is the folder name and the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
 
-Post images live in `src/content/blog/images/YYYY-MM-DD/` and are referenced relative to the post: `./images/2023-05-21/jura-z10.jpg`, the same shape list artwork uses. They were under `public/` until they moved in one go, which is why the folders are still named for a date rather than for a post: an image folder outlives the filename beside it.
+The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post has carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
+
+Ordering comes from `pubDate`, not the folder name — renaming a folder changes its URL but not its position.
 
 A path under `public/` is copied byte for byte, so an image there is never resized, never re-encoded and never given a `srcset`, even when markdown references it. A relative one goes through `sharp` instead. The espresso post carried 4.5 MB of images that way and now transfers 364 kB at a 1280px viewport, measured in the network panel.
 
@@ -73,7 +75,7 @@ The hero is `image` plus `imageAlt`, two fields rather than one object, because 
 pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
-Generates `src/content/blog/<today>-<dash-case-title>.mdx` with `draft: true` and a placeholder image. Replace the placeholder before publishing.
+Generates `src/content/blog/<today>-<dash-case-title>/index.mdx` with `draft: true`, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into `{ { expr } }`, which breaks the generator silently.
 
@@ -84,7 +86,7 @@ A post body must start at `##`. The page already renders the title as its `h1`, 
 An image alone in a paragraph renders as a `<figure>`, and an italic line in the paragraph directly below it becomes its `<figcaption>`:
 
 ```markdown
-![Alt text](./images/2023-05-21/jura-z10.jpg)
+![Alt text](./jura-z10.jpg)
 
 _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines/Z10-Diamond-Black-NAA-15464)_
 ```
