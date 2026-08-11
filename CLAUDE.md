@@ -112,6 +112,18 @@ The exception, and it is a real one: two posts still carry embeds written as raw
 - `getStaticPaths` over `getPublished(...)`, `params: { slug: entry.id }`, then `render(entry)` from `astro:content` (**not** the removed `entry.render()`).
 - `rss.xml.ts` exports **`GET()`** (Astro 3+ renamed it from `get()`).
 
+### Crawlers
+
+`@astrojs/sitemap` emits `sitemap-index.xml` and `sitemap-0.xml` from the routes that were actually built, so it needs no draft filter of its own and redirect routes stay out on their own.
+
+`robots.txt` is a **route**, `src/pages/robots.txt.ts`, not a file in `public/`. It builds its `Sitemap:` line from `Astro.site`, so `SITE_URL` moves the canonical tag, the RSS links and the sitemap together. It allows crawling, which is right for production. Previews and staging serve `X-Robots-Tag: noindex` from `scripts/noindex.mjs`, and that header wins there.
+
+### Link previews
+
+Every page emits an `og:image`. `scripts/og-card.ts` draws one 1200x630 card per page through a single headless Chrome as the first half of `pnpm build`, so a card can never be older than the post it describes, and nothing under `public/og/` is committed. `--disable-gpu` and `--force-device-scale-factor=1` are load-bearing: without them the same HTML renders differently on another machine.
+
+**`public/apple-touch-icon.png` is committed rather than built.** `pnpm build` leaves it alone; `pnpm cards` redraws it behind a `--touch-icon` flag. Redraw and commit it after editing `public/favicon.svg`. The `verify` job fails when the favicon moved and the icon did not.
+
 ## Styling
 
 Tailwind 4, configured **in CSS**. There is no `tailwind.config.cjs` and no PostCSS config — `@tailwindcss/vite` handles the pipeline from `astro.config.mjs`.

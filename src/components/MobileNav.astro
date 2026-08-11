@@ -22,7 +22,10 @@ interface Props {
 
 const { page } = Astro.props;
 const active = NAV_FOR_PAGE[page];
-const current = NAV.find((item) => item.key === active)!;
+const section = NAV.find((item) => item.key === active);
+
+/** The 404 is in no section, thus the closed control names the menu. */
+const current = section ?? { label: 'Menu', icon: 'lucide:compass' };
 ---
 
 <div
@@ -93,7 +96,7 @@ const current = NAV.find((item) => item.key === active)!;
     aria-expanded="false"
     class="flex h-[50px] cursor-pointer items-center gap-2.5 rounded-full border border-line-strong bg-canvas py-1.5 pr-4 pl-1.5 text-meta tracking-label text-ink uppercase transition-[gap,padding,scale] duration-300 ease-orbit active:scale-[0.94] group-data-[collapsed]/nav:gap-0 group-data-[collapsed]/nav:pr-1.5"
   >
-    <span class="sr-only">Menu, current section: </span>
+    <span class="sr-only">{section ? 'Menu, current section: ' : ''}</span>
     <span
       class="grid size-9 shrink-0 place-items-center rounded-full spectrum-fill"
       aria-hidden="true"

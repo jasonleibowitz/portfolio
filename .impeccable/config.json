@@ -1,0 +1,29 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": ["scripts/og-card.ts"],
+        "createdAt": "2026-08-10T20:33:41.452Z",
+        "reason": "A 1200x630 share card is read at ~350px in a chat bubble, so it carries its own type scale with a 30px floor; DESIGN.md's ramp describes the site"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": ["scripts/og-card.ts"],
+        "createdAt": "2026-08-10T20:33:50.599Z",
+        "reason": "Card radii are scaled to a 1200x630 image, not to the site's rounded scale"
+      },
+      {
+        "rule": "overused-font",
+        "value": "*",
+        "files": ["scripts/og-card.ts"],
+        "createdAt": "2026-08-10T20:33:50.641Z",
+        "reason": "The generator must name the site's own faces so a card matches the page it opens; whether those faces are the right ones is a question for the design critique, tracked in issue #20"
+      }
+    ]
+  }
+}

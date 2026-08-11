@@ -8,10 +8,11 @@
   "assets": {
     "directory": "./dist",
 
-    // Astro makes directory-style URLs (`/writing/foo/index.html`), which the
-    // default `auto-trailing-slash` mode matches. There is no `404.astro` yet,
-    // so `none` returns a plain 404 instead of an incorrect page.
-    "not_found_handling": "none",
+    // Astro makes addresses that end with a slash (`/writing/foo/index.html`),
+    // which the default mode `auto-trailing-slash` finds. An address that has
+    // no asset gets `dist/404.html`, which `src/pages/404.astro` makes. Without
+    // this line, Cloudflare sends an empty 404 and no person sees that page.
+    "not_found_handling": "404-page",
   },
 
   // Preview URLs for each version. CI gives each version an alias with

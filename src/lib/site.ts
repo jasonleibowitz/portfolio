@@ -12,12 +12,17 @@ export type PageKey =
   | 'writing'
   | 'post'
   | 'lists'
-  | 'list';
+  | 'list'
+  | 'missing';
 
 export type NavKey = 'home' | 'about' | 'projects' | 'writing' | 'lists';
 
-/** Which nav item lights up for a given page. */
-export const NAV_FOR_PAGE: Record<PageKey, NavKey> = {
+/**
+ * Which nav item the site shows as current, for each page. A page that is in no
+ * section gives `null`. The 404 page is in no section, and a nav item shown as
+ * current would tell the reader that they are at a place where they are not.
+ */
+export const NAV_FOR_PAGE: Record<PageKey, NavKey | null> = {
   home: 'home',
   about: 'about',
   projects: 'projects',
@@ -26,6 +31,7 @@ export const NAV_FOR_PAGE: Record<PageKey, NavKey> = {
   post: 'writing',
   lists: 'lists',
   list: 'lists',
+  missing: null,
 };
 
 /** Order is fixed: Home · About · Projects · Writing · Lists. */
@@ -115,10 +121,48 @@ const WRITING_LEAD =
   "Long reviews of hardware I probably didn't need to buy, plus the occasional how-to";
 
 export const WRITING = {
+  eyebrow: 'Archive',
   title: 'Writing',
+  headline: 'Writing',
   description: `${WRITING_LEAD}.`,
   intro: `${WRITING_LEAD} I wrote so I'd never have to work it out twice.`,
 } as const;
+
+const LISTS_LEAD =
+  'Recommendations I get asked for often enough that it was easier to write them down';
+
+/**
+ * The heading of `/lists`. `scripts/og-card.ts` reads this file to make the
+ * share card, thus text kept in the page would be typed a second time and the
+ * card would hold the old words after a change.
+ *
+ * `headline` is not `title` because this heading is a sentence and the nav
+ * label is one word.
+ */
+export const LISTS = {
+  eyebrow: 'Lists',
+  title: 'Lists',
+  headline: 'Things, ranked and sorted',
+  description: `${LISTS_LEAD}.`,
+  intro: `${LISTS_LEAD}. Shorter than a post, updated whenever something changes.`,
+} as const;
+
+/**
+ * The size of every generated share card, in pixels.
+ *
+ * `scripts/og-card.ts` draws at this size and `BaseLayout` states it to a
+ * crawler as `og:image:width` and `og:image:height`. It is one value because
+ * the two must agree: a crawler that gets the wrong size keeps space of the
+ * wrong shape, and no gate compares a number in the page with an image file.
+ *
+ * A crawler that gets no size shows the link without the picture, gets the
+ * picture, and shows it to the next reader. The first reader of each address
+ * sees no picture, and here that reader is usually Jason.
+ *
+ * 1200x630 is 1.91:1, which is the size that Facebook, LinkedIn, Slack and
+ * iMessage each show without a crop.
+ */
+export const CARD = { width: 1200, height: 630 } as const;
 
 /** How the feed names itself, in its XML and in the head link offering it. */
 export const FEED_TITLE = `${WRITING.title} · Jason Leibowitz`;

@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import { tv } from '@lib/tv';
 import { text, type TypographyVariant } from '@lib/typography';
 
@@ -25,7 +26,7 @@ const link = tv({
   defaultVariants: { kind: 'chrome' },
 });
 
-interface Props {
+interface Props extends HTMLAttributes<'a'> {
   href: string;
   kind?: 'chrome' | 'text';
   /** Type role. Omit on a `text` link, which inherits from its sentence. */
@@ -45,6 +46,15 @@ const {
 const classes = variant
   ? text({ variant, class: link({ kind, class: className }) })
   : link({ kind, class: className });
+
+/* A link off the site opens in a new tab, thus a page keeps its reader. A link
+   to this site is relative, thus the protocol is the full test, and `mailto:`
+   and `#anchor` stay in the same tab. `noopener` is necessary: without it the
+   new page can move this page with `window.opener`. `rest` comes after, thus a
+   caller that sets `target` gets what it asks for. */
+const offSite = /^https?:\/\//i.test(href)
+  ? { target: '_blank', rel: 'noreferrer noopener' }
+  : {};
 ---
 
-<a href={href} class={classes} {...rest}><slot /></a>
+<a href={href} class={classes} {...offSite} {...rest}><slot /></a>

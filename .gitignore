@@ -1,5 +1,8 @@
 # build output
 dist/
+# Share cards. `pnpm build` makes them again from the current content, thus a
+# copy in git is always an old one. See "Link previews" in CLAUDE.md.
+public/og/
 # generated types
 .astro/
 # wrangler's local state and caches
@@ -25,6 +28,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Each directory here is a git worktree: a full copy of this repository.
+.claude/worktrees/
 
 # Local design exploration: hand-built mockup rounds, direction notes, and the
 # measurement logs that go with them. Not written by any tool. The durable

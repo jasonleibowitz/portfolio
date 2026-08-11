@@ -3,7 +3,8 @@ import Aurora from '@components/Aurora.astro';
 import Header from '@components/Header.astro';
 import MobileNav from '@components/MobileNav.astro';
 import Footer from '@components/Footer.astro';
-import { FEED_TITLE, type PageKey } from '@lib/site';
+import { CARD, FEED_TITLE, type PageKey } from '@lib/site';
+import { shareCard } from '@lib/og';
 
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/inter';
@@ -15,15 +16,26 @@ interface Props {
   description?: string;
   /** Drives the active nav state and the reading-progress bar. */
   page: PageKey;
-  /**
-   * The share card's picture. Only pages holding a real image pass one; the
-   * rest share as a text card rather than as an invented graphic.
-   */
+  /** The share card picture. A page with none gets the default card. */
   image?: string;
   imageAlt?: string;
+  /** `square` asks for the small card: a 1.91:1 crop cuts an app icon. */
+  imageShape?: 'wide' | 'square';
+  /** The size of `image`, in pixels. A generated card is `CARD`. */
+  imageWidth?: number;
+  imageHeight?: number;
 }
 
-const { pageTitle, description, page, image, imageAlt } = Astro.props;
+const {
+  pageTitle,
+  description,
+  page,
+  image,
+  imageAlt,
+  imageShape = 'wide',
+  imageWidth = CARD.width,
+  imageHeight = CARD.height,
+} = Astro.props;
 
 /**
  * The homepage states a role where the interior pages state a section.
@@ -43,10 +55,17 @@ const showProgress = page === 'post' || page === 'project';
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
+/**
+ * The alternative text of the default card. That card shows the orbit avatar,
+ * the name and the role, thus this text says the same.
+ */
+const DEFAULT_SHARE_ALT = 'Jason Leibowitz, full-stack engineer in New York';
+
 /* Absolute, because every scraper resolves these against its own host and not
-   against the page. A post's frontmatter image may already be absolute, which
+   against the page. A project's icon is already a built asset path, which
    `URL` leaves alone. */
-const share = image ? new URL(image, Astro.site).href : undefined;
+const share = new URL(image ?? shareCard('default'), Astro.site).href;
+const shareAlt = image ? imageAlt : DEFAULT_SHARE_ALT;
 
 /* The card's headline drops the site suffix that `<title>` carries, since
    `og:site_name` is already saying it one line below. The homepage keeps its
@@ -60,6 +79,12 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {
+      /* The mark again, as a square image. A link preview of Apple and the
+        home screen of iOS do not read an SVG favicon. iOS makes the corners
+        round, thus the corners of this image are square. */
+    }
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -86,11 +111,18 @@ const shareTitle = isHome ? HOME_TITLE : pageTitle;
     <meta property="og:title" content={shareTitle} />
     <meta property="og:url" content={canonical} />
     {description && <meta property="og:description" content={description} />}
-    {share && <meta property="og:image" content={share} />}
-    {share && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    <meta property="og:image" content={share} />
+    {shareAlt && <meta property="og:image:alt" content={shareAlt} />}
+    {
+      /* Give the size. Without it a crawler shows the link, gets the picture,
+        and shows the picture to the next reader only. Thus the first person to
+        share an address sees a preview with no picture in it. */
+    }
+    <meta property="og:image:width" content={String(imageWidth)} />
+    <meta property="og:image:height" content={String(imageHeight)} />
     <meta
       name="twitter:card"
-      content={share ? 'summary_large_image' : 'summary'}
+      content={imageShape === 'square' ? 'summary' : 'summary_large_image'}
     />
     <meta name="twitter:creator" content="@jasonleibowitz" />
     {

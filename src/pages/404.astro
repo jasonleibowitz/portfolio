@@ -1,0 +1,47 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHead from '@components/ui/PageHead.astro';
+import Section from '@components/layout/Section.astro';
+import Link from '@components/ui/Link.astro';
+
+/**
+ * A temporary page. The text is correct, but no person has designed the layout.
+ *
+ * Links to this site are 10 years old. An address that no redirect in
+ * `astro.config.mjs` matches went to a page of Cloudflare with no header and no
+ * way back. There is one link and no button, because a gradient button is an
+ * action that the reader came to do.
+ *
+ * `not_found_handling` in `wrangler.jsonc` must stay `404-page`, or no person
+ * sees this page.
+ */
+---
+
+<BaseLayout
+  pageTitle="Page not found"
+  page="missing"
+  description="Nothing lives at this address."
+>
+  {
+    /* This page has no small label above the heading. On each other page that
+      label gives the name of the section, and this page is in no section. The
+      heading already gives the status code. */
+  }
+  <PageHead
+    title="This is a 404. It's either my fault or yours."
+    intro="Either way, there is nothing at this address."
+  />
+
+  <Section>
+    {
+      /* The arrow of `ListRow`. It moves and gets the accent color when the
+        pointer is on the link. It is decoration, thus it is hidden. */
+    }
+    <Link href="/" variant="body" class="group text-ink hover:text-violet">
+      Back home<span
+        class="inline-block transition-transform duration-200 ease-orbit group-hover:translate-x-1 group-hover:text-violet"
+        aria-hidden="true">&nbsp;→</span
+      >
+    </Link>
+  </Section>
+</BaseLayout>

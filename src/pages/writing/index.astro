@@ -6,6 +6,7 @@ import SidebarLayout from '@components/layout/SidebarLayout.astro';
 import Typography from '@components/ui/Typography.astro';
 import PostRow from '@components/PostRow.astro';
 import TagRail from '@components/TagRail.astro';
+import { shareCard } from '@lib/og';
 import { getPublished, getPublishedTags } from '@lib/content';
 import { WRITING } from '@lib/site';
 
@@ -17,8 +18,14 @@ const tags = await getPublishedTags();
   pageTitle={WRITING.title}
   page="writing"
   description={WRITING.description}
+  image={shareCard('writing')}
+  imageAlt="Writing on leibowitz.me, with the two most recent posts"
 >
-  <PageHead eyebrow="Archive" title={WRITING.title} intro={WRITING.intro} />
+  <PageHead
+    eyebrow={WRITING.eyebrow}
+    title={WRITING.headline}
+    intro={WRITING.intro}
+  />
 
   <Section>
     <SidebarLayout data-filter-root data-unit="posts">

@@ -5,7 +5,17 @@ import astro from 'eslint-plugin-astro';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default defineConfig([
-  globalIgnores(['dist/', '.astro/', 'node_modules/', 'plop-templates/']),
+  /* `.claude/` contains the data of an agent, and `.claude/worktrees/` contains
+     a full copy of this repository on a different branch. If ESLint reads one,
+     it reports the errors of that branch as errors of this branch, and no
+     change to this file can correct them. */
+  globalIgnores([
+    'dist/',
+    '.astro/',
+    'node_modules/',
+    'plop-templates/',
+    '.claude/',
+  ]),
   js.configs.recommended,
   tseslint.configs.recommended,
   astro.configs.recommended,
@@ -31,7 +41,7 @@ export default defineConfig([
     // Build-time scripts run in Node, not the browser. The globals are listed
     // by hand rather than pulled from the `globals` package, which is not a
     // direct dependency here and is not worth becoming one for one directory.
-    files: ['scripts/**/*.{js,mjs}'],
+    files: ['scripts/**/*.{js,mjs,ts}'],
     languageOptions: {
       globals: {
         process: 'readonly',
