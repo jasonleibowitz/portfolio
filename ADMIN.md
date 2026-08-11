@@ -1,7 +1,8 @@
 # A local admin for leibowitz.me
 
 The plan for a bespoke content editor that keeps the `.mdx` files as the source
-of truth. This file holds the reasoning. Issue tracking goes elsewhere.
+of truth. This file holds the reasoning. Issue #29 holds the work breakdown and
+the acceptance criteria, and does not repeat what is here.
 
 ## Why, after three CMS spikes and a Sanity build
 
