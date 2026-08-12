@@ -53,12 +53,8 @@ export default function (plop) {
   const today = new Date().toISOString().split('T')[0];
   plop.setHelper('currentDate', () => today);
 
-  /* The address of the post, and the name of its folder.
-
-     `slugify` and not the `dashCase` of plop: `dashCase` cuts a word at each
-     capital in the middle of it, thus "eSIM" becomes "e-sim" and "iPhone"
-     becomes "i-phone". The admin will offer the same function to a writer, thus
-     it belongs in `src/lib/` and not in this file. */
+  /* `slugify` and not the `dashCase` of plop, which cuts a word at each capital
+     inside it: "eSIM" becomes "e-sim". */
   plop.setHelper('slug', slugify);
   // plop.setHelper('splitOnComma', (str) => str.split(',').map(s => `${s}`.trim()));
 }

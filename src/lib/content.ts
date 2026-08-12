@@ -53,14 +53,7 @@ export async function getPublished<C extends PublishableCollection>(
   return (entries as PublishableEntry[]).sort(compare) as CollectionEntry<C>[];
 }
 
-/**
- * Where a post lives, for every link the site writes to one.
- *
- * `post.id` is the post's address rather than its filename: the glob loader
- * takes the id from the `slug` in frontmatter and falls back to the file only
- * when there is none. So a post can be renamed, or given a folder whose date
- * prefix nobody wants in a URL, without any link here changing.
- */
+/** The address of a post, for every link the site writes to one. */
 export function postHref(post: CollectionEntry<'blog'>): string {
   return `/writing/${post.id}/`;
 }

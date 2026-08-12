@@ -228,11 +228,7 @@ const monogram = dataUri('public/favicon.svg');
  */
 interface Draftable {
   draft?: boolean;
-  /**
-   * The address of the entry, when the entry sets one. The glob loader of Astro
-   * takes the id from this field, thus this script must take it from there
-   * also. Any collection can carry one, thus it sits here.
-   */
+  /** The address of the entry. Astro takes the id from here, thus so must this. */
   slug?: string;
 }
 
@@ -308,19 +304,10 @@ function entryFiles(dir: string): { id: string; file: string }[] {
 }
 
 /**
- * Stops the build when two entries claim one address.
- *
- * Astro writes a warning and keeps the last of the two, thus the other entry
- * loses its page while the build stays green: the address serves the wrong
- * post, and nothing on the site says so. A `slug` makes the collision easy to
- * write, because the address no longer has to be a filename to be unique.
- *
- * The check sits in this script because this script is the only reader of the
- * content directory outside Astro. By the time a route runs, the loader has
- * already dropped one of the two and there is nothing left to compare.
- *
- * Drafts count. A draft that takes the address of a published post hides it in
- * `pnpm dev` and in a preview build, which is where drafts are read.
+ * Stops the build when two entries claim one address. Astro only writes a
+ * warning and keeps the last of the two, thus the other entry loses its page
+ * and nothing on the site says so. It counts a draft, because a preview build
+ * shows drafts.
  */
 function refuseDuplicateAddresses(
   entries: { id: string; file: string }[]
