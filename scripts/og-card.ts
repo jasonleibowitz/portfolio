@@ -283,7 +283,7 @@ const SHOW_DRAFTS = process.env.SHOW_DRAFTS === 'true';
  * and leaves the card a page does ask for undrawn.
  *
  * The name of the file is only half of the id. An entry with a `slug` in its
- * frontmatter takes that instead, which `published` below applies once it has
+ * frontmatter takes that instead, which `addresses` below applies once it has
  * read the file.
  */
 function entryFiles(dir: string): { id: string; file: string }[] {
@@ -305,28 +305,37 @@ function entryFiles(dir: string): { id: string; file: string }[] {
 }
 
 /**
- * Reads the frontmatter of each entry in a collection. It gives the published
- * entries, the most recent one first.
- *
- * This script does not run in Astro, thus it cannot call `getPublished`. But it
- * must agree with that function. A draft has no page, thus it must have no
- * card.
+ * Reads the frontmatter of each entry in a collection, and gives each one the
+ * address its page has. A draft counts here: a preview build gives it a page.
  *
  * A `slug` in the frontmatter wins over the name of the file, because that is
  * what the glob loader of Astro does with it: the page of the entry is at that
  * address, thus its card carries that name also.
  */
-function published<T extends Draftable>(
-  dir: string,
-  date: (data: T) => string
-): Entry<T>[] {
-  const entries = entryFiles(dir).map(({ id, file }) => {
+function addresses<T extends Draftable>(
+  dir: string
+): (Entry<T> & { file: string })[] {
+  return entryFiles(dir).map(({ id, file }) => {
     const data = parseYaml(
       readFileSync(file, 'utf8').split(/^---$/m)[1] ?? ''
     ) as T;
 
     return { id: data.slug ?? id, dir: dirname(file), data, file };
   });
+}
+
+/**
+ * The entries of a collection that get a page, the most recent one first.
+ *
+ * This script does not run in Astro, thus it cannot call `getPublished`. But it
+ * must agree with that function. A draft has no page, thus it must have no
+ * card.
+ */
+function published<T extends Draftable>(
+  dir: string,
+  date: (data: T) => string
+): Entry<T>[] {
+  const entries = addresses<T>(dir);
 
   refuseDuplicateAddresses(entries);
 
@@ -804,12 +813,11 @@ async function shoot(cards: Card[]) {
 const posts = published<PostData>('src/content/blog', (d) => d.pubDate);
 const lists = published<ListData>('src/content/lists', (d) => d.updated);
 
-/* A project gets no card, thus this reads the collection for one reason: the
-   check for a repeated address that `published` makes. A project that takes the
-   address of another project loses its page as quietly as a post would, and
-   this script is the only reader of the content directory outside Astro. The
-   date does not matter, because nothing here uses the order. */
-published<Draftable>('src/content/projects', () => '');
+/* A project draws no card, thus it needs no order and no draft filter. It still
+   needs the check: a project that takes the address of another project loses
+   its page as quietly as a post would, and this script is the only reader of
+   the content directory outside Astro. */
+refuseDuplicateAddresses(addresses('src/content/projects'));
 
 /* Delete the directory first. If you delete a post, or make it a draft, its
    card must not stay in `public/`. */
