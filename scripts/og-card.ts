@@ -10,10 +10,10 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { launch } from 'puppeteer-core';
 import { parse as parseYaml } from 'yaml';
-/* Node 24 removes the types when it reads this file. Thus the script can read
-   the page headings from the same file as the pages, and no person must type
-   them a second time. `.nvmrc` sets that version of Node. Node 22 needs the
-   option --experimental-strip-types for this import. */
+/* Node removes the types when it reads this file. Thus the script can read the
+   page headings from the same file as the pages, and no person must type them a
+   second time. `.nvmrc` sets the version, and `engines.node` gives the floor:
+   this import is what puts that floor at Node 24. */
 import { CARD, LISTS, WRITING } from '../src/lib/site.ts';
 import { refuseDuplicateAddresses } from './addresses.ts';
 

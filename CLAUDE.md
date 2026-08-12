@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal portfolio and blog for Jason Leibowitz (leibowitz.me) — a static **Astro 7** site. Content is MDX; UI is Astro components styled with **Tailwind 4**. The site ships **zero JS islands** — no framework runtime, only a few kB of hand-written vanilla modules. Package manager is **pnpm**; Node **>=22.12**.
+Personal portfolio and blog for Jason Leibowitz (leibowitz.me) — a static **Astro 7** site. Content is MDX; UI is Astro components styled with **Tailwind 4**. The site ships **zero JS islands** — no framework runtime, only a few kB of hand-written vanilla modules. Package manager is **pnpm**; Node **>=24**, because three scripts import TypeScript directly and rely on Node stripping the types.
 
 ## Commands
 
