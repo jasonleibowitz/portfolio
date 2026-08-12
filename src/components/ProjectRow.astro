@@ -46,7 +46,12 @@ const isWindow = data.frame === 'window';
     <div
       class:list={[
         'mx-auto shrink-0 card:mx-0',
-        isWindow ? 'w-[240px] card:w-[300px]' : 'w-[140px] card:w-[190px]',
+        /* A drawn frame is sized from here. A real one sizes itself, because
+          every part of its body derives from its own width, and a width set
+          out here would leave the corners and the island scaled to a number
+          the frame no longer has. */
+        data.screenshots.length === 0 &&
+          (isWindow ? 'w-[240px] card:w-[300px]' : 'w-[140px] card:w-[190px]'),
       ]}
     >
       {
@@ -58,7 +63,8 @@ const isWindow = data.frame === 'window';
           <Screenshot
             shot={data.screenshots[0]}
             kind={data.frame}
-            class="w-full max-w-none transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
+            size="wide"
+            class="transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
           />
         ) : (
           <DeviceFrame
