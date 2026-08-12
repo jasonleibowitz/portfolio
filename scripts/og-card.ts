@@ -242,7 +242,7 @@ interface PostData extends Draftable {
 
 interface ListItem {
   name: string;
-  /** Relative to the entry file, e.g. `./artwork/podcasts/up-first.webp`. */
+  /** Relative to the entry file, e.g. `./artwork/podcasts/mo-news.webp`. */
   image?: string;
 }
 
