@@ -21,7 +21,8 @@ interface Props {
 }
 
 const { post, headings, next } = Astro.props;
-const { title, pubDate, description, tags, image, imageAlt } = post.data;
+const { title, pubDate, description, tags, coverImage, coverImageAlt } =
+  post.data;
 
 const minutes = readingMinutes(post.body);
 const words = wordCount(post.body);
@@ -102,7 +103,7 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
       <Toc headings={headings} />
 
       <div class:list={[measure, 'toc:row-start-2']}>
-        <PostHero src={image} alt={imageAlt} />
+        <PostHero src={coverImage} alt={coverImageAlt} />
 
         <Typography variant="longform" class="markdown"><slot /></Typography>
 

@@ -29,11 +29,11 @@ When verifying a change, **check the exit code** — grepping build output for a
 
 Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _not_ `src/content/config.ts`) using `glob()` loaders:
 
-| Collection | Directory              | Route base  | Required frontmatter                                      |
-| ---------- | ---------------------- | ----------- | --------------------------------------------------------- |
-| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, image, imageAlt, tags[]`         |
-| `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]` |
-| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`        |
+| Collection | Directory              | Route base  | Required frontmatter                                        |
+| ---------- | ---------------------- | ----------- | ----------------------------------------------------------- |
+| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, coverImage, coverImageAlt, tags[]` |
+| `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]`   |
+| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`          |
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from `astro:content` is deprecated.
 
@@ -77,7 +77,7 @@ A path under `public/` is copied byte for byte, so an image there is never resiz
 
 `image: { layout: 'constrained' }` in `astro.config.mjs` is what reaches the images in a post body. A body writes them as `![]()`, so there is no component to hang a `widths` prop on, and `layout` is the setting that applies to markdown images as well as to `<Image>`. Its `sizes` is derived from each image's own width, not from the 46rem column, so a body image is still larger than it has to be: a source wider than the viewport falls back to `100vw`, and at 1280px the three largest on the espresso post ship 1280px files into a 736px column, 230 kB of that page's 349 kB. A per-image `sizes` is the remaining win, and there is no way to write one in markdown today. `PostHero` writes its own, which is why the hero is not affected.
 
-The hero is `image` plus `imageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
+The hero is `coverImage` plus `coverImageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. They are named for the cover and not for the hero because `BaseLayout` already takes `image`/`imageAlt` props meaning the share card, and `PostLayout` uses both six lines apart. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
 
 **The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<name>.mdx` and `<name>/index.mdx`, `published()` then lets a `slug` win over the filename, and between them they must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
 
@@ -107,7 +107,7 @@ _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines
 
 `plugins/remark-figure.ts` does this. It is registered through `markdown.processor: unified({ remarkPlugins: [...] })` from `@astrojs/markdown-remark`, because `markdown.remarkPlugins` is deprecated in Astro 7 and warns on every run of `astro check`. `markdown.shikiConfig` is not deprecated and stays where it is. The caption line is ordinary markdown, so an attribution link needs no markup of its own, and the emphasis is dropped from the output: `figcaption` already carries the design's caption style. An image with no caption line still becomes a `<figure>`, which is what gives every image in a post the same width, radius and shadow.
 
-**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. A hero has no caption, so `imageAlt` is the only thing a screen reader gets and it always describes the frame; where a hero is someone else's photo the credit goes at the end of that sentence, since there is nowhere else on the page to put it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
+**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. A hero has no caption, so `coverImageAlt` is the only thing a screen reader gets and it always describes the frame; where a hero is someone else's photo the credit goes at the end of that sentence, since there is nowhere else on the page to put it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
 
 **A link inside a caption takes the caption's color.** The caption is `--color-faint`, so a link at the full violet would be more visible than the caption around it, and the attribution would draw the eye before the caption does. The plugin puts `[&_a]:text-faint` on the `figcaption` it builds, and `Link` still supplies the weight and the underline, so it still reads as a link. The class goes on the element rather than into `content.css` because a markdown `a` is a component, and that file says it has no `& a` rule for that reason. Tailwind scans `plugins/`, so a utility written there compiles like any other.
 

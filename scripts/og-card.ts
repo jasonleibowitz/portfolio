@@ -239,8 +239,8 @@ interface Draftable {
 interface PostData extends Draftable {
   title: string;
   pubDate: string;
-  /** Relative to the entry file, e.g. `./cover.webp`. */
-  image: string;
+  /** Relative to the entry file: './cover.webp'. */
+  coverImage: string;
 }
 
 interface ListItem {
@@ -746,7 +746,7 @@ function postCard(post: Entry<PostData>): Part {
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
-  <img class="cover" src="${dataUri(resolve(post.dir, post.data.image))}" alt="" />
+  <img class="cover" src="${dataUri(resolve(post.dir, post.data.coverImage))}" alt="" />
 </main>`
   );
 }
