@@ -11,6 +11,7 @@ import Toc from '@components/Toc.astro';
 import PostHero from '@components/PostHero.astro';
 import { readingMinutes, wordCount } from '@lib/reading';
 import { shareCard } from '@lib/og';
+import { postHref } from '@lib/content';
 import Link from '@components/ui/Link.astro';
 
 interface Props {
@@ -133,7 +134,7 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
           {
             next && (
               <a
-                href={`/writing/${next.id}/`}
+                href={postHref(next)}
                 class="group inline-flex min-h-11 items-center gap-2 font-semibold text-ink no-underline hover:text-violet"
               >
                 <Typography variant="data">Next</Typography>

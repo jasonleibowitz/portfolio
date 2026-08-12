@@ -55,7 +55,11 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 ### URLs and ordering
 
-**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so `entry.id` is the folder name and the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
+**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so a post with no `slug` takes its folder name as `entry.id` and the date prefix appears in the URL. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
+
+**The URL is the `slug`, not the filename.** An optional `slug` in blog frontmatter owns the address, so a folder can be renamed, or keep a date prefix nobody wants in a URL, without moving the page. The glob loader applies it: `entry.id` is the `slug` when there is one, which is why `params: { slug: post.id }` and `postHref()` in `src/lib/content.ts` need no `??` of their own. It reads raw frontmatter, before the schema runs, so the zod rule (one segment, in lower case, dashes between words) fails a bad slug rather than gating the id. The five existing posts set `slug` to their folder name, because those URLs have a decade of inbound links; a new post keeps its dated folder and takes a slug with no date. Ordering never reads either one.
+
+**Two entries with one address is a build failure, and only because `og-card.ts` refuses it.** Astro warns and keeps the last of the two, so the earlier post loses its page while the build stays green. By the time a route runs, the loader has already dropped one and there is nothing left to compare, so the check lives in the one reader of the content directory outside Astro. It counts drafts, since a draft is what a preview build renders.
 
 The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything, and moving the images into the post is what made it visible enough to delete. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
 
@@ -67,7 +71,7 @@ A path under `public/` is copied byte for byte, so an image there is never resiz
 
 The hero is `image` plus `imageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
 
-**The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<slug>.mdx` and `<slug>/index.mdx` and must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
+**The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<name>.mdx` and `<name>/index.mdx`, `published()` then lets a `slug` win over the filename, and between them they must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
 
 ### Creating a post
 
@@ -77,7 +81,7 @@ The hero is `image` plus `imageAlt`, two fields rather than one object, because 
 pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
-Generates `src/content/blog/<today>-<dash-case-title>/index.mdx` with `draft: true`, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
+Generates `src/content/blog/<today>-<dash-case-title>/index.mdx` with `draft: true` and `slug: <dash-case-title>`, so the folder sorts by date and the URL carries none, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into `{ { expr } }`, which breaks the generator silently.
 

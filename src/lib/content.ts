@@ -54,6 +54,18 @@ export async function getPublished<C extends PublishableCollection>(
 }
 
 /**
+ * Where a post lives, for every link the site writes to one.
+ *
+ * `post.id` is the post's address rather than its filename: the glob loader
+ * takes the id from the `slug` in frontmatter and falls back to the file only
+ * when there is none. So a post can be renamed, or given a folder whose date
+ * prefix nobody wants in a URL, without any link here changing.
+ */
+export function postHref(post: CollectionEntry<'blog'>): string {
+  return `/writing/${post.id}/`;
+}
+
+/**
  * Tag rails read as an index, so they sort by name rather than by popularity:
  * a reader looking for one tag scans for where it should be, and a
  * frequency-ordered rail has no such place. `numeric` keeps decade tags in

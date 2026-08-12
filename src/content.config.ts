@@ -16,6 +16,37 @@ const blog = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string(),
+      /**
+       * The address this post publishes at, e.g. 'espresso-machines'. Optional:
+       * a post without one publishes at its folder name, which carries the
+       * `YYYY-MM-DD-` prefix that sorts the directory.
+       *
+       * The URL stops being the filename here. A folder can be renamed, and a
+       * title can lose a typo, without moving the page. The five posts that
+       * predate the field set it to their folder name, because those addresses
+       * have a decade of inbound links; a new post keeps the dated folder and
+       * takes a slug with no date in it.
+       *
+       * The glob loader is what applies it: `entry.id` is this value when it is
+       * set, and the filename otherwise, so every route and link built from an
+       * id already follows it. That happens on raw frontmatter, before this
+       * schema runs, which is why the rule below matters. The id is taken
+       * either way, and a slug the route cannot serve has to fail the build
+       * rather than publish a page at an address nothing links to.
+       *
+       * One segment, in lower case: the route is `/writing/[...slug]/`, so a
+       * leading slash or an inner `/` would build somewhere no link points.
+       *
+       * "lower case" is two words on purpose. Tailwind scans this file, and the
+       * one-word spelling is a utility it would emit into the site's CSS.
+       */
+      slug: z
+        .string()
+        .regex(
+          /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+          'a slug is words in lower case, joined by single dashes'
+        )
+        .optional(),
       pubDate: z.coerce.date(),
       description: z.string().optional(),
       author: z.string(),

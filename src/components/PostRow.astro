@@ -4,6 +4,7 @@ import { formatDay } from '@lib/dates';
 import Chip from './ui/Chip.astro';
 import { readingMinutes } from '@lib/reading';
 import Typography from './ui/Typography.astro';
+import { postHref } from '@lib/content';
 
 /**
  * One post in a list of posts: title, description, date, reading time, tags.
@@ -21,7 +22,7 @@ const { title, pubDate, description, tags } = post.data;
 
 <li data-tags={tags.join(' ')} class="border-b border-line [&[hidden]]:hidden">
   <a
-    href={`/writing/${post.id}/`}
+    href={postHref(post)}
     class="group -mx-3 grid gap-2 rounded-md px-3 py-6 no-underline transition-colors duration-150 hover:bg-panel"
   >
     {

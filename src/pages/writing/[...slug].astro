@@ -10,6 +10,8 @@ export async function getStaticPaths() {
   const posts = await getPublished('blog');
 
   return posts.map((post, index) => ({
+    // The id is the `slug` of the post, which the loader read out of its
+    // frontmatter. A post that sets none keeps the name of its folder.
     params: { slug: post.id },
     // Sorted newest first, so "next" is the one published before this.
     props: { post, next: posts[index + 1] },
