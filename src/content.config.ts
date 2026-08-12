@@ -179,11 +179,29 @@ const lists = defineCollection({
  * `is_featured` picks what the home page shows, thus a new project does not
  * change that page. `order` takes over when "newest first" is the wrong
  * sequence, and `frame` picks the shape the site draws around a screenshot.
+ *
+ * `screenshots` are the real captures, in the order the page shows them. One
+ * entry is one screen, and it holds both themes of that screen, because the
+ * site re-derives every color from `data-theme` and a capture that does not
+ * follow the reader sits in the page looking like a mistake. `alt` describes
+ * the screen, thus it belongs to the pair and not to either file: a reader who
+ * cannot see them is told what the screen does, which is the same sentence in
+ * both themes.
+ *
+ * The rule below refuses a project where some screens carry `dark` and others
+ * do not. That state draws a page where one frame answers the theme toggle and
+ * the rest ignore it, which reads as broken rather than as partial.
  */
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
-  schema: ({ image }) =>
-    z.object({
+  schema: ({ image }) => {
+    const screenshot = z.object({
+      light: image(),
+      dark: image().optional(),
+      alt: z.string(),
+    });
+
+    const project = z.object({
       title: z.string(),
       slug: address,
       description: z.string(),
@@ -193,6 +211,7 @@ const projects = defineCollection({
       status_text_long: z.string().optional(),
       stack: z.array(z.string()),
       frame: z.enum(['phone', 'window']).default('phone'),
+      screenshots: z.array(screenshot).default([]),
       specs: z
         .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
@@ -204,7 +223,21 @@ const projects = defineCollection({
         .object({ site: z.string().optional(), repo: z.string().optional() })
         .optional(),
       draft: z.boolean().default(false),
-    }),
+    });
+
+    return project.superRefine((data, ctx) => {
+      const withDark = data.screenshots.filter((shot) => shot.dark).length;
+
+      if (withDark > 0 && withDark < data.screenshots.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['screenshots'],
+          message:
+            'either every screenshot carries a `dark` twin, or none of them does',
+        });
+      }
+    });
+  },
 });
 
 export const collections = { blog, lists, projects };

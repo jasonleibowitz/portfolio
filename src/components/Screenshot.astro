@@ -1,0 +1,97 @@
+---
+/* Only TypeScript sees `ImageMetadata` as a global. Import it, or eslint
+   reads it as undefined. */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { tv } from '@lib/tv';
+
+/**
+ * One real capture, in a device body.
+ *
+ * A screen holds both themes, and the pair swaps on `data-theme` rather than
+ * fusing into one diagonal image. A fused image is what a store listing needs,
+ * where nothing can know the reader; this page does know, thus each theme gets
+ * a capture taken in it.
+ *
+ * The body is drawn from the design's own tokens and not from a photograph of
+ * a phone. These render near 172px wide, where a Dynamic Island is six pixels
+ * and buys noise.
+ */
+interface Props {
+  shot: {
+    light: ImageMetadata;
+    dark?: ImageMetadata;
+    alt: string;
+  };
+  kind?: 'phone' | 'window';
+  size?: 'default' | 'wide' | 'shot';
+  class?: string;
+}
+
+const frame = tv({
+  base: 'shrink-0 overflow-hidden border border-line-strong bg-panel p-1.5 shadow-lift',
+  variants: {
+    kind: {
+      phone: 'rounded-[1.75rem]',
+      window: 'rounded-[0.875rem]',
+    },
+    size: { default: '', wide: '', shot: '' },
+  },
+  compoundVariants: [
+    { kind: 'phone', size: 'default', class: 'w-[140px]' },
+    { kind: 'phone', size: 'wide', class: 'w-[140px] card:w-[200px]' },
+    /* Four of these plus their gaps fit the write-up column exactly; 172px,
+       which the drawn placeholder used for three, overruns it by one gap. */
+    { kind: 'phone', size: 'shot', class: 'w-[160px]' },
+    { kind: 'window', size: 'default', class: 'w-[240px]' },
+    { kind: 'window', size: 'wide', class: 'w-[240px] card:w-[280px]' },
+    { kind: 'window', size: 'shot', class: 'w-[240px]' },
+  ],
+  defaultVariants: { kind: 'phone', size: 'default' },
+});
+
+const {
+  shot,
+  kind = 'phone',
+  size = 'default',
+  class: className,
+} = Astro.props;
+
+const radius = kind === 'phone' ? 'rounded-[1.35rem]' : 'rounded-[0.5rem]';
+const shared = `block w-full ${radius}`;
+
+/*
+ * Both files ship: `display: none` does not reliably stop a download, and the
+ * theme can change after load, thus neither can be chosen on the server. At
+ * this width each is tens of kB of webp, which is the price of the swap.
+ *
+ * Both also carry the same `alt`, and neither is hidden from a screen reader
+ * by hand. `display: none` already takes the one that is not shown out of the
+ * accessibility tree, thus exactly one is read, whichever theme is on. Marking
+ * the second `aria-hidden` instead leaves dark mode announcing nothing at all.
+ */
+---
+
+<div class={frame({ kind, size, class: className })}>
+  <Image
+    src={shot.light}
+    alt={shot.alt}
+    width={400}
+    densities={[1, 2]}
+    loading="lazy"
+    class:list={[shared, shot.dark && 'dark:hidden']}
+  />
+
+  {
+    shot.dark && (
+      <Image
+        src={shot.dark}
+        alt={shot.alt}
+        width={400}
+        densities={[1, 2]}
+        loading="lazy"
+        class:list={[shared, 'hidden dark:block']}
+      />
+    )
+  }
+</div>

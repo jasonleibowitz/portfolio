@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
 import DeviceFrame from './DeviceFrame.astro';
+import Screenshot from './Screenshot.astro';
 import { projectHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
@@ -48,11 +49,25 @@ const isWindow = data.frame === 'window';
         isWindow ? 'w-[240px] card:w-[300px]' : 'w-[140px] card:w-[190px]',
       ]}
     >
-      <DeviceFrame
-        kind={data.frame}
-        variant={variant}
-        class="max-w-none transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
-      />
+      {
+        /* The first capture is the one that says what the project is, thus the
+          row shows that one and the page shows the set. */
+      }
+      {
+        data.screenshots.length > 0 ? (
+          <Screenshot
+            shot={data.screenshots[0]}
+            kind={data.frame}
+            class="w-full max-w-none transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
+          />
+        ) : (
+          <DeviceFrame
+            kind={data.frame}
+            variant={variant}
+            class="max-w-none transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
+          />
+        )
+      }
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-3">

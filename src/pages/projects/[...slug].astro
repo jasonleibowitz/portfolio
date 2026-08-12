@@ -12,6 +12,7 @@ import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
 import Button from '@components/ui/Button.astro';
 import DeviceFrame from '@components/DeviceFrame.astro';
+import Screenshot from '@components/Screenshot.astro';
 import { getPublished } from '@lib/content';
 import { testflightRequestHref } from '@lib/site';
 
@@ -85,13 +86,17 @@ const ctas = [
         class="flex gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1"
       >
         {
-          [0, 1, 2].map((variant) => (
-            <DeviceFrame
-              kind={data.frame}
-              size="shot"
-              variant={variant as 0 | 1 | 2}
-            />
-          ))
+          data.screenshots.length > 0
+            ? data.screenshots.map((shot) => (
+                <Screenshot shot={shot} kind={data.frame} size="shot" />
+              ))
+            : [0, 1, 2].map((variant) => (
+                <DeviceFrame
+                  kind={data.frame}
+                  size="shot"
+                  variant={variant as 0 | 1 | 2}
+                />
+              ))
         }
       </div>
 
