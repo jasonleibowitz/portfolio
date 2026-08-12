@@ -1,0 +1,75 @@
+---
+import { tv } from '@lib/tv';
+
+/**
+ * The device a screen sits in: the body, the bezel, the corners and, on a
+ * phone, the Dynamic Island. It draws no content of its own and slots whatever
+ * belongs on the screen, thus a real capture and a drawn stand-in wear the same
+ * hardware.
+ *
+ * Every length derives from one number, `--shot-w`, the width of the whole
+ * body, so a frame keeps its proportions at any size:
+ *
+ *   0.021  the bezel, even on all four sides
+ *   0.141  the corner of the body, which is the screen's corner plus the bezel
+ *   0.120  the corner of the screen, near 12.5% of the screen's own width
+ *   0.268  the Dynamic Island, near 28% of the screen's width
+ *   0.046  how far the island sits below the top of the body
+ *
+ * A width set from outside would leave those five scaled to a number the frame
+ * no longer has, thus the size comes from `size` and never from a parent.
+ */
+interface Props {
+  kind?: 'phone' | 'window';
+  size?: 'default' | 'wide' | 'shot';
+  class?: string;
+}
+
+const frame = tv({
+  base: 'relative shrink-0 snap-start w-[var(--shot-w)] border border-white/12 bg-[#1d1d1f] p-[calc(var(--shot-w)*0.021)] shadow-lift',
+  variants: {
+    kind: {
+      phone: 'rounded-[calc(var(--shot-w)*0.141)]',
+      window: 'rounded-[calc(var(--shot-w)*0.045)]',
+    },
+    size: { default: '', wide: '', shot: '' },
+  },
+  compoundVariants: [
+    { kind: 'phone', size: 'default', class: '[--shot-w:140px]' },
+    {
+      kind: 'phone',
+      size: 'wide',
+      class: '[--shot-w:140px] card:[--shot-w:200px]',
+    },
+    /* Wider than the write-up column can hold, thus that row scrolls. At 160px
+       a screen was a thumbnail; at 280px its body copy reads, which is the
+       whole reason the captures are on the page. */
+    { kind: 'phone', size: 'shot', class: '[--shot-w:280px]' },
+    { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
+    {
+      kind: 'window',
+      size: 'wide',
+      class: '[--shot-w:240px] card:[--shot-w:280px]',
+    },
+    { kind: 'window', size: 'shot', class: '[--shot-w:240px]' },
+  ],
+  defaultVariants: { kind: 'phone', size: 'default' },
+});
+
+const { kind = 'phone', size = 'default', class: className } = Astro.props;
+---
+
+<div class={frame({ kind, size, class: className })}>
+  <slot />
+
+  {
+    /* The island is the phone and not the picture, thus it sits above whatever
+      is on the screen and is kept from a screen reader. */
+    kind === 'phone' && (
+      <span
+        class="absolute top-[calc(var(--shot-w)*0.046)] left-1/2 aspect-[125/37] w-[calc(var(--shot-w)*0.268)] -translate-x-1/2 rounded-full bg-black"
+        aria-hidden="true"
+      />
+    )
+  }
+</div>

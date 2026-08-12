@@ -3,21 +3,15 @@
    reads it as undefined. */
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import { tv } from '@lib/tv';
+import DeviceBody from './DeviceBody.astro';
 
 /**
- * One real capture, in a device body.
+ * One real capture, on the screen of a device.
  *
  * A screen holds both themes, and the pair swaps on `data-theme` rather than
  * fusing into one diagonal image. A fused image is what a store listing needs,
  * where nothing can know the reader; this page does know, thus each theme gets
  * a capture taken in it.
- *
- * The body is drawn, not photographed. Every part of it derives from one
- * number, `--shot-w`, thus a frame keeps a phone's proportions at any width
- * and only that one value changes between sizes. The ratios come from the
- * captures: iOS leaves the Dynamic Island out of a screenshot, so the pill is
- * drawn back over the picture and the corners are cut by the body.
  */
 interface Props {
   shot: {
@@ -30,46 +24,6 @@ interface Props {
   class?: string;
 }
 
-/*
- * Every length below is a fraction of `--shot-w`, the width of the whole body:
- *
- *   0.021  the bezel, even on all four sides
- *   0.141  the corner of the body, which is the screen's corner plus the bezel
- *   0.120  the corner of the screen, near 12.5% of the screen's own width
- *   0.268  the Dynamic Island, near 28% of the screen's width
- *   0.025  how far the island sits below the top of the screen
- */
-const frame = tv({
-  base: 'relative shrink-0 snap-start w-[var(--shot-w)] border border-white/12 bg-[#1d1d1f] p-[calc(var(--shot-w)*0.021)] shadow-lift',
-  variants: {
-    kind: {
-      phone: 'rounded-[calc(var(--shot-w)*0.141)]',
-      window: 'rounded-[calc(var(--shot-w)*0.045)]',
-    },
-    size: { default: '', wide: '', shot: '' },
-  },
-  compoundVariants: [
-    { kind: 'phone', size: 'default', class: '[--shot-w:140px]' },
-    {
-      kind: 'phone',
-      size: 'wide',
-      class: '[--shot-w:140px] card:[--shot-w:200px]',
-    },
-    /* Wider than the column can hold, thus the row scrolls. At 160px a screen
-       was a thumbnail; at 280px its body copy reads, which is the whole reason
-       the captures are on the page. */
-    { kind: 'phone', size: 'shot', class: '[--shot-w:280px]' },
-    { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
-    {
-      kind: 'window',
-      size: 'wide',
-      class: '[--shot-w:240px] card:[--shot-w:280px]',
-    },
-    { kind: 'window', size: 'shot', class: '[--shot-w:240px]' },
-  ],
-  defaultVariants: { kind: 'phone', size: 'default' },
-});
-
 const {
   shot,
   kind = 'phone',
@@ -77,11 +31,11 @@ const {
   class: className,
 } = Astro.props;
 
-const screenRadius =
+const radius =
   kind === 'phone'
     ? 'rounded-[calc(var(--shot-w)*0.120)]'
     : 'rounded-[calc(var(--shot-w)*0.028)]';
-const shared = `block w-full ${screenRadius}`;
+const shared = `block w-full ${radius}`;
 
 /*
  * Both files ship, and both say `eager`, which `<Image>` needs told: it lazies
@@ -90,10 +44,15 @@ const shared = `block w-full ${screenRadius}`;
  * drew empty frames for every screen the reader had not already seen. The
  * theme can change at any moment after load, so the pair is one unit: both
  * load, or the swap has nothing to swap to.
+ *
+ * Both carry the same `alt`, and neither is hidden by hand. `display: none`
+ * already takes the one that is not shown out of the accessibility tree, thus
+ * exactly one is read. Marking the second `aria-hidden` instead leaves dark
+ * mode announcing nothing at all.
  */
 ---
 
-<div class={frame({ kind, size, class: className })}>
+<DeviceBody kind={kind} size={size} class={className}>
   <Image
     src={shot.light}
     alt={shot.alt}
@@ -115,15 +74,4 @@ const shared = `block w-full ${screenRadius}`;
       />
     )
   }
-
-  {
-    /* The island is the phone, not the picture, thus it sits above the capture
-      and is hidden from a reader who is being read the alt. */
-    kind === 'phone' && (
-      <span
-        class="absolute top-[calc(var(--shot-w)*0.046)] left-1/2 aspect-[125/37] w-[calc(var(--shot-w)*0.268)] -translate-x-1/2 rounded-full bg-black"
-        aria-hidden="true"
-      />
-    )
-  }
-</div>
+</DeviceBody>
