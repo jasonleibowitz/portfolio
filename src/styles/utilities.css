@@ -53,15 +53,6 @@
   color: var(--color-on-spectrum);
 }
 
-/* Marks placeholder copy. It underlines the text and not the block, because a
-   border under a paragraph draws a line across the whole column instead of
-   following the words. */
-@utility placeholder-copy {
-  text-decoration: underline dotted var(--color-violet);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
-
 /* The three-layer glow behind the page. A named utility rather than a
    `bg-[…]` arbitrary value: three stacked gradients inline would need every
    space underscore-escaped and would be unreadable. Position, layer and hit

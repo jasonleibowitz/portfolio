@@ -37,7 +37,7 @@ Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from `astro:content` is deprecated.
 
-Placeholder copy is marked in the body, not in frontmatter — see "Placeholder content" below. Do not invent replacements.
+Copy that is not final says so in its own first word — see "Placeholder content" below. Do not invent replacements.
 
 ### Reading content: always go through `src/lib/content.ts`
 
@@ -165,7 +165,7 @@ Two things to know about how the tokens work:
 - an `@theme` token generates a real utility (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-page` → `max-w-page`), so nothing below should be reached for as `var(--…)` from markup;
 - `:root[data-theme='dark']` overrides those same custom properties, so every utility re-derives in dark mode instead of needing a `dark:` twin for each color. `@custom-variant dark` points at the same attribute for the cases that do need one.
 
-The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `aurora-field`, `placeholder-copy` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
+The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `aurora-field` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
 
 **Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial` drops Tailwind's seven default radii so only the design's four exist, which is deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than failing, and the element loses its corner with a green build. The same is true of any namespace you clear. Grep for the old names after clearing one.
 
@@ -213,11 +213,9 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches and case-study bodies are placeholder. Each such paragraph is raw `<p class="placeholder-copy">` in the project body, and every one opens with the word "Placeholder". **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
+App pitches and case-study bodies are placeholder. **Each one opens with the word "Placeholder", and that is the whole signal.** **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
 
-**The dotted underline that mark is meant to draw does not render.** MDX emits `<p class="placeholder-copy"><p>the text</p></p>`, and because HTML forbids a `<p>` inside a `<p>` the browser closes the outer one, leaving the class on an empty paragraph and the copy unmarked. Confirmed in a browser through computed styles, not read off the source. A `<span>` inside a markdown paragraph would carry the class without nesting a block; a single-line `<p>` would work too until Prettier re-wrapped it, which is the MDX hazard under "Conventions". The fix is unclaimed.
-
-**Only a body paragraph can be marked at all.** The `placeholder` frontmatter array and its `Ph` component are gone, so a provisional _field_ renders as fact. That was the trade: the array was read in eight places and set by exactly one entry, and it cost a schema field on all three collections to mark one group description. If a field needs marking again, the argument has to be better than that one.
+**Nothing marks placeholder copy in the design any more.** A dotted underline was the plan, through a `placeholder` frontmatter array, a `Ph` component and a `placeholder-copy` utility. All three are deleted. The frontmatter array cost a field on all three collections, was read in eight places, and was set by exactly one entry; the utility never drew anything at all, because MDX emitted `<p class="placeholder-copy"><p>the text</p></p>` and HTML forbids a `<p>` inside a `<p>`, so the class landed on an empty paragraph while the copy rendered unmarked. That was confirmed in a browser through computed styles, not read off the source. Building any of it again needs a better argument than those had, and a `<span>` rather than a `<p>`, since an inline element cannot nest a block.
 
 The two `Started` dates in project frontmatter are provisional and render as fact. They get corrected before the site goes live. Do not guess them, and do not build a marker for them.
 
