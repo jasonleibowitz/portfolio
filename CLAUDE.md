@@ -16,14 +16,18 @@ pnpm check         # astro check (typecheck .astro + .ts)
 pnpm lint          # eslint (flat config, covers .ts/.astro)
 pnpm format        # prettier --write .
 pnpm format:check  # prettier --check .  (CI gate)
+pnpm test          # vitest run
+pnpm test:watch    # vitest, watching
 pnpm plop          # scaffold a new blog post
 ```
 
-There is no test suite. The four gates that must stay green are `build`, `check`, `lint`, `format:check`. A husky `pre-commit` hook runs `lint-staged` over changed files.
+The five gates that must stay green are `build`, `check`, `lint`, `format:check` and `test`. A husky `pre-commit` hook runs `lint-staged` over changed files.
+
+**`pnpm test` is Vitest, and it covers pure functions only.** `slugify()` and `refuseDuplicateAddresses()` have tests because each one decides an address, and a wrong address is a wrong page. Both were previously checked by hand: `slugify` through throwaway scripts, and the duplicate check by editing a real post and reading an exit code, which is how one slug got lost. Anything that reads the filesystem, renders a component or draws a card has no test, and the browser pass below is what covers it. `vitest.config.ts` uses `getViteConfig()` from `astro/config`, so a test gets the path aliases and the `astro:` modules a page gets.
 
 When verifying a change, **check the exit code** — grepping build output for a success string will silently pass on a failed build.
 
-**None of the four gates render a page.** Layout regressions, dead client-side scripts and overflow are all invisible to them, so anything visual or interactive has to be checked in a real browser. See "Verifying the design" below.
+**None of the five gates renders a page.** Layout regressions, dead client-side scripts and overflow are all invisible to them, so anything visual or interactive has to be checked in a real browser. See "Verifying the design" below.
 
 ## Content architecture
 
@@ -257,7 +261,7 @@ Until DNS cuts over, the live site is still served by the separate `jasonleibowi
 
 A preview is a **version** of the one Worker reached through an alias, not a separate environment. Nothing is provisioned per branch, so nothing needs tearing down — and nothing can be: Cloudflare has no API to delete an alias, only LRU eviction past 1,000 of them.
 
-Both jobs `needs: verify`, so a build that fails any of the four gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
+Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
 
 **A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The staging deployment does serve the full value, which is how the two were told apart. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
 
