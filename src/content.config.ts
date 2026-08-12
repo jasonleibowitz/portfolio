@@ -8,13 +8,6 @@ import { z } from 'astro/zod';
  */
 
 /**
- * Names the fields of this entry that wait for real words. The page draws a
- * dotted line under each one, thus a gap shows on the page and not in a
- * document, where nobody reads it.
- */
-const placeholder = z.array(z.string()).default([]);
-
-/**
  * The address of a page: 'espresso-machines' serves
  * `/writing/espresso-machines/`.
  *
@@ -89,7 +82,6 @@ const lists = defineCollection({
       subtitle: z.string().optional(),
       note: z.string().optional(),
       tags: z.array(z.string()).default([]),
-      placeholder,
     });
 
     const list = z.object({
@@ -122,13 +114,11 @@ const lists = defineCollection({
              * shows its name and a count.
              */
             description: z.string().optional(),
-            placeholder,
             items: z.array(listItem),
           })
         )
         .default([]),
       draft: z.boolean().default(false),
-      placeholder,
     });
 
     /**
@@ -211,7 +201,6 @@ const projects = defineCollection({
         .object({ site: z.string().optional(), repo: z.string().optional() })
         .optional(),
       draft: z.boolean().default(false),
-      placeholder,
     }),
 });
 

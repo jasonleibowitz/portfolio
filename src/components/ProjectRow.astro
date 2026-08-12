@@ -2,7 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
-import Ph from './ui/Ph.astro';
 import DeviceFrame from './DeviceFrame.astro';
 import Typography from './ui/Typography.astro';
 
@@ -63,14 +62,9 @@ const isWindow = data.frame === 'window';
         {data.title}
       </Typography>
 
-      <Ph
-        as="p"
-        when={data.placeholder.includes('description')}
-        variant="body"
-        class="max-w-[46ch] text-muted"
-      >
+      <Typography as="p" variant="body" class="max-w-[46ch] text-muted">
         {data.description}
-      </Ph>
+      </Typography>
 
       <div class="mt-1 flex flex-wrap gap-1.5">
         {data.stack.map((tool) => <Chip>{tool}</Chip>)}

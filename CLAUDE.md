@@ -37,7 +37,7 @@ Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from `astro:content` is deprecated.
 
-A `placeholder: []` array on an entry names the frontmatter fields that are still awaiting real copy; the templates render those with a dotted underline (`placeholder-copy`) so the gaps are visible on the page rather than described in a document. Do not invent replacements — see "Placeholder content" below.
+Placeholder copy is marked in the body, not in frontmatter — see "Placeholder content" below. Do not invent replacements.
 
 ### Reading content: always go through `src/lib/content.ts`
 
@@ -213,11 +213,15 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches and case-study bodies are placeholder, marked with a dotted underline by `Ph`. **Do not invent replacements** — Jason fills these in. The mark on each paragraph is the whole signal: `PhNote` was deleted, and so was the page-level note that summarised them. Do not reinstate a summary. It can only repeat what the underlines already show, or contradict them the day a real paragraph is written.
+App pitches and case-study bodies are placeholder. Each such paragraph is raw `<p class="placeholder-copy">` in the project body, and every one opens with the word "Placeholder". **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
 
-**The two `Started` dates in project frontmatter are still provisional, and are the one placeholder the page does not mark.** `Fact` has no `ph` prop and `specs[]` has no `placeholder` field, so those rows render as fact. This is deliberate: the marker was removed rather than the values corrected, and Jason corrects them before the site goes live. Do not reinstate the prop to flag them, and do not guess the real dates.
+**The dotted underline that mark is meant to draw does not render.** MDX emits `<p class="placeholder-copy"><p>the text</p></p>`, and because HTML forbids a `<p>` inside a `<p>` the browser closes the outer one, leaving the class on an empty paragraph and the copy unmarked. Confirmed in a browser through computed styles, not read off the source. A `<span>` inside a markdown paragraph would carry the class without nesting a block; a single-line `<p>` would work too until Prettier re-wrapped it, which is the MDX hazard under "Conventions". The fix is unclaimed.
 
-List entries no longer carry a stub note. `note` is optional, and an entry without one renders as name, tags and artwork — so the way to add a note is to write a real one, not to reinstate a placeholder.
+**Only a body paragraph can be marked at all.** The `placeholder` frontmatter array and its `Ph` component are gone, so a provisional _field_ renders as fact. That was the trade: the array was read in eight places and set by exactly one entry, and it cost a schema field on all three collections to mark one group description. If a field needs marking again, the argument has to be better than that one.
+
+The two `Started` dates in project frontmatter are provisional and render as fact. They get corrected before the site goes live. Do not guess them, and do not build a marker for them.
+
+List entries carry no stub note. `note` is optional, and an entry without one renders as name, tags and artwork, so the way to add a note is to write a real one.
 
 The About bio, the employment record and the "Beyond the CV" numbers have all been filled in and are no longer placeholder. Accomplishment bullets under Experience are not coming at all — the resume is where a recruiter reads what a role achieved — so a role that renders as title and dates alone is finished, not unfinished.
 
