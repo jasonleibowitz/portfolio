@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "node scripts/og-card.ts && astro build",
+    "build": "node scripts/og-card.ts && astro build && node scripts/redirects.ts",
     "preview": "astro preview",
     "astro": "astro",
     "cards": "node scripts/og-card.ts --touch-icon",
@@ -46,7 +46,6 @@
     "eslint": "^10.8.0",
     "eslint-plugin-astro": "^3.1.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "github-slugger": "^2.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "plop": "^4.0.5",
