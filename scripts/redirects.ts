@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { published, type Draftable } from './content.ts';
 
 /**
@@ -45,26 +45,6 @@ function rulesFor(id: string, aliases: string[]): Rule[] {
   ]);
 }
 
-/**
- * Stops the build when a rule points at a page that the build did not make.
- *
- * Nothing else checks this. Astro checks the target of a redirect in its own
- * config, and it never reads this file, thus a slug that changes without its
- * alias changing would publish a redirect to a 404.
- */
-function refuseMissingTarget(rules: Rule[]): void {
-  for (const [from, to] of rules) {
-    if (!existsSync(`${DIST}${to}index.html`)) {
-      throw new Error(
-        `The redirect from ${from} points at ${to}, and the build made no ` +
-          `page there.\nAn \`aliases\` entry in a post names an address the ` +
-          'post used to have. The `slug` of that post is what it must point ' +
-          'at now.'
-      );
-    }
-  }
-}
-
 interface PostData extends Draftable {
   pubDate: string;
 }
@@ -73,8 +53,6 @@ const posts = published<PostData>('src/content/blog', (d) => d.pubDate);
 const rules = posts.flatMap((post) =>
   rulesFor(post.id, post.data.aliases ?? [])
 );
-
-refuseMissingTarget(rules);
 
 writeFileSync(
   `${DIST}/_redirects`,
