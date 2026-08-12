@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "node scripts/og-card.ts && astro build && node scripts/redirects.ts",
+    "build": "node scripts/og-card.ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "cards": "node scripts/og-card.ts --touch-icon",

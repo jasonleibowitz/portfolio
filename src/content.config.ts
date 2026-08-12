@@ -9,24 +9,6 @@ import { z } from 'astro/zod';
  */
 const placeholder = z.array(z.string()).default([]);
 
-/**
- * One address of a page, e.g. 'espresso-machines'. `slug` and `aliases` below
- * both hold one, and both need the same rule.
- *
- * One segment, in lower case: the route is `/writing/[...slug]/`, so a leading
- * slash or an inner `/` would build somewhere no link points. `slugify()` in
- * `src/lib/slug.ts`, which the generator and the admin use, gives exactly this.
- *
- * "lower case" is two words on purpose. Tailwind scans this file, and the
- * one-word spelling is a utility it would emit into the site's CSS.
- */
-const address = z
-  .string()
-  .regex(
-    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-    'an address is words in lower case, joined by single dashes'
-  );
-
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
   // A function of `image()`, the same shape `lists` and `projects` use, so the
@@ -39,33 +21,36 @@ const blog = defineCollection({
        * a post without one publishes at its folder name, which carries the
        * `YYYY-MM-DD-` prefix that sorts the directory.
        *
-       * The URL stops being the filename here. A folder can be renamed, and a
-       * title can lose a typo, without moving the page. The five posts that
-       * predate the field carry their dated folder name in `aliases`, because
-       * those addresses have a decade of inbound links.
+       * The URL stops being the filename here. The folder still sorts by date,
+       * and the address does not have to carry that date, or the typo that the
+       * title had on the day the folder was made.
        *
        * The glob loader is what applies it: `entry.id` is this value when it is
        * set, and the filename otherwise, so every route and link built from an
        * id already follows it. That happens on raw frontmatter, before this
-       * schema runs, which is why the rule on `address` matters. The id is
-       * taken either way, and a slug the route cannot serve has to fail the
-       * build rather than publish a page at an address nothing links to.
-       */
-      slug: address.optional(),
-      /**
-       * Addresses this post had before, e.g. its dated folder name. Each one
-       * becomes a 301 to the current `slug`, written into `dist/_redirects` by
-       * `scripts/redirects.ts`.
+       * schema runs, which is why the rule below matters. The id is taken
+       * either way, and a slug the route cannot serve has to fail the build
+       * rather than publish a page at an address nothing links to.
        *
-       * The old address lives with the post for the reason its images do:
-       * deleting the post takes its redirects, and renaming it carries them.
-       * A list in `astro.config.mjs` would do neither, and the admin would
-       * have to edit a config file to publish a rename.
+       * One segment, in lower case: the route is `/writing/[...slug]/`, so a
+       * leading slash or an inner `/` would build somewhere no link points.
+       * `slugify()` in `src/lib/slug.ts` gives exactly this, and the generator
+       * (later the admin) offers its result as the default.
        *
-       * Add to this list, never remove from it. A removed alias is a link
-       * somewhere on the internet that stops working.
+       * "lower case" is two words on purpose. Tailwind scans this file, and the
+       * one-word spelling is a utility it would emit into the site's CSS.
+       *
+       * Changing this after the site is live moves a page that other sites may
+       * link to, and nothing here redirects the old address. Until then it is
+       * free: no post has ever been published.
        */
-      aliases: z.array(address).default([]),
+      slug: z
+        .string()
+        .regex(
+          /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+          'a slug is words in lower case, joined by single dashes'
+        )
+        .optional(),
       pubDate: z.coerce.date(),
       description: z.string().optional(),
       author: z.string(),
