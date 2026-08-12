@@ -29,7 +29,7 @@ interface Props {
 }
 
 const frame = tv({
-  base: 'shrink-0 overflow-hidden border border-line-strong bg-panel p-1.5 shadow-lift',
+  base: 'shrink-0 snap-start overflow-hidden border border-line-strong bg-panel p-1.5 shadow-lift',
   variants: {
     kind: {
       phone: 'rounded-[1.75rem]',
@@ -40,9 +40,10 @@ const frame = tv({
   compoundVariants: [
     { kind: 'phone', size: 'default', class: 'w-[140px]' },
     { kind: 'phone', size: 'wide', class: 'w-[140px] card:w-[200px]' },
-    /* Four of these plus their gaps fit the write-up column exactly; 172px,
-       which the drawn placeholder used for three, overruns it by one gap. */
-    { kind: 'phone', size: 'shot', class: 'w-[160px]' },
+    /* Wider than the column can hold, thus the row scrolls. At 160px a screen
+       was a thumbnail; at 280px its body copy reads, which is the whole reason
+       the captures are on the page. */
+    { kind: 'phone', size: 'shot', class: 'w-[280px]' },
     { kind: 'window', size: 'default', class: 'w-[240px]' },
     { kind: 'window', size: 'wide', class: 'w-[240px] card:w-[280px]' },
     { kind: 'window', size: 'shot', class: 'w-[240px]' },
@@ -61,9 +62,12 @@ const radius = kind === 'phone' ? 'rounded-[1.35rem]' : 'rounded-[0.5rem]';
 const shared = `block w-full ${radius}`;
 
 /*
- * Both files ship: `display: none` does not reliably stop a download, and the
- * theme can change after load, thus neither can be chosen on the server. At
- * this width each is tens of kB of webp, which is the price of the swap.
+ * Both files ship, and both say `eager`, which `<Image>` needs told: it lazies
+ * by default, and a lazy image that starts `display: none` is never fetched.
+ * Showing it does not reliably start the fetch either, thus the first toggle
+ * drew empty frames for every screen the reader had not already seen. The
+ * theme can change at any moment after load, so the pair is one unit: both
+ * load, or the swap has nothing to swap to.
  *
  * Both also carry the same `alt`, and neither is hidden from a screen reader
  * by hand. `display: none` already takes the one that is not shown out of the
@@ -78,7 +82,7 @@ const shared = `block w-full ${radius}`;
     alt={shot.alt}
     width={400}
     densities={[1, 2]}
-    loading="lazy"
+    loading="eager"
     class:list={[shared, shot.dark && 'dark:hidden']}
   />
 
@@ -89,7 +93,7 @@ const shared = `block w-full ${radius}`;
         alt={shot.alt}
         width={400}
         densities={[1, 2]}
-        loading="lazy"
+        loading="eager"
         class:list={[shared, 'hidden dark:block']}
       />
     )

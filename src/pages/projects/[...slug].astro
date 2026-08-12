@@ -82,8 +82,17 @@ const ctas = [
     <div
       class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
     >
+      {
+        /* The captures are wider than the column on purpose, so a screen is big
+        enough to read rather than big enough to identify. That makes the row a
+        scroller, thus it takes a tabindex: a region that scrolls and holds no
+        link of its own is unreachable by keyboard without one. */
+      }
       <div
-        class="flex gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1"
+        class="flex snap-x snap-mandatory gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1 [scrollbar-width:thin]"
+        tabindex="0"
+        role="group"
+        aria-label={`${data.title} screenshots`}
       >
         {
           data.screenshots.length > 0
