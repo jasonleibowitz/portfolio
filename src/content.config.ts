@@ -3,74 +3,60 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 /**
- * Copy that is still waiting on Jason is marked rather than invented, so the
- * gaps are visible on the page instead of described in a document. Each entry
- * names a frontmatter field that renders with a dotted underline.
+ * The rules for the block at the top of each content file. A file that breaks
+ * one stops the build, thus a mistake is loud now and not quiet on the page.
+ */
+
+/**
+ * Names the fields of this entry that wait for real words. The page draws a
+ * dotted line under each one, thus a gap shows on the page and not in a
+ * document, where nobody reads it.
  */
 const placeholder = z.array(z.string()).default([]);
 
+/**
+ * The address of a page: 'espresso-machines' serves
+ * `/writing/espresso-machines/`.
+ *
+ * Give an entry a slug when its address must differ from the name of its file.
+ * Every post does, because the folder of a post starts with a date to keep the
+ * directory in order, and a reader does not need that date.
+ *
+ * Astro accepts any text here, and it reads the field before it reads these
+ * rules. A slug with a space in it made a page at
+ * `/lists/Favorite Movies/2024/` and gave no message, thus the rule stops the
+ * build instead. `slugify()` in `src/lib/slug.ts` makes this shape from a title.
+ */
+const address = z
+  .string()
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    'a slug is words in small letters, joined by single dashes'
+  )
+  .optional();
+
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
-  // A function of `image()`, the same shape `lists` and `projects` use, so the
-  // hero resolves relative to its own entry and goes through astro:assets.
+  /* A function of `image()`, the helper of Astro that finds a picture beside
+     this file and makes a copy of it at each size a screen needs. */
   schema: ({ image }) =>
     z.object({
       title: z.string(),
-      /**
-       * The address this post publishes at, e.g. 'espresso-machines'. Optional:
-       * a post without one publishes at its folder name, which carries the
-       * `YYYY-MM-DD-` prefix that sorts the directory.
-       *
-       * The URL stops being the filename here. The folder still sorts by date,
-       * and the address does not have to carry that date, or the typo that the
-       * title had on the day the folder was made.
-       *
-       * The glob loader is what applies it: `entry.id` is this value when it is
-       * set, and the filename otherwise, so every route and link built from an
-       * id already follows it. That happens on raw frontmatter, before this
-       * schema runs, which is why the rule below matters. The id is taken
-       * either way, and a slug the route cannot serve has to fail the build
-       * rather than publish a page at an address nothing links to.
-       *
-       * One segment, in lower case: the route is `/writing/[...slug]/`, so a
-       * leading slash or an inner `/` would build somewhere no link points.
-       * `slugify()` in `src/lib/slug.ts` gives exactly this, and the generator
-       * (later the admin) offers its result as the default.
-       *
-       * "lower case" is two words on purpose. Tailwind scans this file, and the
-       * one-word spelling is a utility it would emit into the site's CSS.
-       *
-       * Changing this after the site is live moves a page that other sites may
-       * link to, and nothing here redirects the old address. Until then it is
-       * free: no post has ever been published.
-       */
-      slug: z
-        .string()
-        .regex(
-          /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-          'a slug is words in lower case, joined by single dashes'
-        )
-        .optional(),
+      slug: address,
       pubDate: z.coerce.date(),
       description: z.string().optional(),
       author: z.string(),
       /**
-       * The hero image, e.g. './images/2023-05-21/cover.webp'. The share card
-       * shows the same picture.
-       *
-       * A path relative to this file rather than one under `public/`, because
-       * `public/` is copied byte for byte: an image there is never resized, never
-       * re-encoded and never given a `srcset`, even when markdown references it.
-       * The espresso post alone shipped 4.5 MB that way.
-       *
-       * Not a remote URL, for the reason list artwork is not one: every build
-       * would refetch it, and a dead host would fail the deploy.
+       * The picture at the top of the post, beside the post: './cover.webp'.
+       * A file in `public/` goes to the site at full size instead, and one post
+       * sent 4.5 MB that way. A picture on a different site is not permitted,
+       * because each build would fetch it and a host that is down would stop
+       * the build.
        */
       image: image(),
       /**
-       * Describes the hero. A hero carries no caption, unlike an image in a
-       * body, so this is the only thing a screen reader gets and it has to say
-       * what is in the frame.
+       * Says what is in that picture, for a reader who cannot see it. A picture
+       * in the body has a caption to do this. This one has none.
        */
       imageAlt: z.string(),
       tags: z.array(z.string()),
@@ -80,35 +66,25 @@ const blog = defineCollection({
 
 const lists = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lists' }),
-  // The schema takes the `image()` helper, so artwork paths resolve relative to
-  // the entry file and go through astro:assets. `listItem` is declared in here
-  // rather than at module scope because it needs that helper.
+  /* A function of `image()`, thus artwork points at a file beside the list.
+     `listItem` is in here because it needs that same helper. */
   schema: ({ image }) => {
-    /** One entry in a list -- a recommendation, so usually a link out. */
+    /** One thing on a list, thus usually a link to it. */
     const listItem = z.object({
       name: z.string(),
-      /** Optional. No href renders as plain text rather than a dead link. */
+      /** An item with no link shows as plain text, and not as a dead link. */
       href: z.string().optional(),
       /**
-       * A path relative to this file, e.g. './artwork/the-matrix.jpg'.
-       *
-       * Deliberately a local file rather than a remote URL: Astro resizes and
-       * re-encodes it at build time, which takes a ~60kB poster down to ~4kB
-       * at the size it actually renders. Allowing remote URLs would mean
-       * either shipping the full-size original or making every build depend on
-       * someone else's server being up.
+       * The artwork of this item, beside the list: './artwork/the-matrix.jpg'.
+       * Astro makes a copy at the size the row uses, which took one poster from
+       * 60 kB to 4 kB.
        */
       image: image().optional(),
       /**
-       * A short credit under the name, saying whatever identifies this kind of
-       * thing: a podcast's hosts, a coffee shop's neighborhood, a book's
-       * author. Deliberately not named `hosts` -- the lists are not all media
-       * of one type, and the field earns its place by being whatever the list
-       * is about.
-       *
-       * It is a credit rather than a sentence, which is why it sets in mono
-       * beside the year and `note` stays prose. Keep it to a few words: three
-       * hosts, not a paragraph about them.
+       * A few words under the name that say which thing this is: the hosts of a
+       * podcast, the part of the city a shop is in, the author of a book. The
+       * name of the field is general because a list is not always about one kind
+       * of thing. Keep it short: it sets in a small font beside the year.
        */
       subtitle: z.string().optional(),
       note: z.string().optional(),
@@ -118,33 +94,32 @@ const lists = defineCollection({
 
     const list = z.object({
       title: z.string(),
+      slug: address,
       description: z.string().optional(),
       updated: z.coerce.date(),
-      /** Ranked lists are numbered and never grouped. */
+      /** A ranked list has a number on each row, thus it is never in groups. */
       ranked: z.boolean().default(false),
       /**
-       * Artwork ratio for the whole list, since it is a property of the kind of
-       * thing being listed rather than of any one entry:
+       * The shape of the artwork for the whole list, because the shape belongs
+       * to the kind of thing on the list and not to one item:
        *
-       *   square  56x56  (1:1)  podcast and album art, the default
-       *   poster  56x84  (2:3)  film and book covers
+       *   square  56x56  podcast and album art
+       *   poster  56x84  film and book covers
        *
-       * Both are 56px wide, so the artwork column lines up across every list
-       * and only the row height changes. Cropping a 2:3 poster into a square
-       * would keep the middle and throw away the title.
+       * Both are 56px wide, thus the artwork is in the same place on every list.
+       * A poster cut into a square keeps the middle and loses the title.
        */
       thumb: z.enum(['square', 'poster']).default('square'),
-      /** A list carries `items` (ranked or flat) or `groups`, not both. */
+      /** A list holds `items` or `groups`. The rules below refuse both. */
       items: z.array(listItem).default([]),
       groups: z
         .array(
           z.object({
             name: z.string(),
             /**
-             * Optional. A sentence or two on what the section collects or why
-             * it is a section, rendered under the heading. A group without one
-             * renders as name and count, the same as it always has -- the way
-             * to add a blurb is to write a real one, not to reinstate a stub.
+             * A sentence or two under the name of the group, when there is
+             * something to say about why it is a group. A group without one
+             * shows its name and a count.
              */
             description: z.string().optional(),
             placeholder,
@@ -157,11 +132,9 @@ const lists = defineCollection({
     });
 
     /**
-     * `items` and `groups` are parallel optional arrays, which lets frontmatter
-     * describe three shapes the templates cannot render: both filled, neither
-     * filled, and `ranked` set on a grouped list. Each one used to fail late
-     * and quietly -- an empty page, or a rank counter that silently skipped a
-     * group -- so the schema rejects them at build time instead.
+     * A file can ask for three pages that no template can draw: both fields
+     * filled, neither filled, and numbers on a list that is in groups. Each one
+     * made an empty page, or numbers that missed a group, and no message.
      */
     return list.superRefine((data, ctx) => {
       const hasItems = data.items.length > 0;
@@ -189,55 +162,50 @@ const lists = defineCollection({
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
-  // A function of `image()` so an icon path resolves relative to its own entry
-  // and goes through astro:assets, the same way list artwork does.
+  /* A function of `image()`, thus the icon points at a file beside the entry. */
   schema: ({ image }) =>
     z.object({
       title: z.string(),
+      slug: address,
       description: z.string(),
       /**
-       * The app's real icon, e.g. './icons/reel-watch.png' with the file
-       * alongside the entry. Optional, and deliberately without a fallback:
-       * a project with no icon renders none rather than a generated tile.
-       *
-       * Every iOS build already ships a 1024px icon, so this is an asset that
-       * exists rather than one that has to be made -- which is the whole
-       * reason it is the artwork this site uses for a project. A screenshot
-       * would have to be captured, is 9:19 in a square slot, and is illegible
-       * at the size a summary can afford to give it.
-       *
-       * Not a remote URL, for the same reason list artwork is not: every build
-       * would refetch it, and a dead host would fail the deploy.
+       * The real icon of the app, beside the entry: './icons/reel-watch.webp'.
+       * Each build of an iOS app makes one already, thus it is artwork that
+       * exists. The other choice is a screenshot, which is tall and thin in a
+       * square space and too small to read. A project with no icon shows none,
+       * because a tile made from the first letter says nothing.
        */
       icon: image().optional(),
-      /** Drives the status dot's colour. `testing` is pre-launch and shipping
-       * builds to real users; `development` is everything before that. */
+      /**
+       * The color of the dot beside the status. `testing` means real users have
+       * a build. `development` is every step before that.
+       */
       status: z.enum(['development', 'testing', 'live']),
-      /** The status line as written, e.g. "In Development". */
+      /** The status in words, for example "In Development". */
       status_text: z.string(),
-      /** Longer variant for the project page header; falls back to status_text. */
+      /** A longer status for the page of the project. `status_text` if absent. */
       status_text_long: z.string().optional(),
       stack: z.array(z.string()),
-      /** Screenshots are drawn placeholders: a phone body, or a browser window. */
+      /** The frame the site draws around each screenshot. */
       frame: z.enum(['phone', 'window']).default('phone'),
       /**
-       * The project page's spec rail, rendered in order. Rows are free-form:
-       * add `Role` only where it separates what Jason did from what a team
-       * did, which on a solo project it does not.
+       * The rows beside the write-up, in this order. A row holds any label, thus
+       * add `Role` only where it separates the work of Jason from the work of a
+       * team. On a project of one person it does not.
        */
       specs: z
         .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
       cta: z.object({ label: z.string(), href: z.string() }).optional(),
       /**
-       * An iOS build a stranger can ask to join. Adds the "Join the beta" button
-       * to the project page, addressed and pre-written by `testflightRequestHref`.
-       * Not derived from `status: 'beta'` -- a beta web app has nothing to join.
+       * An iOS build that a stranger can ask to join. It adds the "Join the
+       * beta" button, with the mail written for them. `status` cannot say this,
+       * because a web app in test has nothing to join.
        */
       testflight: z.boolean().default(false),
-      /** The homepage shows only these, so adding a project never changes it. */
+      /** The home page shows only these, thus a new project does not change it. */
       is_featured: z.boolean().default(false),
-      /** For when "newest first" stops being the right sort. */
+      /** Set this when "newest first" is the wrong order. */
       order: z.number().optional(),
       links: z
         .object({ site: z.string().optional(), repo: z.string().optional() })
