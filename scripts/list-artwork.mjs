@@ -33,6 +33,7 @@ import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { slugify } from '../src/lib/slug.ts';
 
 const run = promisify(execFile);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -124,17 +125,6 @@ function unquote(value) {
   const trimmed = value.trim();
   const quoted = /^(['"])(.*)\1$/.exec(trimmed);
   return (quoted ? quoted[2] : trimmed).replace(/''/g, "'");
-}
-
-/** `Back to the Future (1985)` -> `back-to-the-future-1985` */
-function slugify(name) {
-  return name
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/['’]/g, '')
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .toLowerCase();
 }
 
 /** Titles carry their year for disambiguation; the search should not. */
