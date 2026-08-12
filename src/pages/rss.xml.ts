@@ -1,6 +1,6 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
-import { getPublished } from '@lib/content';
+import { getPublished, postHref } from '@lib/content';
 import { FEED_TITLE, WRITING } from '@lib/site';
 
 export async function GET(context: APIContext) {
@@ -14,7 +14,7 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      link: `/writing/${post.id}/`,
+      link: postHref(post),
     })),
     customData: `<language>en-US</language>`,
   });

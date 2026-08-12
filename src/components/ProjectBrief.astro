@@ -4,7 +4,7 @@ import { Image } from 'astro:assets';
 import { tv } from '@lib/tv';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
-import Ph from './ui/Ph.astro';
+import { projectHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
 /**
@@ -51,30 +51,21 @@ const columns = tv({
   },
 });
 
-/** An icon still awaiting a final version takes the dotted-violet placeholder mark. */
-const tile = tv({
-  /* Apple's icon corner is a superellipse at 22.37% of the side, and that
-     curve is what reads as "app icon" rather than "rounded photo". A
-     percentage keeps one declaration correct at both 72px and 128px. */
-  base: 'w-full rounded-[22.37%] object-cover [corner-shape:squircle]',
-  variants: {
-    provisional: {
-      true: 'border border-dotted border-violet/60',
-      false: 'border border-line',
-    },
-  },
-});
+/* Apple's icon corner is a superellipse at 22.37% of the side, and that curve
+   is what reads as "app icon" rather than "rounded photo". A percentage keeps
+   one declaration correct at both 72px and 128px. */
+const tile =
+  'w-full rounded-[22.37%] border border-line object-cover [corner-shape:squircle]';
 
 const { project } = Astro.props;
 const { data } = project;
 
 const hasIcon = Boolean(data.icon);
-const iconIsProvisional = data.placeholder.includes('icon');
 ---
 
 {/* aria-label: without it the name is the whole row read as one run-on. */}
 <a
-  href={`/projects/${project.id}/`}
+  href={projectHref(project)}
   aria-label={data.title}
   class:list={[
     'group min-w-0 border-t border-line py-8 no-underline hover:border-line-strong',
@@ -96,7 +87,7 @@ const iconIsProvisional = data.placeholder.includes('icon');
         sizes="(min-width: 58rem) 128px, 72px"
         fit="cover"
         quality={92}
-        class={tile({ provisional: iconIsProvisional })}
+        class={tile}
       />
     )
   }
@@ -112,14 +103,9 @@ const iconIsProvisional = data.placeholder.includes('icon');
         >
       </Typography>
 
-      <Ph
-        as="p"
-        when={data.placeholder.includes('description')}
-        variant="body"
-        class="max-w-[46ch] text-muted"
-      >
+      <Typography as="p" variant="body" class="max-w-[46ch] text-muted">
         {data.description}
-      </Ph>
+      </Typography>
 
       <div class="mt-1 flex flex-wrap gap-1.5">
         {data.stack.map((tool) => <Chip>{tool}</Chip>)}

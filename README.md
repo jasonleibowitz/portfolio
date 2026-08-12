@@ -10,7 +10,7 @@ Deeper notes on architecture live in [CLAUDE.md](CLAUDE.md); the design system i
 
 ## Getting started
 
-You need **Node >= 22.12** (`.nvmrc` pins 24.19.0) and **pnpm**. If you use nvm, `nvm use` picks up the pinned version.
+You need **Node >= 24** (`.nvmrc` pins 24.19.0) and **pnpm**. If you use nvm, `nvm use` picks up the pinned version. The floor is Node 24 because `plopfile.js`, `scripts/og-card.ts` and `scripts/list-artwork.mjs` import TypeScript directly, and Node strips the types for them.
 
 ```bash
 pnpm install

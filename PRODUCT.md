@@ -69,7 +69,7 @@ These are durable — they stay true in both phases, which is part of why the sp
 
 Confirmed and load-bearing:
 
-- Static site: Astro 7, MDX content, Tailwind 4, TypeScript. **Zero JS islands** — no framework runtime, only small hand-written vanilla modules. Node >= 22.12, pnpm.
+- Static site: Astro 7, MDX content, Tailwind 4, TypeScript. **Zero JS islands** — no framework runtime, only small hand-written vanilla modules. Node >= 24, pnpm.
 - Three content collections: `blog` (`/writing`), `lists` (`/lists`), `projects` (`/projects`, with a case study per entry). Five posts spanning 2014–2023, two lists, three projects.
 - `/writing` is canonical; `/blog/*` must keep redirecting to it. The decade of inbound links is a permanent constraint, not a migration step.
 - Deploy target is Cloudflare Pages. DNS has not cut over: leibowitz.me is still served by the old `jasonleibowitz.github.io` repo, whose apex record points at deprecated GitHub Pages IPs, so **HTTPS is currently broken on the live domain.** Undecided: when the cutover happens.

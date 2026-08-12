@@ -13,8 +13,7 @@ import SidebarLayout from '@components/layout/SidebarLayout.astro';
 import ListEntry from '@components/ListEntry.astro';
 import TagRail from '@components/TagRail.astro';
 import ListFooter from '@components/ListFooter.astro';
-import Ph from '@components/ui/Ph.astro';
-import { getPublished } from '@lib/content';
+import { getPublished, listHref } from '@lib/content';
 import { allItems, listTags, groupId } from '@lib/lists';
 import { shareCard } from '@lib/og';
 
@@ -29,7 +28,7 @@ export async function getStaticPaths() {
         .filter((other) => other.id !== list.id)
         .map((other) => ({
           title: other.data.title,
-          href: `/lists/${other.id}/`,
+          href: listHref(other),
           count: allItems(other.data).length,
         })),
     },
@@ -150,14 +149,13 @@ const hasBody = Boolean(list.body?.trim());
                   </Typography>
 
                   {group.description && (
-                    <Ph
+                    <Typography
                       as="p"
-                      when={group.placeholder.includes('description')}
                       variant="compact"
                       class="mt-1.5 max-w-[68ch] text-muted"
                     >
                       {group.description}
-                    </Ph>
+                    </Typography>
                   )}
                 </header>
                 <ul class="grid">

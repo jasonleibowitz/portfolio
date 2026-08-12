@@ -10,11 +10,12 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { launch } from 'puppeteer-core';
 import { parse as parseYaml } from 'yaml';
-/* Node 24 removes the types when it reads this file. Thus the script can read
-   the page headings from the same file as the pages, and no person must type
-   them a second time. `.nvmrc` sets that version of Node. Node 22 needs the
-   option --experimental-strip-types for this import. */
+/* Node removes the types when it reads this file. Thus the script can read the
+   page headings from the same file as the pages, and no person must type them a
+   second time. `.nvmrc` sets the version, and `engines.node` gives the floor:
+   this import is what puts that floor at Node 24. */
 import { CARD, LISTS, WRITING } from '../src/lib/site.ts';
+import { refuseDuplicateAddresses } from './addresses.ts';
 
 /**
  * Makes each image that a link preview needs, in `public/`, as the first part of
@@ -228,13 +229,15 @@ const monogram = dataUri('public/favicon.svg');
  */
 interface Draftable {
   draft?: boolean;
+  /** The address of the entry. Astro takes the id from here, thus so must this. */
+  slug?: string;
 }
 
 interface PostData extends Draftable {
   title: string;
   pubDate: string;
-  /** Relative to the entry file, e.g. `./cover.webp`. */
-  image: string;
+  /** Relative to the entry file: './cover.webp'. */
+  coverImage: string;
 }
 
 interface ListItem {
@@ -273,11 +276,15 @@ const SHOW_DRAFTS = process.env.SHOW_DRAFTS === 'true';
 /**
  * Finds the file of each entry in a collection, and the id Astro gives it.
  *
- * An entry is either `<slug>.mdx` or `<slug>/index.mdx`. The second form is
+ * An entry is either `<name>.mdx` or `<name>/index.mdx`. The second form is
  * what lets a post hold its own images. This must give the same ids as the
  * glob loader in `src/content.config.ts`, which reads `**\/*.{md,mdx}` and
  * drops the `/index`: an id that disagrees names a card that no page asks for,
  * and leaves the card a page does ask for undrawn.
+ *
+ * The name of the file is only half of the id. An entry with a `slug` in its
+ * frontmatter takes that instead, which `addresses` below applies once it has
+ * read the file.
  */
 function entryFiles(dir: string): { id: string; file: string }[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((item) => {
@@ -298,8 +305,27 @@ function entryFiles(dir: string): { id: string; file: string }[] {
 }
 
 /**
- * Reads the frontmatter of each entry in a collection. It gives the published
- * entries, the most recent one first.
+ * Reads the frontmatter of each entry in a collection, and gives each one the
+ * address its page has. A draft counts here: a preview build gives it a page.
+ *
+ * A `slug` in the frontmatter wins over the name of the file, because that is
+ * what the glob loader of Astro does with it: the page of the entry is at that
+ * address, thus its card carries that name also.
+ */
+function addresses<T extends Draftable>(
+  dir: string
+): (Entry<T> & { file: string })[] {
+  return entryFiles(dir).map(({ id, file }) => {
+    const data = parseYaml(
+      readFileSync(file, 'utf8').split(/^---$/m)[1] ?? ''
+    ) as T;
+
+    return { id: data.slug ?? id, dir: dirname(file), data, file };
+  });
+}
+
+/**
+ * The entries of a collection that get a page, the most recent one first.
  *
  * This script does not run in Astro, thus it cannot call `getPublished`. But it
  * must agree with that function. A draft has no page, thus it must have no
@@ -309,12 +335,11 @@ function published<T extends Draftable>(
   dir: string,
   date: (data: T) => string
 ): Entry<T>[] {
-  return entryFiles(dir)
-    .map(({ id, file }) => ({
-      id,
-      dir: dirname(file),
-      data: parseYaml(readFileSync(file, 'utf8').split(/^---$/m)[1] ?? '') as T,
-    }))
+  const entries = addresses<T>(dir);
+
+  refuseDuplicateAddresses(entries);
+
+  return entries
     .filter((entry) => SHOW_DRAFTS || entry.data.draft !== true)
     .sort(
       (a, b) =>
@@ -691,7 +716,7 @@ function postCard(post: Entry<PostData>): Part {
     <h1>${escape(title)}</h1>
     <div class="rule"></div>
   </div>
-  <img class="cover" src="${dataUri(resolve(post.dir, post.data.image))}" alt="" />
+  <img class="cover" src="${dataUri(resolve(post.dir, post.data.coverImage))}" alt="" />
 </main>`
   );
 }
@@ -787,6 +812,12 @@ async function shoot(cards: Card[]) {
 
 const posts = published<PostData>('src/content/blog', (d) => d.pubDate);
 const lists = published<ListData>('src/content/lists', (d) => d.updated);
+
+/* A project draws no card, thus it needs no order and no draft filter. It still
+   needs the check: a project that takes the address of another project loses
+   its page as quietly as a post would, and this script is the only reader of
+   the content directory outside Astro. */
+refuseDuplicateAddresses(addresses('src/content/projects'));
 
 /* Delete the directory first. If you delete a post, or make it a draft, its
    card must not stay in `public/`. */

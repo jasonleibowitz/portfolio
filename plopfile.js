@@ -1,5 +1,6 @@
 import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { slugify } from './src/lib/slug.ts';
 
 /** The hero a new post starts with, until its real one replaces it. */
 const PLACEHOLDER = 'plop-templates/placeholder.webp';
@@ -7,7 +8,7 @@ const PLACEHOLDER = 'plop-templates/placeholder.webp';
 /* The folder of a new post. Both actions below need it, thus it is written one
    time: two copies can disagree, and the cover then goes to a folder that the
    post cannot read. */
-const POST_FOLDER = 'src/content/blog/{{currentDate}}-{{dashCase title}}';
+const POST_FOLDER = 'src/content/blog/{{currentDate}}-{{slug title}}';
 
 export default function (plop) {
   plop.setGenerator('blog-post', {
@@ -51,5 +52,9 @@ export default function (plop) {
      crosses midnight UTC would otherwise name two different folders. */
   const today = new Date().toISOString().split('T')[0];
   plop.setHelper('currentDate', () => today);
+
+  /* `slugify` and not the `dashCase` of plop, which cuts a word at each capital
+     inside it: "eSIM" becomes "e-sim". */
+  plop.setHelper('slug', slugify);
   // plop.setHelper('splitOnComma', (str) => str.split(',').map(s => `${s}`.trim()));
 }

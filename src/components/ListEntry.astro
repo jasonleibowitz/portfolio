@@ -5,7 +5,6 @@ import { Icon } from 'astro-icon/components';
 import { tv } from '@lib/tv';
 import { splitYear } from '@lib/lists';
 import Chip from './ui/Chip.astro';
-import Ph from './ui/Ph.astro';
 import Typography from './ui/Typography.astro';
 
 /**
@@ -131,21 +130,17 @@ const lastWord = words.at(-1);
             rel="noreferrer noopener"
             class="no-underline after:absolute after:inset-0 group-hover:text-violet"
           >
-            <Ph when={item.placeholder.includes('name')}>
-              {lead && `${lead} `}
-              <span class="whitespace-nowrap">
-                {lastWord}
-                <Icon
-                  name="lucide:arrow-up-right"
-                  class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
-                />
-              </span>
-            </Ph>
+            {lead && `${lead} `}
+            <span class="whitespace-nowrap">
+              {lastWord}
+              <Icon
+                name="lucide:arrow-up-right"
+                class="ml-1 inline-block size-3.5 translate-y-px opacity-45 transition-[opacity,transform] duration-150 group-hover:translate-x-px group-hover:opacity-100"
+              />
+            </span>
           </a>
         ) : (
-          <Ph when={item.placeholder.includes('name')} class="text-ink">
-            {title}
-          </Ph>
+          <span class="text-ink">{title}</span>
         )
       }
       {
@@ -161,27 +156,17 @@ const lastWord = words.at(-1);
       /* Above the note: the subtitle identifies the item, the note is an
       opinion about it. */
       item.subtitle && (
-        <Ph
-          as="p"
-          when={item.placeholder.includes('subtitle')}
-          variant="data"
-          class="text-muted"
-        >
+        <Typography as="p" variant="data" class="text-muted">
           {item.subtitle}
-        </Ph>
+        </Typography>
       )
     }
 
     {
       item.note && (
-        <Ph
-          as="p"
-          when={item.placeholder.includes('note')}
-          variant="footnote"
-          class="max-w-[68ch] text-muted"
-        >
+        <Typography as="p" variant="footnote" class="max-w-[68ch] text-muted">
           {item.note}
-        </Ph>
+        </Typography>
       )
     }
 

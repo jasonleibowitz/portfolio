@@ -11,7 +11,6 @@ import FactBox from '@components/ui/FactBox.astro';
 import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
 import Button from '@components/ui/Button.astro';
-import Ph from '@components/ui/Ph.astro';
 import DeviceFrame from '@components/DeviceFrame.astro';
 import { getPublished } from '@lib/content';
 import { testflightRequestHref } from '@lib/site';
@@ -67,14 +66,9 @@ const ctas = [
     <Typography variant="heading1" class="my-3">
       {data.title}
     </Typography>
-    <Ph
-      as="p"
-      when={data.placeholder.includes('description')}
-      variant="intro"
-      class="max-w-[56ch] text-muted"
-    >
+    <Typography as="p" variant="intro" class="max-w-[56ch] text-muted">
       {data.description}
-    </Ph>
+    </Typography>
   </Section>
 
   <Section>

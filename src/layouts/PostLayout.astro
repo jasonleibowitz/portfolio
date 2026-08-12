@@ -11,6 +11,7 @@ import Toc from '@components/Toc.astro';
 import PostHero from '@components/PostHero.astro';
 import { readingMinutes, wordCount } from '@lib/reading';
 import { shareCard } from '@lib/og';
+import { postHref } from '@lib/content';
 import Link from '@components/ui/Link.astro';
 
 interface Props {
@@ -20,7 +21,8 @@ interface Props {
 }
 
 const { post, headings, next } = Astro.props;
-const { title, pubDate, description, tags, image, imageAlt } = post.data;
+const { title, pubDate, description, tags, coverImage, coverImageAlt } =
+  post.data;
 
 const minutes = readingMinutes(post.body);
 const words = wordCount(post.body);
@@ -101,7 +103,7 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
       <Toc headings={headings} />
 
       <div class:list={[measure, 'toc:row-start-2']}>
-        <PostHero src={image} alt={imageAlt} />
+        <PostHero src={coverImage} alt={coverImageAlt} />
 
         <Typography variant="longform" class="markdown"><slot /></Typography>
 
@@ -133,7 +135,7 @@ const measure = 'w-full max-w-measure max-toc:mx-auto toc:col-start-1';
           {
             next && (
               <a
-                href={`/writing/${next.id}/`}
+                href={postHref(next)}
                 class="group inline-flex min-h-11 items-center gap-2 font-semibold text-ink no-underline hover:text-violet"
               >
                 <Typography variant="data">Next</Typography>

@@ -54,6 +54,27 @@ export async function getPublished<C extends PublishableCollection>(
 }
 
 /**
+ * The address of an entry, for every link the site writes to one. There is one
+ * function for each collection, because each one has its own route base and an
+ * id alone does not say which.
+ *
+ * The id is the address: a `slug` in the frontmatter becomes the id, and an
+ * entry that sets none takes the name of its file. Thus none of these needs a
+ * fallback of its own.
+ */
+export function postHref(post: CollectionEntry<'blog'>): string {
+  return `/writing/${post.id}/`;
+}
+
+export function listHref(list: CollectionEntry<'lists'>): string {
+  return `/lists/${list.id}/`;
+}
+
+export function projectHref(project: CollectionEntry<'projects'>): string {
+  return `/projects/${project.id}/`;
+}
+
+/**
  * Tag rails read as an index, so they sort by name rather than by popularity:
  * a reader looking for one tag scans for where it should be, and a
  * frequency-ordered rail has no such place. `numeric` keeps decade tags in

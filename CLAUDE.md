@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal portfolio and blog for Jason Leibowitz (leibowitz.me) — a static **Astro 7** site. Content is MDX; UI is Astro components styled with **Tailwind 4**. The site ships **zero JS islands** — no framework runtime, only a few kB of hand-written vanilla modules. Package manager is **pnpm**; Node **>=22.12**.
+Personal portfolio and blog for Jason Leibowitz (leibowitz.me) — a static **Astro 7** site. Content is MDX; UI is Astro components styled with **Tailwind 4**. The site ships **zero JS islands** — no framework runtime, only a few kB of hand-written vanilla modules. Package manager is **pnpm**; Node **>=24**, because three scripts import TypeScript directly and rely on Node stripping the types.
 
 ## Commands
 
@@ -16,28 +16,32 @@ pnpm check         # astro check (typecheck .astro + .ts)
 pnpm lint          # eslint (flat config, covers .ts/.astro)
 pnpm format        # prettier --write .
 pnpm format:check  # prettier --check .  (CI gate)
+pnpm test          # vitest run
+pnpm test:watch    # vitest, watching
 pnpm plop          # scaffold a new blog post
 ```
 
-There is no test suite. The four gates that must stay green are `build`, `check`, `lint`, `format:check`. A husky `pre-commit` hook runs `lint-staged` over changed files.
+The five gates that must stay green are `build`, `check`, `lint`, `format:check` and `test`. A husky `pre-commit` hook runs `lint-staged` over changed files.
+
+**`pnpm test` is Vitest, and it covers pure functions only.** `slugify()` and `refuseDuplicateAddresses()` have tests because each one decides an address, and a wrong address is a wrong page. Both were previously checked by hand: `slugify` through throwaway scripts, and the duplicate check by editing a real post and reading an exit code, which is how one slug got lost. Anything that reads the filesystem, renders a component or draws a card has no test, and the browser pass below is what covers it. `vitest.config.ts` uses `getViteConfig()` from `astro/config`, so a test gets the path aliases and the `astro:` modules a page gets.
 
 When verifying a change, **check the exit code** — grepping build output for a success string will silently pass on a failed build.
 
-**None of the four gates render a page.** Layout regressions, dead client-side scripts and overflow are all invisible to them, so anything visual or interactive has to be checked in a real browser. See "Verifying the design" below.
+**None of the five gates renders a page.** Layout regressions, dead client-side scripts and overflow are all invisible to them, so anything visual or interactive has to be checked in a real browser. See "Verifying the design" below.
 
 ## Content architecture
 
 Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _not_ `src/content/config.ts`) using `glob()` loaders:
 
-| Collection | Directory              | Route base  | Required frontmatter                                      |
-| ---------- | ---------------------- | ----------- | --------------------------------------------------------- |
-| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, image, imageAlt, tags[]`         |
-| `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]` |
-| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`        |
+| Collection | Directory              | Route base  | Required frontmatter                                        |
+| ---------- | ---------------------- | ----------- | ----------------------------------------------------------- |
+| `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, coverImage, coverImageAlt, tags[]` |
+| `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]`   |
+| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`          |
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from `astro:content` is deprecated.
 
-A `placeholder: []` array on an entry names the frontmatter fields that are still awaiting real copy; the templates render those with a dotted underline (`placeholder-copy`) so the gaps are visible on the page rather than described in a document. Do not invent replacements — see "Placeholder content" below.
+Copy that is not final says so in its own first word — see "Placeholder content" below. Do not invent replacements.
 
 ### Reading content: always go through `src/lib/content.ts`
 
@@ -55,7 +59,19 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 ### URLs and ordering
 
-**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so `entry.id` is the folder name and the date prefix appears in the URL: `/writing/2023-05-21-so-you-want-to-get-an-espresso-machine/`. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
+**A post is a folder, not a file.** `src/content/blog/YYYY-MM-DD-kebab-title/index.mdx`, with the post's images beside it as plain siblings: `./jura-z10.jpg`. The glob loader drops the `/index`, so a post with no `slug` takes its folder name as `entry.id` and the date prefix appears in the URL. A flat `.mdx` produces exactly the same id, so the two forms are interchangeable as far as routing goes; this was measured by building both and diffing the route list.
+
+**The URL is the `slug`, not the filename.** A `slug` owns the address in **all three collections**, and an entry without one publishes under its filename. The glob loader supplies that fallback: `entry.id` is the `slug` when there is one, which is why `params: { slug: entry.id }` and `postHref()` in `src/lib/content.ts` need no `??` of their own. Ordering never reads either one.
+
+**Write a slug where the address differs from the filename, and not otherwise.** A slug repeating its own filename says nothing and is a second copy to keep correct, so `winnie-the-poo-tracker.mdx` and `favorite-movies.mdx` carry none. The eight that do carry one are each doing work: every post, because its folder keeps the `YYYY-MM-DD-` prefix that sorts the directory while the URL carries none (`/writing/espresso-machines/`); `reel-watch.mdx` → `/projects/reel/` and `leibowitz-me.mdx` → `/projects/portfolio-website/`, where the filename holds what the file was called and the slug holds what a reader should type; `podcasts.mdx` → `/lists/favorite-podcasts/`, matching its "My Favorite Podcasts" title.
+
+**One rule for all three, `address` in `src/content.config.ts`.** The loader reads a `slug` whether a schema declares it or not, so the choice was never whether the field exists, only whether it is checked. Undeclared, `slug: 'Favorite Movies/2024'` on a list built a page at `/lists/Favorite Movies/2024/`, linked it from the index, wrote its share card into a _directory_ of that name, and exited 0. Small letters, digits and single dashes are what a route can serve. The rule cannot gate the id, since the loader reads raw frontmatter before any schema runs, so it fails the build instead. That file says "small letters" rather than the one-word spelling on purpose: Tailwind scans it, and the one word is a class name it would emit into the site's CSS.
+
+**A slug is free to change, and nothing redirects the old one.** No post has ever been published, so no URL here carries an inbound link and none of them is load bearing. Do not reason from SEO or from "a decade of inbound links" about anything under `/writing`: that claim is false, whatever a document says. This stops being true the day the site serves leibowitz.me, and a rename after that needs a redirect the site cannot currently write. Issue #29, PR 6 owns it, and holds what a redirect here costs: Cloudflare's `_redirects` serves real 301s from a static-assets Worker, while Astro's `redirects` only emits `<meta http-equiv="refresh">` pages.
+
+**Two entries with one slug is a build failure.** Astro only warns on a duplicate id and keeps the last of the two, so the earlier entry loses its page while the build stays green; that was measured, not assumed. `refuseDuplicateAddresses()` in `scripts/addresses.ts` refuses it, called from `scripts/og-card.ts`, because that script is the only reader of the content directory outside Astro and by the time a route runs the loader has already dropped one. It covers all three collections and counts drafts, since a draft is what a preview build renders. Projects draw no card, so `og-card.ts` reads them for the check alone. The check sits in its own file because `og-card.ts` launches Chrome as it loads, which a test cannot import.
+
+**`slugify()` in `src/lib/slug.ts` derives a slug from a title**, and the generator (and later the admin) offers the result. It is four lines of JavaScript, deliberately not `github-slugger`: that package slugs heading anchors, so it keeps accents and doubled dashes, which the zod rule refuses. Measured on 8 titles, it failed the rule on 4; `slugify()` failed on none. Do not swap plop's `dashCase` back in either, since it splits camelCase into `e-sim` and `i-phone`.
 
 The folder is what makes an image belong to a post. Deleting a post deletes its images, and renaming one carries them, neither of which a shared image directory can do: the espresso post carried an unreferenced `cover-dalle.png` for years precisely because nothing tied it to anything, and moving the images into the post is what made it visible enough to delete. Only reach for a shared location if an image is genuinely used by more than one post, which none currently is.
 
@@ -65,9 +81,9 @@ A path under `public/` is copied byte for byte, so an image there is never resiz
 
 `image: { layout: 'constrained' }` in `astro.config.mjs` is what reaches the images in a post body. A body writes them as `![]()`, so there is no component to hang a `widths` prop on, and `layout` is the setting that applies to markdown images as well as to `<Image>`. Its `sizes` is derived from each image's own width, not from the 46rem column, so a body image is still larger than it has to be: a source wider than the viewport falls back to `100vw`, and at 1280px the three largest on the espresso post ship 1280px files into a 736px column, 230 kB of that page's 349 kB. A per-image `sizes` is the remaining win, and there is no way to write one in markdown today. `PostHero` writes its own, which is why the hero is not affected.
 
-The hero is `image` plus `imageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
+The hero is `coverImage` plus `coverImageAlt`, two fields rather than one object, because `image()` is a zod helper and cannot carry a sibling key. They are named for the cover and not for the hero because `BaseLayout` already takes `image`/`imageAlt` props meaning the share card, and `PostLayout` uses both six lines apart. It renders through `PostHero`, which crops it to 736x414 in `sharp`: the 16:9 band is the design's and a cover can carry any ratio, so without a `height` the browser gets the whole file and `object-cover` hides the rest.
 
-**The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<slug>.mdx` and `<slug>/index.mdx` and must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
+**The hero is not the share card.** `scripts/og-card.ts` composes a 1200x630 card per post, and `shareCard()` fails the build if one is missing. That script reads frontmatter itself, outside Astro, so it is the one place that has to be told a post is a folder: `entryFiles()` accepts both `<name>.mdx` and `<name>/index.mdx`, `published()` then lets a `slug` win over the filename, and between them they must keep deriving the same ids as the glob loader above. An id that disagrees names a card no page asks for, and leaves the card a page does ask for undrawn.
 
 ### Creating a post
 
@@ -77,7 +93,7 @@ The hero is `image` plus `imageAlt`, two fields rather than one object, because 
 pnpm plop blog-post "Post Title" "Short description" "tag1,tag2"
 ```
 
-Generates `src/content/blog/<today>-<dash-case-title>/index.mdx` with `draft: true`, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
+Generates `src/content/blog/<today>-<slugified-title>/index.mdx` with `draft: true` and `slug: <slugified-title>`, so the folder sorts by date and the URL carries none, and copies `plop-templates/placeholder.webp` in beside it as `cover.webp`. Replace that file before publishing. The copy is a custom action in `plopfile.js` rather than a second `add`: plop runs an added file through Handlebars, which corrupts a binary.
 
 `plop-templates/` is in `.prettierignore` on purpose: Prettier rewrites `{{ expr }}` into `{ { expr } }`, which breaks the generator silently.
 
@@ -95,7 +111,7 @@ _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines
 
 `plugins/remark-figure.ts` does this. It is registered through `markdown.processor: unified({ remarkPlugins: [...] })` from `@astrojs/markdown-remark`, because `markdown.remarkPlugins` is deprecated in Astro 7 and warns on every run of `astro check`. `markdown.shikiConfig` is not deprecated and stays where it is. The caption line is ordinary markdown, so an attribution link needs no markup of its own, and the emphasis is dropped from the output: `figcaption` already carries the design's caption style. An image with no caption line still becomes a `<figure>`, which is what gives every image in a post the same width, radius and shadow.
 
-**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. A hero has no caption, so `imageAlt` is the only thing a screen reader gets and it always describes the frame; where a hero is someone else's photo the credit goes at the end of that sentence, since there is nowhere else on the page to put it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
+**Alt text and the caption are different sentences.** A screen reader reads both, so an alt that repeats its caption says the same thing twice. Describe what is in the frame in the alt, and let the caption carry the label. An image that has a caption may use an empty alt, because the caption already describes it. A hero has no caption, so `coverImageAlt` is the only thing a screen reader gets and it always describes the frame; where a hero is someone else's photo the credit goes at the end of that sentence, since there is nowhere else on the page to put it. An image with no alt and no caption is the one combination that is always wrong, because it reaches a screen reader as nothing at all, and `remark-figure` warns during the build when it finds one. That warning is the only check there is: `eslint-plugin-jsx-a11y` is scoped to `.jsx` and `.tsx`, so it never sees an `.mdx` body.
 
 **A link inside a caption takes the caption's color.** The caption is `--color-faint`, so a link at the full violet would be more visible than the caption around it, and the attribution would draw the eye before the caption does. The plugin puts `[&_a]:text-faint` on the `figcaption` it builds, and `Link` still supplies the weight and the underline, so it still reads as a link. The class goes on the element rather than into `content.css` because a markdown `a` is a component, and that file says it has no `& a` rule for that reason. Tailwind scans `plugins/`, so a utility written there compiles like any other.
 
@@ -153,7 +169,7 @@ Two things to know about how the tokens work:
 - an `@theme` token generates a real utility (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-page` → `max-w-page`), so nothing below should be reached for as `var(--…)` from markup;
 - `:root[data-theme='dark']` overrides those same custom properties, so every utility re-derives in dark mode instead of needing a `dark:` twin for each color. `@custom-variant dark` points at the same attribute for the cases that do need one.
 
-The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `aurora-field`, `placeholder-copy` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
+The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `aurora-field` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
 
 **Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial` drops Tailwind's seven default radii so only the design's four exist, which is deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than failing, and the element loses its corner with a green build. The same is true of any namespace you clear. Grep for the old names after clearing one.
 
@@ -201,11 +217,13 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches and case-study bodies are placeholder, marked with a dotted underline by `Ph`. **Do not invent replacements** — Jason fills these in. The mark on each paragraph is the whole signal: `PhNote` was deleted, and so was the page-level note that summarised them. Do not reinstate a summary. It can only repeat what the underlines already show, or contradict them the day a real paragraph is written.
+App pitches and case-study bodies are placeholder. **Each one opens with the word "Placeholder", and that is the whole signal.** **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
 
-**The two `Started` dates in project frontmatter are still provisional, and are the one placeholder the page does not mark.** `Fact` has no `ph` prop and `specs[]` has no `placeholder` field, so those rows render as fact. This is deliberate: the marker was removed rather than the values corrected, and Jason corrects them before the site goes live. Do not reinstate the prop to flag them, and do not guess the real dates.
+**Nothing marks placeholder copy in the design any more.** A dotted underline was the plan, through a `placeholder` frontmatter array, a `Ph` component and a `placeholder-copy` utility. All three are deleted. The frontmatter array cost a field on all three collections, was read in eight places, and was set by exactly one entry; the utility never drew anything at all, because MDX emitted `<p class="placeholder-copy"><p>the text</p></p>` and HTML forbids a `<p>` inside a `<p>`, so the class landed on an empty paragraph while the copy rendered unmarked. That was confirmed in a browser through computed styles, not read off the source. Building any of it again needs a better argument than those had, and a `<span>` rather than a `<p>`, since an inline element cannot nest a block.
 
-List entries no longer carry a stub note. `note` is optional, and an entry without one renders as name, tags and artwork — so the way to add a note is to write a real one, not to reinstate a placeholder.
+The two `Started` dates in project frontmatter are provisional and render as fact. They get corrected before the site goes live. Do not guess them, and do not build a marker for them.
+
+List entries carry no stub note. `note` is optional, and an entry without one renders as name, tags and artwork, so the way to add a note is to write a real one.
 
 The About bio, the employment record and the "Beyond the CV" numbers have all been filled in and are no longer placeholder. Accomplishment bullets under Experience are not coming at all — the resume is where a recruiter reads what a role achieved — so a role that renders as title and dates alone is finished, not unfinished.
 
@@ -243,7 +261,7 @@ Until DNS cuts over, the live site is still served by the separate `jasonleibowi
 
 A preview is a **version** of the one Worker reached through an alias, not a separate environment. Nothing is provisioned per branch, so nothing needs tearing down — and nothing can be: Cloudflare has no API to delete an alias, only LRU eviction past 1,000 of them.
 
-Both jobs `needs: verify`, so a build that fails any of the four gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
+Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
 
 **A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The staging deployment does serve the full value, which is how the two were told apart. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
 
