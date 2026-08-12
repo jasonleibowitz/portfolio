@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import { tv } from '@lib/tv';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
+import { projectHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
 /**
@@ -64,7 +65,7 @@ const hasIcon = Boolean(data.icon);
 
 {/* aria-label: without it the name is the whole row read as one run-on. */}
 <a
-  href={`/projects/${project.id}/`}
+  href={projectHref(project)}
   aria-label={data.title}
   class:list={[
     'group min-w-0 border-t border-line py-8 no-underline hover:border-line-strong',

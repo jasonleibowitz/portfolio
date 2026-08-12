@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
 import DeviceFrame from './DeviceFrame.astro';
+import { projectHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
 /** One project on `/projects`, as a full-width editorial row. */
@@ -27,7 +28,7 @@ const isWindow = data.frame === 'window';
 ---
 
 <a
-  href={`/projects/${project.id}/`}
+  href={projectHref(project)}
   aria-label={data.title}
   class="group block border-t border-line py-10 no-underline"
 >

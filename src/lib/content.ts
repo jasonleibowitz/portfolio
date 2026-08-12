@@ -53,9 +53,25 @@ export async function getPublished<C extends PublishableCollection>(
   return (entries as PublishableEntry[]).sort(compare) as CollectionEntry<C>[];
 }
 
-/** The address of a post, for every link the site writes to one. */
+/**
+ * The address of an entry, for every link the site writes to one. There is one
+ * function for each collection, because each one has its own route base and an
+ * id alone does not say which.
+ *
+ * The id is the address: a `slug` in the frontmatter becomes the id, and an
+ * entry that sets none takes the name of its file. Thus none of these needs a
+ * fallback of its own.
+ */
 export function postHref(post: CollectionEntry<'blog'>): string {
   return `/writing/${post.id}/`;
+}
+
+export function listHref(list: CollectionEntry<'lists'>): string {
+  return `/lists/${list.id}/`;
+}
+
+export function projectHref(project: CollectionEntry<'projects'>): string {
+  return `/projects/${project.id}/`;
 }
 
 /**

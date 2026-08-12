@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import { formatDay } from '@lib/dates';
 import { allItems, splitYear } from '@lib/lists';
+import { listHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
 /**
@@ -58,7 +59,7 @@ const shape = data.ranked
 ---
 
 <a
-  href={`/lists/${list.id}/`}
+  href={listHref(list)}
   aria-label={data.title}
   class="group block border-t border-line py-8 no-underline card:py-10"
 >
