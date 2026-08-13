@@ -31,6 +31,17 @@ const dot = tv({
  */
 export type ProjectStatus = CollectionEntry<'projects'>['data']['status'];
 
+/**
+ * The word beside the dot, keyed to `status` so the two cannot disagree. Every
+ * project at a stage says the same thing about it, thus the word belongs to
+ * the stage and not to the entry.
+ */
+const LABEL: Record<ProjectStatus, string> = {
+  development: 'In Development',
+  testing: 'In Beta',
+  live: 'Live',
+};
+
 interface Props {
   status: ProjectStatus;
   class?: string;
@@ -44,5 +55,5 @@ const { status, class: className } = Astro.props;
   as="span"
   class:list={['inline-flex items-center gap-[7px] text-muted', className]}
 >
-  <i class={dot({ status })}></i><slot />
+  <i class={dot({ status })}></i>{LABEL[status]}
 </Typography>

@@ -72,9 +72,7 @@ const ctas = [
   imageHeight={data.icon?.height}
 >
   <Section flush={false}>
-    <Status status={data.status}>
-      {data.status_text_long ?? data.status_text}
-    </Status>
+    <Status status={data.status} />
     <Typography variant="heading1" class="my-3">
       {data.title}
     </Typography>

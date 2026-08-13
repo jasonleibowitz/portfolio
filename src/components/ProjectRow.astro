@@ -67,7 +67,7 @@ const variant = (index % 3) as 0 | 1 | 2;
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-3">
-      <Status status={data.status}>{data.status_text}</Status>
+      <Status status={data.status} />
 
       {/* The page h1 is the masthead, and a row is its first subsection. */}
       <Typography variant="heading2">

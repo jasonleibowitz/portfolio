@@ -163,10 +163,10 @@ const lists = defineCollection({
  * with no icon shows none, because a tile made from the first letter says
  * nothing.
  *
- * Three fields carry the state of the work. `status` colors the dot: `testing`
- * means real users have a build, and `development` is every step before that.
- * `status_text` says the same thing in words, and `status_text_long` replaces
- * it on the page of the project, where there is room for a clause.
+ * `status` carries the state of the work on its own. It colors the dot and it
+ * supplies the word beside it: `testing` means real users have a build, and
+ * `development` is every step before that. `Status.astro` owns the wording, so
+ * two projects at one stage cannot describe it differently.
  *
  * `testflight` adds the "Join the beta" button, with the mail already written.
  * It is a field of its own because `status` cannot say it: a web app in test
@@ -213,8 +213,6 @@ const projects = defineCollection({
       description: z.string(),
       icon: image().optional(),
       status: z.enum(['development', 'testing', 'live']),
-      status_text: z.string(),
-      status_text_long: z.string().optional(),
       stack: z.array(z.string()),
       frame: z.enum(['phone', 'window']).default('phone'),
       screenshots: z.array(screenshot).default([]),
