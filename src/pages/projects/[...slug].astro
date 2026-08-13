@@ -154,12 +154,13 @@ const ctas = [
         /* The rail names the one platform this runs on; this names everything
           it is built out of. It sits under the captures rather than in the
           rail because the rail is a ledger of short values and a stack is a
-          set of them, and because it reads as the caption to what was just
-          shown rather than as a footnote to the write-up below. */
+          set of them. Its heading is the same `heading2` a `##` in the body
+          gets, so it reads as the first section of the write-up and not as a
+          label on the row above it. */
       }
       <div class="border-t border-line pt-6 spec:col-start-1 spec:row-start-2">
-        <Typography variant="caption" as="h2">Stack</Typography>
-        <div class="mt-3 flex flex-wrap gap-1.5">
+        <Typography variant="heading2">Stack</Typography>
+        <div class="mt-4 flex flex-wrap gap-1.5">
           {data.stack.map((tool) => <Chip>{tool}</Chip>)}
         </div>
       </div>
