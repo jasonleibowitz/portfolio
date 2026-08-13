@@ -45,18 +45,16 @@ draft: false
 
 ## The problem
 
-During the height of the Covid lockdown I was diagnosed with Crohn's Disease. My doctor wanted me to keep a log of all of my _bowel movements_ to report back to him. As someone who likes spreadsheets and apps I looked for an existing app that would do this for me, but they were all pretty _shitty_. So I built Winnie the Poo Tracker as a very simple _BM_ log that surfaces interesting and important stats for both you and your doctor.
+I was diagnosed with Crohn's Disease during lockdown, and my doctor asked me to log every bowel movement and report back at my next appointment. I like spreadsheets and I like apps, so I went looking for one that would do it for me. Nothing I tried was worth opening twice a day. So I built Winnie the Poo Tracker: a log that takes seconds to fill in, and turns months of entries into something worth handing a gastroenterologist.
 
-## How it works
+## What it does
 
-The app is pretty simple. The main screen is just a log of your _BMs_, then stats surfaces important and interesting stats and trends for you to share with your doctor.
+The main screen is a log of entries grouped by day. Logging one is a single screen of segmented controls, a Bristol type slider and a color swatch, built so it can be done in the moment rather than remembered later. Trends turns that history into a daily average, a weekly total, an average Bristol type, a streak and a month-over-month comparison, which is the view that actually goes to a doctor.
 
-When building a health-focused app, privacy is of paramount concern. I also wanted to focus on a fully featured offline-first app. The app uses TanStack Query (with `persistQueryClient`) and MMKV. All data is optimistically updated locally. If the user is offline data syncs as soon as they're back online.
+## How it's built
 
-There is no separate API and all logic is processed client-side in the app.
+Expo and React Native, with Supabase for auth and Postgres. It is offline-first, because the moments you need to log one are not moments you have signal. Reads come from TanStack Query with its cache persisted to MMKV, so a cold start on a plane opens to real data. Writes go into a persistent queue that applies them locally first and drains when the network returns, the app comes back to the foreground, or a timer fires, with per-entry retry, backoff and rollback if the server rejects one. Authorization is row-level security in Postgres rather than checks in the client, which for health data is the only place it belongs.
 
 ## What I'd do differently
 
-This was my first React Native app and I was focused on making it an entirely offline experience. For simplicity and speed I used Supabase for authentication and the database, but wanted the app to work fully offline. Initially I set up PowerSync as a Database Sync Engine. Unfortunately their free tier killed the app after a short period of inactivity and their paid tier wasn't cheap.
-
-I rebuilt the app with TanStack Query handling any offline persistence and syncing.
+This was my first React Native app, and I started by reaching for a sync engine: PowerSync sat between the app and Postgres and handled replication. Its free tier stopped the app after a period of inactivity and the paid tier was hard to justify for a beta, so I removed it and rebuilt persistence and sync on TanStack Query and a queue I own. I would make that call sooner now. The dependency was doing work I could describe precisely, which is usually a sign I should write it.
