@@ -8,10 +8,15 @@ const chip = tv({
   base: 'spectrum-charge rounded-full border px-2.5 py-1 font-mono text-[0.6875rem] tracking-[0.04em]',
   variants: {
     size: {
-      // Stack chips and project chips.
+      // Stack chips and project chips, beside metadata set at the same size.
       default: 'border-line',
       // The inline tag markers on a row, which sit inside a meta line.
       mini: 'border-line px-2 py-0.5',
+      /* A stack set in a column of longform, where the neighbours are a 31px
+         heading and 22px prose rather than a 12px label. At `default` the chip
+         reads at half the size of the paragraph under it and looks like a
+         footnote to the section rather than the content of it. */
+      prose: 'border-line px-3 py-1.5 text-note',
     },
     accent: {
       none: '',
@@ -22,7 +27,7 @@ const chip = tv({
 });
 
 interface Props {
-  size?: 'default' | 'mini';
+  size?: 'default' | 'mini' | 'prose';
   accent?: 'none' | 'violet';
   class?: string;
 }
