@@ -21,7 +21,7 @@ import { tv } from '@lib/tv';
  */
 interface Props {
   kind?: 'phone' | 'window';
-  size?: 'default' | 'wide' | 'shot';
+  size?: 'default' | 'wide' | 'shot' | 'mixed';
   /**
    * Give the slot its width and nothing else. A capture of a browser arrives
    * with its own window already around it, chrome and shadow and all, thus a
@@ -42,7 +42,7 @@ const frame = tv({
       phone: '',
       window: '',
     },
-    size: { default: '', wide: '', shot: '' },
+    size: { default: '', wide: '', shot: '', mixed: '' },
   },
   compoundVariants: [
     {
@@ -61,29 +61,39 @@ const frame = tv({
       size: 'wide',
       class: '[--shot-w:140px] card:[--shot-w:200px]',
     },
-    /*
-     * The two `shot` widths below are picked to draw the same height, 594px,
-     * because a row mixing a phone and a browser reads as broken when one is
-     * twice the other. They differ because the shapes do: a capture of a page
-     * is landscape and a capture of an app is portrait, thus equal height buys
-     * a wide window and a narrow phone, and the row scrolls.
-     *
-     * Each is derived from its own capture: a phone is 1320x2868 inside a
-     * bezel of 2.1%, and a page is 1968x1349 bare. A capture of another shape
-     * needs these worked out again.
-     *
-     * Wider than the write-up column can hold, thus that row scrolls. At 160px
-     * a screen was a thumbnail; at 280px its body copy reads, which is the
-     * whole reason the captures are on the page.
-     */
+    /* At 160px a screen was a thumbnail; at 280px its body copy reads, which
+       is the whole reason the captures are on the page. */
     { kind: 'phone', size: 'shot', class: '[--shot-w:280px]' },
+
+    /*
+     * `mixed` is for a row holding both a phone and a browser. The two are
+     * opposite shapes, thus equal height buys a wide window and a narrow
+     * phone, and both are worked out from one height, 440px:
+     *
+     *   a page  1968x1349 bare, thus width is height x 1968/1349
+     *   a phone 1320x2868 in a bezel, drawn 2.1214 times as tall as it is wide
+     *
+     * 440px is what lets the widest of them sit inside the write-up column
+     * with the next one showing past it. Filling the column exactly reads as a
+     * picture that got cut off, not as a row that scrolls.
+     */
+    {
+      kind: 'phone',
+      size: 'mixed',
+      class: '[--shot-w:calc(440px/2.1214)]',
+    },
+    {
+      kind: 'window',
+      size: 'mixed',
+      class: '[--shot-w:calc(440px*1968/1349)]',
+    },
     { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
     {
       kind: 'window',
       size: 'wide',
       class: '[--shot-w:240px] card:[--shot-w:280px]',
     },
-    { kind: 'window', size: 'shot', class: '[--shot-w:867px]' },
+    { kind: 'window', size: 'shot', class: '[--shot-w:640px]' },
   ],
   defaultVariants: { kind: 'phone', size: 'default', chrome: true },
 });

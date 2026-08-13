@@ -39,6 +39,16 @@ const shareIcon = data.icon
   ? await getImage({ src: data.icon, format: 'png' })
   : undefined;
 
+/**
+ * A row holding one shape draws it as large as the column allows. A row
+ * holding both a phone and a browser has to settle on one height for the two,
+ * which makes each of them smaller, thus it is only paid for where it is owed.
+ */
+const shotSize =
+  new Set(data.screenshots.map((shot) => shot.frame ?? data.frame)).size > 1
+    ? 'mixed'
+    : 'shot';
+
 /** The beta invite first, because it is the one that asks for a reply. */
 const ctas = [
   data.testflight && {
@@ -83,10 +93,12 @@ const ctas = [
       class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
     >
       {
-        /* The captures are wider than the column on purpose, so a screen is big
-        enough to read rather than big enough to identify. That makes the row a
-        scroller, thus it takes a tabindex: a region that scrolls and holds no
-        link of its own is unreachable by keyboard without one. */
+        /* The captures are drawn big enough to read rather than big enough to
+        identify, thus the set of them runs past the column and the row is a
+        scroller. It takes a tabindex for that: a region that scrolls and holds
+        no link of its own is unreachable by keyboard without one. Each capture
+        still fits, so the edge of the column shows the next one and not the
+        middle of the current one. */
       }
       <div
         class="flex snap-x snap-mandatory gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1 [scrollbar-width:thin]"
@@ -100,7 +112,7 @@ const ctas = [
                 <Screenshot
                   shot={shot}
                   kind={shot.frame ?? data.frame}
-                  size="shot"
+                  size={shotSize}
                 />
               ))
             : [0, 1, 2].map((variant) => (

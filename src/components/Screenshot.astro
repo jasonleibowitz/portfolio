@@ -20,9 +20,21 @@ interface Props {
     alt: string;
   };
   kind?: 'phone' | 'window';
-  size?: 'default' | 'wide' | 'shot';
+  size?: 'default' | 'wide' | 'shot' | 'mixed';
   class?: string;
 }
+
+/**
+ * The widest each slot is ever drawn, in CSS pixels, rounded up. `densities`
+ * doubles it for a retina screen, thus one number here decides whether a
+ * capture is sharp. A single figure for every slot is what made the browser
+ * shots mush: 400 covered a 280px phone twice over and left a 640px window
+ * upscaling a file smaller than the space it had to fill.
+ */
+const INTRINSIC = {
+  phone: { default: 150, wide: 210, shot: 290, mixed: 220 },
+  window: { default: 250, wide: 290, shot: 650, mixed: 650 },
+} as const;
 
 const {
   shot,
@@ -39,6 +51,7 @@ const {
 const bare = kind === 'window';
 const radius = bare ? '' : 'rounded-[calc(var(--shot-w)*0.120)]';
 const shared = `block w-full ${radius}`;
+const width = INTRINSIC[kind][size];
 
 /*
  * Both files ship, and both say `eager`, which `<Image>` needs told: it lazies
@@ -59,7 +72,7 @@ const shared = `block w-full ${radius}`;
   <Image
     src={shot.light}
     alt={shot.alt}
-    width={400}
+    width={width}
     densities={[1, 2]}
     loading="eager"
     class:list={[shared, shot.dark && 'dark:hidden']}
@@ -70,7 +83,7 @@ const shared = `block w-full ${radius}`;
       <Image
         src={shot.dark}
         alt={shot.alt}
-        width={400}
+        width={width}
         densities={[1, 2]}
         loading="eager"
         class:list={[shared, 'hidden dark:block']}
