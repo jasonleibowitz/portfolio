@@ -18,6 +18,15 @@ import { tv } from '@lib/tv';
  *
  * A width set from outside would leave those five scaled to a number the frame
  * no longer has, thus the size comes from `size` and never from a parent.
+ *
+ * Where a size has to answer to the width of the row, it is written in `cqw`
+ * against the row's own container, and never in `%`. A percentage inside a
+ * custom property is resolved by whatever reads it, against that element's own
+ * containing block: the frame took its width from the row, while the screen
+ * took its corner from the frame and the island took its size from the bezel.
+ * The screen came out nearly square inside a rounded body and the island came
+ * out a quarter of its size, which reads as a picture clipped by its frame.
+ * One container unit means every reader gets the same number.
  */
 interface Props {
   kind?: 'phone' | 'window';
@@ -66,7 +75,7 @@ const frame = tv({
     {
       kind: 'phone',
       size: 'shot',
-      class: '[--shot-w:min(280px,calc(100%-40px))]',
+      class: '[--shot-w:min(280px,calc(100cqw-40px))]',
     },
 
     /*
@@ -88,12 +97,12 @@ const frame = tv({
     {
       kind: 'phone',
       size: 'mixed',
-      class: '[--shot-w:calc(min(642px,calc(100%-40px))*0.3231)]',
+      class: '[--shot-w:calc(min(642px,calc(100cqw-40px))*0.3231)]',
     },
     {
       kind: 'window',
       size: 'mixed',
-      class: '[--shot-w:min(642px,calc(100%-40px))]',
+      class: '[--shot-w:min(642px,calc(100cqw-40px))]',
     },
     { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
     {
@@ -104,7 +113,7 @@ const frame = tv({
     {
       kind: 'window',
       size: 'shot',
-      class: '[--shot-w:min(640px,calc(100%-40px))]',
+      class: '[--shot-w:min(640px,calc(100cqw-40px))]',
     },
   ],
   defaultVariants: { kind: 'phone', size: 'default', chrome: true },
