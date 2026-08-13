@@ -72,7 +72,7 @@ Reel is a single-player app first, because a recommendation engine that does not
 
 ## How it's built
 
-Ranking a film starts with one tap on its poster: Liked It, or Not For Me. After that it is a binary search. Every head-to-head comparison halves the range the film could sit in, so slotting it into a library of hundreds takes a handful of questions rather than a walk down the list, and it stays a handful as the library grows.
+Ranking a film starts with one tap on its poster: _Liked It_ or _Not For Me_. After that it is a binary search. Every head-to-head comparison halves the range the film could sit in, so slotting it into a library of hundreds takes a handful of questions rather than a walk down the list, and it stays a handful as the library grows.
 
 The score falls out of where it lands. Each of the two answers owns a slice of the ten-point scale, and a film's position inside its slice interpolates a number within it, so a film you said you liked never prints in the 4s. That matters more than it sounds. People read a 4 as a bad film, because a 4 is a bad film on IMDb and Letterboxd, and a scale that argues with the ones already in someone's head loses. No score is ever stored either. It is computed from position each time it is read, which is why scores shift a little as a library fills out, and why a 9.1 in Reel says something about your taste rather than borrowing a scale everyone reads differently.
 
