@@ -37,7 +37,7 @@ Collections are declared in **`src/content.config.ts`** (Astro 5+ location — _
 | ---------- | ---------------------- | ----------- | ----------------------------------------------------------- |
 | `blog`     | `src/content/blog`     | `/writing`  | `title, pubDate, author, coverImage, coverImageAlt, tags[]` |
 | `lists`    | `src/content/lists`    | `/lists`    | `title, updated`; then `ranked` + `items[]` or `groups[]`   |
-| `projects` | `src/content/projects` | `/projects` | `title, description, status, status_text, stack[]`          |
+| `projects` | `src/content/projects` | `/projects` | `title, description, status, stack[]`                       |
 
 `draft` defaults to `false`. Import zod from `astro/zod` — the `z` re-export from `astro:content` is deprecated.
 
