@@ -77,9 +77,11 @@ Confirmed and load-bearing:
 - The writing archive is **evidence, not a publication**. It demonstrates that Jason thinks and writes clearly; there is no committed cadence and no obligation to headline it. Presented, not promoted.
 - **Search-phase state must be isolated.** Availability wording and contact emphasis live in one editable place (a config value or a single content field), so flipping phases is an edit, not a project. See the two-phase requirement above.
 
-**Placeholder policy — a product rule, not a styling one.** Copy Jason has not written yet is marked (`placeholder: []` in frontmatter, `placeholder-copy`) and rendered with a dotted underline so the gap is visible on the page rather than buried in a document. **Nothing in that set may be invented or filled in on his behalf.**
+**Placeholder policy — a product rule, not a styling one.** Copy Jason has not written yet **opens with the word "Placeholder", and that is the whole signal.** Nothing in the design marks it: the frontmatter field, the component and the dotted underline that once did are all deleted, and rebuilding any of them needs a better argument than they had. **Nothing in that set may be invented or filled in on his behalf**, and no page-level note should list which paragraphs are unfinished, because the paragraphs already say so and a summary can only go stale.
 
-One deliberate exception: the two `Started` dates on the app projects are provisional and are **not** marked, because per-row spec marking was removed in favour of fewer components. They render as fact, and correcting them before launch is a thing Jason remembers rather than a thing the page shows.
+The Reel and leibowitz.me case-study bodies still carry it. Winnie's are written.
+
+One thing is provisional without saying so: the two `Started` dates on the app projects render as fact. Correcting them before launch is a thing Jason remembers rather than a thing the page shows.
 
 ## Brand Commitments
 
@@ -115,7 +117,7 @@ Real:
 
 1. **Specifics carry the pitch.** Named companies, real stacks, shipped artifacts. Every adjective is a place where a fact should have been.
 2. **The site is the work sample.** For the peer engineer, how it is built is evidence — so craft, performance, and the zero-JS constraint are part of the argument, not overhead.
-3. **A visible gap beats an invented fact.** Placeholder copy stays marked and unwritten until Jason writes it. This protects the one thing the site is selling.
+3. **A visible gap beats an invented fact.** Placeholder copy says so in its own first word and stays unwritten until Jason writes it. This protects the one thing the site is selling.
 4. **Build for the hired version too.** Anything that only makes sense during a job search is a liability. The search shows up as one adjustable signal, not as the site's premise.
 5. **Every page is a landing page.** Visitors arrive sideways from a link, so no surface may assume the homepage was read first.
 6. **Permanence is a feature.** Old URLs keep working. A decade of inbound links is an asset, and breaking them costs more than any redesign gains.
