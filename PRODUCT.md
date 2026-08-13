@@ -79,7 +79,7 @@ Confirmed and load-bearing:
 
 **Placeholder policy — a product rule, not a styling one.** Copy Jason has not written yet **opens with the word "Placeholder", and that is the whole signal.** Nothing in the design marks it: the frontmatter field, the component and the dotted underline that once did are all deleted, and rebuilding any of them needs a better argument than they had. **Nothing in that set may be invented or filled in on his behalf**, and no page-level note should list which paragraphs are unfinished, because the paragraphs already say so and a summary can only go stale.
 
-The Reel and leibowitz.me case-study bodies still carry it. Winnie's are written.
+All three case-study bodies are written, so nothing on the site currently carries the marker.
 
 One thing is provisional without saying so: the two `Started` dates on the app projects render as fact. Correcting them before launch is a thing Jason remembers rather than a thing the page shows.
 
@@ -105,13 +105,14 @@ Real:
 - **`public/resume.pdf`** — the real résumé, in place and downloadable. Its text has never been extracted into the repo (subsetted font, no encoding map), so it is an authority the site cannot read; anything taken from it is transcribed by Jason, not parsed.
 - **"Beyond the CV" numbers:** 15 countries, 50 podcasts, 2 apps in TestFlight, and years shipping — the last derived at build time from the earliest month in the employment record, so it cannot go stale or contradict the homepage.
 - **App pitches**, in Jason's own words and marked for later sharpening: "Bowel movement tracker for IBS/IBD patients" and "Better movie recommendations."
+- **Real screenshots** for all three projects, light and dark. The CSS-drawn device frame is the fallback for a project that has none.
+- **All three case-study bodies**, written: the problem, what it does, how it's built, and what he'd do differently.
 
 **Absent — must not be fabricated:**
 
-- Every **accomplishment bullet** — what each role owned, its scale, its outcomes. This is now the largest remaining gap: the timeline renders company, title and dates, and stops. Bullets attach to a role in `src/lib/career.ts`.
-- **All case-study body copy** — "The problem," "How it works," "What I'd do differently," across all three projects.
-- **App screenshots.** The device frames are drawn in CSS.
 - No testimonials, references, metrics, press, or third-party validation of any kind exist. None may be invented.
+
+**Accomplishment bullets under Experience are not a gap.** The timeline renders company, title and dates by design, because the résumé is where a recruiter reads what a role achieved. A role showing title and dates alone is finished.
 
 ## Product Principles
 

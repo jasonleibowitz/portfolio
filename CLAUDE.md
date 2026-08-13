@@ -222,7 +222,7 @@ Two things that will bite:
 
 ## Placeholder content
 
-App pitches and case-study bodies are placeholder. **Each one opens with the word "Placeholder", and that is the whole signal.** **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
+All three case-study bodies are written. Copy that is not final **opens with the word "Placeholder", and that is the whole signal.** **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
 
 **Nothing in the design marks placeholder copy, and nothing should.** The word in the copy is the only signal. Frontmatter carries no `placeholder` field, and there is no marker component or utility.
 
