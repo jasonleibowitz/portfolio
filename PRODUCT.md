@@ -72,8 +72,8 @@ Confirmed and load-bearing:
 - Static site: Astro 7, MDX content, Tailwind 4, TypeScript. **Zero JS islands** — no framework runtime, only small hand-written vanilla modules. Node >= 24, pnpm.
 - Three content collections: `blog` (`/writing`), `lists` (`/lists`), `projects` (`/projects`, with a case study per entry). Five posts spanning 2014–2023, two lists, three projects.
 - `/writing` is canonical; `/blog/*` must keep redirecting to it. The decade of inbound links is a permanent constraint, not a migration step.
-- Deploy target is Cloudflare Pages. DNS has not cut over: leibowitz.me is still served by the old `jasonleibowitz.github.io` repo, whose apex record points at deprecated GitHub Pages IPs, so **HTTPS is currently broken on the live domain.** Undecided: when the cutover happens.
-- No test suite. The four gates are `build`, `check`, `lint`, `format:check` — none of which render a page.
+- Deploy target is **Cloudflare Workers Static Assets**, not Cloudflare Pages. Pages was the original decision and was replaced; everything is already live on `*.workers.dev`, with a per-PR preview URL per pull request. DNS has not cut over: leibowitz.me is still served by the old `jasonleibowitz.github.io` repo, whose apex record points at deprecated GitHub Pages IPs, so **HTTPS is currently broken on the live domain.** DNS is most of what holds production back but not all of it, and when the cutover happens is undecided.
+- Five gates: `build`, `check`, `lint`, `format:check` and `test`. **`test` is Vitest and covers pure functions only**, deliberately: `slugify()` and `refuseDuplicateAddresses()` each decide an address, and a wrong address is a wrong page. Anything that reads the filesystem, renders a component or draws a card has no test. **None of the five renders a page**, so layout, motion and anything client-side is verified in a browser or not at all.
 - The writing archive is **evidence, not a publication**. It demonstrates that Jason thinks and writes clearly; there is no committed cadence and no obligation to headline it. Presented, not promoted.
 - **Search-phase state must be isolated.** Availability wording and contact emphasis live in one editable place (a config value or a single content field), so flipping phases is an edit, not a project. See the two-phase requirement above.
 
@@ -93,7 +93,7 @@ One deliberate exception: the two `Started` dates on the app projects are provis
 
 Real:
 
-- Five published posts, 2014–2023, with images in `public/blog-images/`. One (the espresso post) is currently `draft: true`.
+- Five published posts, 2014–2023, each a folder with its own images beside it, so deleting a post deletes its images and renaming one carries them. All five are `draft: false`.
 - Two lists — favorite movies, podcasts — in `src/content/lists/`.
 - Three projects in `src/content/projects/`: Winnie the Poo Tracker (TestFlight beta, Expo/RN + Supabase), Reel Watch (TestFlight beta, Expo/RN + Django Ninja/Supabase/Turborepo), and this site.
 - **The full employment record** — six employers, nine roles, October 2014 to present, in `src/lib/career.ts`: Carta (Senior Software Engineer II), Capsule Pharmacy (Senior Software Engineer, plus Technical Lead held **concurrently** from Jul 2021), Invitae, TodayTix, Reserve, and Tigerspike. Dates are stored once as `YYYY-MM` and every display string, tenure span and overlap marker is derived from them.
