@@ -53,16 +53,30 @@ draft: false
 
 ## The problem
 
-Placeholder. Two or three sentences on the itch that made this worth building.
+Most nights the hard part is not what to watch, it is deciding. On your own that is twenty minutes of scrolling. With other people it is twenty minutes of scrolling and a negotiation. The apps meant to help share three flaws, and Reel is built around all three.
+
+1. **Rating in the abstract does not work.** Is Forrest Gump a 4.5 or a 5? I will not give the same answer twice. Ask whether I liked it more than Finding Nemo and the answer is immediate, and it is still true a year later.
+2. **A new app knows nothing about what you have already seen.** There is no realistic way to enter a thousand films you have watched, so it spends its first months recommending things you saw years ago.
+3. **A recommendation you cannot act on is not one.** Being told to watch something excellent on a service you do not subscribe to just moves the problem along.
 
 ## What it does
 
-Placeholder. What a person actually does with it: the screens that matter, and what they get out of it that a ratings site does not give them.
+Reel's unit of input is a comparison, not a score. You rank a film by answering a handful of head-to-head questions against films you have ranked already, each one narrowing where it belongs. That screen shows no numbers on purpose: comparison is the judgment people can actually make, and a score is a consequence of where a film lands rather than something you have to invent.
+
+Nobody starts from nothing, so a film can also be logged as seen and dropped into a tier without ranking it at all. A back catalog of hundreds becomes one sitting instead of one evening per film. What comes out is your library: what you have watched, what you mean to watch, your own notes, and a film page carrying Rotten Tomatoes, IMDb, TMDB and Metacritic alongside your score.
+
+That ranking data builds a taste profile, which does two jobs. It is the page that tells you who you are cinematically, and it is what the recommendations run on. Every recommendation carries where the film is streaming, so it reads "watch this, it is on your Netflix" instead of sending you to a service you do not pay for.
+
+Reel is a single-player app first, because a recommendation engine that does not know you is worth nothing to your friends either. Following people, taste matching between libraries, and recommendations for a room rather than a person are what comes after.
 
 ## How it's built
 
-Placeholder. The interesting technical decision: what the API boundary looks like, why a monorepo, what the app caches and what it refetches.
+A Turborepo monorepo holding a Django API, an Expo client, and a generated TypeScript client between them. Django Ninja publishes an OpenAPI schema, Orval generates typed hooks from it, and Turbo makes the generate step depend on the dump. A change to a Python response schema becomes a TypeScript compile error instead of a runtime surprise, which is the only thing that makes the monorepo worth its overhead.
+
+The ranking algorithm is the part worth explaining. Scores are never stored. A film has a tier and a position inside it, and its score is interpolated from that position on every read, so everyone's numbers shift as their library grows. Feed events and year-in-review recaps keep snapshots, because those should not change retroactively. The comparisons run entirely on the client as a binary search: the server hands over a single tier, unscored, and is told only where the film landed.
+
+The catalog is the largest thing in the backend. TMDB and OMDB each sit behind their own circuit breaker, and Celery enriches partial films and refreshes stale ones on a schedule, so a slow provider costs a detail rather than the app.
 
 ## What I'd do differently
 
-Placeholder. The honest retrospective; the section engineers actually read.
+I built the ranking mechanic first and assumed the rest would follow from it. The mechanic works, and it was never where people fell off: early users who signed up ranked films and finished the flow. What I had not built was a reason to open the app on a night you did not watch anything, which capped it at around four sessions a month. The fix was not a better algorithm, it was recommendations and streaming availability. I would have found that sooner by instrumenting the app before building the next feature instead of after.

@@ -45,7 +45,7 @@ draft: false
 
 ## The problem
 
-I was diagnosed with Crohn's Disease during lockdown, and my doctor asked me to log every bowel movement and report back at my next appointment. I like spreadsheets and I like apps, so I went looking for one that would do it for me. Nothing I tried was worth opening twice a day. So I built Winnie the Poo Tracker: a log that takes seconds to fill in, and turns months of entries into something worth handing a gastroenterologist.
+I was diagnosed with Crohn's Disease in 2020 (during the height of the Covid lockdown), and my doctor asked me to log every bowel movement and report back at my next appointment. I like spreadsheets and I like apps, so I went looking for one that would do it for me. Nothing I tried was worth opening twice a day. So I built Winnie the Poo Tracker: a log that takes seconds to fill in, and turns months of entries into something worth handing to your gastroenterologist.
 
 ## What it does
 
@@ -53,7 +53,7 @@ The main screen is a log of entries grouped by day. Logging one is a single scre
 
 ## How it's built
 
-Expo and React Native, with Supabase for auth and Postgres. It is offline-first, because the moments you need to log one are not moments you have signal. Reads come from TanStack Query with its cache persisted to MMKV, so a cold start on a plane opens to real data. Writes go into a persistent queue that applies them locally first and drains when the network returns, the app comes back to the foreground, or a timer fires, with per-entry retry, backoff and rollback if the server rejects one. Authorization is row-level security in Postgres rather than checks in the client, which for health data is the only place it belongs.
+Expo and React Native, with Supabase for auth and Postgres. It is offline-first, because the moments you need to log one are not always moments you have signal. Reads come from TanStack Query with its cache persisted to MMKV, so a cold start on a plane opens to real data. Writes go into a persistent queue that applies them locally first and drains when the network returns, the app comes back to the foreground, or a timer fires, with per-entry retry, backoff and rollback if the server rejects one. Authorization is row-level security in Postgres rather than checks in the client, which for health data is the only place it belongs.
 
 ## What I'd do differently
 
