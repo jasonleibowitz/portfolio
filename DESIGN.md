@@ -282,7 +282,7 @@ Two shapes break the rules deliberately. The **dock** uses per-position radii so
 - **Shape:** Full pill (`999px`), minimum height 50px, horizontal padding 22px.
 - **Primary:** The spectrum gradient (`bg-linear-100 from-violet to-cyan`) with a transparent border. The label is white in light mode and `#14141D` in dark — it carries the ink color of the _opposite_ theme, because the gradient itself does not invert.
 - **Default:** `line` hairline border over the translucent panel fill, ink label.
-- **Hover:** Rises 2px and gains `shadow-lift`, over 200ms on `cubic-bezier(0.2, 0.8, 0.2, 1)`. Transition is scoped to `transform` and `box-shadow` only.
+- **Hover:** Rises 2px and gains `shadow-lift`, over 200ms on `cubic-bezier(0.2, 0.8, 0.2, 1)`. Transition is scoped to `translate` and `box-shadow` only.
 - **Icons:** 20px, from `astro-icon` (`lucide:*`, `simple-icons:*`), never hand-pasted SVG paths.
 
 ### Chips
@@ -337,6 +337,7 @@ A dashed `line-strong` circle around the homepage portrait, rotating once every 
 ### Don't:
 
 - **Don't** add a marquee, ticker, or any content that scrolls horizontally on its own. This was rejected explicitly and is a standing ban.
+- **Don't** name `transform` in an arbitrary `transition-[…]` list. Tailwind 4 writes `translate`, `scale` and `rotate` as their own CSS properties, so such a list animates nothing and the movement snaps while everything beside it fades. The named `transition-transform` utility expands to all four; an arbitrary list covers only what it spells. Read `getAnimations()` on the element to confirm a transition is actually running.
 - **Don't** put a `backdrop-filter` on anything but the header and the dock.
 - **Don't** give a `Panel` a shadow, or give a photograph none.
 - **Don't** let Aurora Teal carry body text, or be the only signal that something is active.

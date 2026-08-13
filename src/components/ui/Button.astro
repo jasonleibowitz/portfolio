@@ -5,7 +5,11 @@ import { tv } from '@lib/tv';
 const button = tv({
   base: [
     'inline-flex items-center gap-2 rounded-full no-underline',
-    'transition-[transform,box-shadow] duration-200 ease-orbit',
+    /* `translate`, not `transform`: `-translate-y-0.5` writes the standalone
+       `translate` property in Tailwind 4, and a transition only animates a
+       property it names. Listing `transform` here left the 2px rise snapping
+       while the shadow alone faded in behind it. */
+    'transition-[translate,box-shadow] duration-200 ease-orbit',
     'hover:-translate-y-0.5 hover:shadow-lift',
   ],
   variants: {

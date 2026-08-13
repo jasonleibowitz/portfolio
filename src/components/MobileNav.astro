@@ -41,7 +41,7 @@ const current = section ?? { label: 'Menu', icon: 'lucide:compass' };
   <div
     id="navPanel"
     popover="auto"
-    class="fixed inset-auto right-(--gutter) bottom-[calc(76px+env(safe-area-inset-bottom,0px))] m-0 hidden max-h-[min(70vh,32rem)] w-[min(17.5rem,calc(100vw_-_2*var(--gutter)))] origin-bottom-right translate-y-2 scale-95 overflow-y-auto rounded-card border border-line-strong bg-canvas p-2 opacity-0 transition-[opacity,transform,display,overlay] transition-discrete duration-300 ease-orbit backdrop:bg-ink/25 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:block open:translate-y-0 open:scale-100 open:opacity-100 open:backdrop:opacity-100 starting:open:translate-y-2 starting:open:scale-95 starting:open:opacity-0 dark:backdrop:bg-black/50"
+    class="fixed inset-auto right-(--gutter) bottom-[calc(76px+env(safe-area-inset-bottom,0px))] m-0 hidden max-h-[min(70vh,32rem)] w-[min(17.5rem,calc(100vw_-_2*var(--gutter)))] origin-bottom-right translate-y-2 scale-95 overflow-y-auto rounded-card border border-line-strong bg-canvas p-2 opacity-0 transition-[opacity,translate,scale,display,overlay] transition-discrete duration-300 ease-orbit backdrop:bg-ink/25 backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:block open:translate-y-0 open:scale-100 open:opacity-100 open:backdrop:opacity-100 starting:open:translate-y-2 starting:open:scale-95 starting:open:opacity-0 dark:backdrop:bg-black/50"
   >
     <nav class="grid gap-0.5" aria-label="Primary">
       {

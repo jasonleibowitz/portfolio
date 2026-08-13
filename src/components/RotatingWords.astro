@@ -30,7 +30,7 @@ const { words } = Astro.props;
   >{
     words.map((word, i) => (
       <span
-        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,transform,filter] duration-[420ms] ease-orbit translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
+        class="text-gradient absolute top-0 left-0 opacity-0 blur-[6px] transition-[opacity,translate,filter] duration-[420ms] ease-orbit translate-y-[0.24em] data-[state=in]:translate-y-0 data-[state=in]:opacity-100 data-[state=in]:blur-none data-[state=out]:-translate-y-[0.24em] data-[state=out]:opacity-0 data-[state=out]:blur-[6px]"
         data-state={i === 0 ? 'in' : undefined}
         aria-hidden={i === 0 ? undefined : 'true'}
       >
