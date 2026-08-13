@@ -53,6 +53,111 @@
   color: var(--color-on-spectrum);
 }
 
+/* The lit state of a chip: the spectrum arrives in a beat and leaves over
+   nearly two seconds.
+
+   The asymmetry is the whole effect. A pointer swept along a row lights each
+   chip instantly and leaves each one decaying from the moment it passed, so
+   the row holds several chips at different points of the same fade rather
+   than one chip highlighted -- a wake behind the cursor. Equal durations
+   would give a row of chips blinking on and off.
+
+   The wash, the hairline and the label move on three transitions rather than
+   on one interpolated `@property` number. The number was tidier to read and
+   cost the effect its floor: a browser that registers a custom property but
+   will not *transition* one leaves every derived value to jump, so the chip
+   changes state without ever animating -- which is the one failure that looks
+   like nothing was built. `opacity` and `color` animate everywhere. The two
+   durations are named here once so the three cannot drift apart.
+
+   It owns the label color because the label is part of the state: at rest it
+   is `muted`, which is what a chip has always been, and lit it reaches ink. */
+@utility spectrum-charge {
+  --charge-in: 140ms;
+  --charge-out: 1800ms;
+  --charge-ease: cubic-bezier(0.4, 0, 0.25, 1);
+
+  /* The lit state, written once as four values. They are plain custom
+     properties and do not interpolate, which is the point: `opacity` and
+     `color` read them as targets and animate between the results themselves,
+     so nothing here needs a browser that can transition a custom property.
+     They inherit into the two pseudo-elements, which is what lets one
+     duration govern the label, the wash and the hairline together. */
+  --lit-ink: var(--color-muted);
+  --lit-wash: 0;
+  --lit-ring: 0;
+  --lit-duration: var(--charge-out);
+
+  position: relative;
+  isolation: isolate;
+  color: var(--lit-ink);
+  transition: color var(--lit-duration) var(--charge-ease);
+
+  /* The wash, under the label. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image: linear-gradient(
+      100deg,
+      var(--color-violet),
+      var(--color-cyan)
+    );
+    opacity: var(--lit-wash);
+    transition: opacity var(--lit-duration) var(--charge-ease);
+  }
+
+  /* The hairline, drawn over the resting border rather than replacing it, so
+     a chip has one border at every point of the fade instead of two crossing
+     each other. `inset: -1px` is the border box: an absolute child is placed
+     against the padding box, which excludes the 1px it has to cover. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background-image: linear-gradient(
+      100deg,
+      var(--color-violet),
+      var(--color-cyan)
+    );
+    background-origin: border-box;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: var(--lit-ring);
+    pointer-events: none;
+    transition: opacity var(--lit-duration) var(--charge-ease);
+  }
+
+  /* Guarded the way Tailwind guards its own `hover:` variant. Unguarded, iOS
+     applies an emulated hover on tap that persists until the visitor taps
+     something else, so a chip would light on touch and then never decay. */
+  @media (hover: hover) {
+    &:where(:hover) {
+      --lit-ink: var(--color-ink);
+      --lit-wash: 0.18;
+      --lit-ring: 1;
+      --lit-duration: var(--charge-in);
+    }
+  }
+
+  /* The touch path. A finger delivers no hover, and `:active` lasts only while
+     it is down, so a tap shorter than the rise would decay from halfway.
+     `chrome.ts` holds the attribute past the rise and then lets go: holding a
+     state after its input has ended is the one thing CSS cannot express. */
+  &:where([data-charged]) {
+    --lit-ink: var(--color-ink);
+    --lit-wash: 0.18;
+    --lit-ring: 1;
+    --lit-duration: var(--charge-in);
+  }
+}
+
 /* The three-layer glow behind the page. A named utility rather than a
    `bg-[…]` arbitrary value: three stacked gradients inline would need every
    space underscore-escaped and would be unreadable. Position, layer and hit

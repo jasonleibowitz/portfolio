@@ -1,8 +1,11 @@
 ---
 import { tv } from '@lib/tv';
 
+/* `spectrum-charge` carries the label color as well as the lit state, because
+   the label is part of that state. There is no `text-muted` here for that
+   reason: at rest the utility resolves to exactly that color. */
 const chip = tv({
-  base: 'rounded-full border px-2.5 py-1 font-mono text-[0.6875rem] tracking-[0.04em] text-muted',
+  base: 'spectrum-charge rounded-full border px-2.5 py-1 font-mono text-[0.6875rem] tracking-[0.04em]',
   variants: {
     size: {
       // Stack chips and project chips.
@@ -27,4 +30,21 @@ interface Props {
 const { size, accent, class: className } = Astro.props;
 ---
 
-<span class={chip({ size, accent, class: className })}><slot /></span>
+{
+  /* `data-chip` is the hook the touch path selects on; a utility class is not
+  a name this component owns, so it is not one another file may hold. */
+}
+<span data-chip class={chip({ size, accent, class: className })}><slot /></span>
+
+{
+  /* The touch path travels with the component rather than being registered in
+    `chrome.ts`, so a page that renders no chip ships none of it and nothing
+    has to remember to wire it up. Astro hoists this once per page however
+    many chips are on it, and the listener is delegated, so a stack list of 36
+    costs exactly what one costs. */
+}
+<script>
+  import { initCharge } from '@lib/charge';
+
+  initCharge();
+</script>

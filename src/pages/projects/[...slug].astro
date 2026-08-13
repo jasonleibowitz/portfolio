@@ -13,6 +13,7 @@ import Status from '@components/ui/Status.astro';
 import Button from '@components/ui/Button.astro';
 import DeviceFrame from '@components/DeviceFrame.astro';
 import Screenshot from '@components/Screenshot.astro';
+import Chip from '@components/ui/Chip.astro';
 import { getPublished } from '@lib/content';
 import { testflightRequestHref } from '@lib/site';
 
@@ -126,7 +127,7 @@ const ctas = [
       </div>
 
       <aside
-        class="spec:sticky spec:top-header spec:col-start-2 spec:row-start-1 spec:row-end-3"
+        class="spec:sticky spec:top-header spec:col-start-2 spec:row-start-1 spec:row-end-4"
       >
         <FactBox>
           {
@@ -151,7 +152,21 @@ const ctas = [
         }
       </aside>
 
-      <div class="spec:col-start-1 spec:row-start-2">
+      {
+        /* The rail names the one platform this runs on; this names everything
+          it is built out of. It sits under the captures rather than in the
+          rail because the rail is a ledger of short values and a stack is a
+          set of them, and because it reads as the caption to what was just
+          shown rather than as a footnote to the write-up below. */
+      }
+      <div class="border-t border-line pt-6 spec:col-start-1 spec:row-start-2">
+        <Typography variant="caption" as="h2">Stack</Typography>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          {data.stack.map((tool) => <Chip>{tool}</Chip>)}
+        </div>
+      </div>
+
+      <div class="spec:col-start-1 spec:row-start-3">
         <Typography variant="longform" class="markdown max-w-measure">
           <Content components={{ h2: Heading2, h3: Heading3, a: TextLink }} />
         </Typography>

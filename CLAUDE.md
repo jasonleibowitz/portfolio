@@ -169,7 +169,11 @@ Two things to know about how the tokens work:
 - an `@theme` token generates a real utility (`--color-ink` → `text-ink`/`bg-ink`, `--text-h1` → `text-h1`, `--container-page` → `max-w-page`), so nothing below should be reached for as `var(--…)` from markup;
 - `:root[data-theme='dark']` overrides those same custom properties, so every utility re-derives in dark mode instead of needing a `dark:` twin for each color. `@custom-variant dark` points at the same attribute for the cases that do need one.
 
-The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `aurora-field` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
+The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `spectrum-charge`, `aurora-field` and `markdown`. A utility has to live in a Tailwind-processed CSS file, so it cannot sit beside the component that uses it, even when only one component does.
+
+`spectrum-charge` is the lit state of a `Chip`, and it also owns the chip's label color, which is why `Chip` carries no `text-muted`. It rises in 140ms and falls over 1800ms, and that asymmetry is the effect: a pointer swept along a row leaves several chips decaying at different points behind it.
+
+**It transitions `opacity` and `color`, not an interpolated `@property` number.** The number version read better and had no floor: a browser that registers a custom property but will not transition one jumps every derived value, so a chip changes state and never animates, which looks like nothing was built. The two durations are named once in the utility so the three transitions cannot drift apart.
 
 **Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial` drops Tailwind's seven default radii so only the design's four exist, which is deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than failing, and the element loses its corner with a green build. The same is true of any namespace you clear. Grep for the old names after clearing one.
 
@@ -200,6 +204,7 @@ Gradient utilities use the v4 names (`bg-linear-100 from-violet to-cyan`, not `b
 Vanilla TypeScript in `src/lib/`, imported from an Astro `<script>`:
 
 - `chrome.ts` — theme toggle, dock scroll-collapse, reading progress, and the tag filter. Loaded on every page from `BaseLayout`.
+- `charge.ts` — lights a chip that was touched rather than pointed at. Imported from a `<script>` in `Chip.astro` rather than from `BaseLayout`, so the behavior travels with the component and a page that renders no chip ships none of it. Astro hoists a component script once per page however many times the component renders, and the listener is delegated, so the 36 chips on `/about` cost what one costs: 93 bytes gzipped, and nothing on the six pages with no chips. **This is the pattern to copy** when a single component needs a few lines of behavior; `chrome.ts` is for what every page needs.
 - `filter.ts` — tag filtering. **A page has at most one `[data-filter-root]`.** Rows and group headings are scoped to it; the count and empty-state elements are looked up page-wide, because on a list page the count sits up in the page header.
 - `footnotes.ts` — upgrades GFM footnote references into popovers. Progressive: with JS off the anchors and the footnote list still work.
 
