@@ -62,16 +62,14 @@
    than one chip highlighted -- a wake behind the cursor. Equal durations
    would give a row of chips blinking on and off.
 
-   The wash, the hairline and the label move on three transitions rather than
-   on one interpolated `@property` number. The number was tidier to read and
-   cost the effect its floor: a browser that registers a custom property but
-   will not *transition* one leaves every derived value to jump, so the chip
-   changes state without ever animating -- which is the one failure that looks
-   like nothing was built. `opacity` and `color` animate everywhere. The two
-   durations are named here once so the three cannot drift apart.
+   The wash, the hairline and the label move on three transitions of `opacity`
+   and `color`, which animate in every browser. A registered `@property` number
+   would drive all three from one value, but a browser that registers a custom
+   property without transitioning one leaves every derived value to jump. The
+   two durations are named here once so the three cannot drift apart.
 
    It owns the label color because the label is part of the state: at rest it
-   is `muted`, which is what a chip has always been, and lit it reaches ink. */
+   is `muted`, which is what a chip is, and lit it reaches ink. */
 @utility spectrum-charge {
   --charge-in: 140ms;
   --charge-out: 1800ms;

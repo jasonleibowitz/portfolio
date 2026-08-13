@@ -23,7 +23,7 @@ pnpm plop          # scaffold a new blog post
 
 The five gates that must stay green are `build`, `check`, `lint`, `format:check` and `test`. A husky `pre-commit` hook runs `lint-staged` over changed files.
 
-**`pnpm test` is Vitest, and it covers pure functions only.** `slugify()` and `refuseDuplicateAddresses()` have tests because each one decides an address, and a wrong address is a wrong page. Both were previously checked by hand: `slugify` through throwaway scripts, and the duplicate check by editing a real post and reading an exit code, which is how one slug got lost. Anything that reads the filesystem, renders a component or draws a card has no test, and the browser pass below is what covers it. `vitest.config.ts` uses `getViteConfig()` from `astro/config`, so a test gets the path aliases and the `astro:` modules a page gets.
+**`pnpm test` is Vitest, and it covers pure functions only.** `slugify()` and `refuseDuplicateAddresses()` have tests because each one decides an address, and a wrong address is a wrong page. Anything that reads the filesystem, renders a component or draws a card has no test, and the browser pass below is what covers it. `vitest.config.ts` uses `getViteConfig()` from `astro/config`, so a test gets the path aliases and the `astro:` modules a page gets.
 
 When verifying a change, **check the exit code** — grepping build output for a success string will silently pass on a failed build.
 
@@ -47,11 +47,11 @@ Copy that is not final says so in its own first word — see "Placeholder conten
 
 `getPublished(collection)` is the **only** supported way to read publishable content. It excludes drafts in production builds and sorts each collection by what "most relevant first" means for it: `blog` by `pubDate`, `lists` by `updated`, `projects` by `order`.
 
-Draft filtering used to live in the index pages alone, which meant `draft: true` posts were still written to `dist/` and syndicated in `rss.xml` — unlinked rather than unpublished. Centralising it means a new route cannot opt out by forgetting to filter. **Do not call `getCollection` directly** in a route.
+Draft filtering lives in `getPublished`, not in the routes, so a new route cannot opt out by forgetting to filter. A route that reads a collection directly writes `draft: true` posts into `dist/` and syndicates them in `rss.xml`, unlinked rather than unpublished. **Do not call `getCollection` directly** in a route.
 
 Drafts render in `pnpm dev`, and in a build that sets `SHOW_DRAFTS=true` — which pull request previews do, so an unpublished post can be reviewed in the real design rather than only at `localhost`. Every other build excludes them. To verify, check build output rather than reading code: a draft's slug must not appear anywhere under `dist/`.
 
-`SHOW_DRAFTS` is a plain `process.env` read, as is `SITE_URL` in `astro.config.mjs`. Astro's typed `astro:env` schema would work for `SHOW_DRAFTS` and was tried, but `SITE_URL` cannot use it — that value configures Astro itself, before `astro:env` exists — so the schema bought one of the two a type and left the pair inconsistent. `process.env` in `src/` typechecks under `astro check` without extra Node globals; this was verified, not assumed.
+`SHOW_DRAFTS` is a plain `process.env` read, as is `SITE_URL` in `astro.config.mjs`. Both use `process.env` so the pair stays consistent: `SITE_URL` configures Astro itself, before `astro:env` exists, so it cannot take a typed schema. `process.env` in `src/` typechecks under `astro check` without extra Node globals.
 
 ### Dates are plain days, formatted in UTC
 
@@ -115,7 +115,7 @@ _Jura Z10 [(Image Credit Jura USA)](https://us.jura.com/en/homeproducts/machines
 
 **A link inside a caption takes the caption's color.** The caption is `--color-faint`, so a link at the full violet would be more visible than the caption around it, and the attribution would draw the eye before the caption does. The plugin puts `[&_a]:text-faint` on the `figcaption` it builds, and `Link` still supplies the weight and the underline, so it still reads as a link. The class goes on the element rather than into `content.css` because a markdown `a` is a component, and that file says it has no `& a` rule for that reason. Tailwind scans `plugins/`, so a utility written there compiles like any other.
 
-It replaced a `CaptionedImage.astro` component with an object-valued `attribution` prop. The point of the rule is that **a post body is plain markdown**: no imports, and nothing an editor would need a JSX plugin to open. Reach for a component in a body only when there is no way to express the thing in markdown, and expect to be asked why.
+The point of the rule is that **a post body is plain markdown**: no imports, and nothing an editor would need a JSX plugin to open. Reach for a component in a body only when there is no way to express the thing in markdown, and expect to be asked why.
 
 The exception, and it is a real one: two posts still carry embeds written as raw HTML, a YouTube `<iframe>` and two Twitter blockquotes with their widget `<script>`. MDX parses those as JSX. Nothing else in `src/content/blog` does.
 
@@ -173,7 +173,7 @@ The `@utility` blocks are `text-gradient`, `shadow-lift`, `spectrum-fill`, `spec
 
 `spectrum-charge` is the lit state of a `Chip`, and it also owns the chip's label color, which is why `Chip` carries no `text-muted`. It rises in 140ms and falls over 1800ms, and that asymmetry is the effect: a pointer swept along a row leaves several chips decaying at different points behind it.
 
-**It transitions `opacity` and `color`, not an interpolated `@property` number.** The number version read better and had no floor: a browser that registers a custom property but will not transition one jumps every derived value, so a chip changes state and never animates, which looks like nothing was built. The two durations are named once in the utility so the three transitions cannot drift apart.
+**It transitions `opacity` and `color`.** Both animate in every browser, which a registered `@property` number does not. The two durations are named once in the utility, so the label, the wash and the hairline stay in step.
 
 **Clearing a `@theme` namespace deletes utilities silently.** `--radius-*: initial` drops Tailwind's seven default radii so only the design's four exist, which is deliberate — but a leftover `rounded-lg` then generates _nothing_ rather than failing, and the element loses its corner with a green build. The same is true of any namespace you clear. Grep for the old names after clearing one.
 
@@ -224,20 +224,20 @@ Two things that will bite:
 
 App pitches and case-study bodies are placeholder. **Each one opens with the word "Placeholder", and that is the whole signal.** **Do not invent replacements**, and do not add a page-level note listing which paragraphs are unfinished: the paragraphs say so themselves, and a summary can only go stale.
 
-**Nothing marks placeholder copy in the design any more.** A dotted underline was the plan, through a `placeholder` frontmatter array, a `Ph` component and a `placeholder-copy` utility. All three are deleted. The frontmatter array cost a field on all three collections, was read in eight places, and was set by exactly one entry; the utility never drew anything at all, because MDX emitted `<p class="placeholder-copy"><p>the text</p></p>` and HTML forbids a `<p>` inside a `<p>`, so the class landed on an empty paragraph while the copy rendered unmarked. That was confirmed in a browser through computed styles, not read off the source. Building any of it again needs a better argument than those had, and a `<span>` rather than a `<p>`, since an inline element cannot nest a block.
+**Nothing in the design marks placeholder copy, and nothing should.** The word in the copy is the only signal. Frontmatter carries no `placeholder` field, and there is no marker component or utility.
 
 The two `Started` dates in project frontmatter are provisional and render as fact. They get corrected before the site goes live. Do not guess them, and do not build a marker for them.
 
 List entries carry no stub note. `note` is optional, and an entry without one renders as name, tags and artwork, so the way to add a note is to write a real one.
 
-The About bio, the employment record and the "Beyond the CV" numbers have all been filled in and are no longer placeholder. Accomplishment bullets under Experience are not coming at all — the resume is where a recruiter reads what a role achieved — so a role that renders as title and dates alone is finished, not unfinished.
+The About bio, the employment record and the "Beyond the CV" numbers are real copy, not placeholder. Accomplishment bullets under Experience are not coming at all — the resume is where a recruiter reads what a role achieved — so a role that renders as title and dates alone is finished, not unfinished.
 
 `public/resume.pdf` is the real two-page resume, and the "Download resume" buttons point at it. It is one click from the About page, so anything the site claims about a title or a role has to match what the PDF says.
 
 ## Conventions
 
 - **Never use an em dash (`—`) in user-facing copy.** It reads as AI-written. Use a comma, a period, or parentheses; use an en dash (`–`) only for a numeric or date range. This covers page copy, headings, meta descriptions, frontmatter `description` and `note` fields, button labels, and any string rendered to the page. Code comments are exempt. Published blog post bodies are left as written.
-- **Do not hard-wrap prose in a `.md` file.** A paragraph is one line, and Prettier enforces it: `proseWrap: 'never'` with `printWidth: 120`, in an override in `prettier.config.mjs`. A fixed column wrap re-flows a whole paragraph when one word changes, and the real change then hides inside six changed lines. The width no longer touches prose at all; it only sets how wide a table may align before Prettier collapses it to one space per column, which is what 80 did. The override is `*.md` and deliberately not `*.mdx`: `proseWrap` also joins a folded block scalar in YAML, and in MDX the print width decides where a raw HTML block breaks, which decides how MDX parses it. The same tweet embed renders with its date link inside or outside the attribution paragraph. That was measured by diffing `dist/` before and after, not assumed.
+- **Do not hard-wrap prose in a `.md` file.** A paragraph is one line, and Prettier enforces it: `proseWrap: 'never'` with `printWidth: 120`, in an override in `prettier.config.mjs`. A fixed column wrap re-flows a whole paragraph when one word changes, and the real change then hides inside six changed lines. The width does not touch prose at all; it only sets how wide a table may align before Prettier collapses it to one space per column. The override is `*.md` and deliberately not `*.mdx`: `proseWrap` also joins a folded block scalar in YAML, and in MDX the print width decides where a raw HTML block breaks, which decides how MDX parses it. The same tweet embed renders with its date link inside or outside the attribution paragraph. That was measured by diffing `dist/` before and after, not assumed.
 - **Path aliases** (`tsconfig.json`): `@components/*`, `@layouts/*`, `@lib/*`, `@images/*`, `@styles/*`. Everything under `src/` is imported through one, so no import counts `../` to work out where it is. The exception is a file inside `src/lib/` importing a sibling, which stays `./`. Aliases resolve in client `<script>` blocks too, so `chrome.ts` and `footnotes.ts` are imported the same way as anything else.
 - **Images**: `src/images/*` is imported and passed to `<Image>` from `astro:assets`, which requires `sharp`. The five portraits went from ~843 kB of PNG to ~26 kB of webp this way. Files in `public/` are **not importable** — reference them as URL strings. Importing a public path fails the build with `ImageNotFound`.
 - **List artwork** goes through the same pipeline. The `lists` schema is a function of `({ image })`, so an entry's `image` is a path _relative to its own `.mdx`_ — `./artwork/the-matrix.jpg`, with the files alongside the list in `src/content/lists/`. A 1 MB source came out at 1 kB (1x) and 3 kB (2x) in the 56px column.
