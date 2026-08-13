@@ -49,12 +49,18 @@ I was diagnosed with Crohn's Disease in 2020 (during the height of the Covid loc
 
 ## What it does
 
-The main screen is a log of entries grouped by day. Logging one is a single screen of segmented controls, a Bristol type slider and a color swatch, built so it can be done in the moment rather than remembered later. Trends turns that history into a daily average, a weekly total, an average Bristol type, a streak and a month-over-month comparison, which is the view that actually goes to a doctor.
+The main screen is your log, grouped by day. Adding an entry is one screen and a few taps, because a tracker you have to remember to fill in later is a tracker you stop using.
+
+Trends turns that history into the things a doctor actually asks about: a daily average, a weekly total, an average Bristol type, your current streak, and this month against last. That screen is the one you hand across the desk at an appointment.
 
 ## How it's built
 
-Expo and React Native, with Supabase for auth and Postgres. It is offline-first, because the moments you need to log one are not always moments you have signal. Reads come from TanStack Query with its cache persisted to MMKV, so a cold start on a plane opens to real data. Writes go into a persistent queue that applies them locally first and drains when the network returns, the app comes back to the foreground, or a timer fires, with per-entry retry, backoff and rollback if the server rejects one. Authorization is row-level security in Postgres rather than checks in the client, which for health data is the only place it belongs.
+Expo and React Native, with Supabase behind it. It works offline first, because the moments you need to log something are not always moments you have signal: everything keeps working with no connection and catches up on its own once you are back, without you having to think about it.
+
+Health data means privacy is not a feature you add later, so access is enforced at the database rather than trusted to the app.
 
 ## What I'd do differently
 
-This was my first React Native app, and I started by reaching for a sync engine: PowerSync sat between the app and Postgres and handled replication. Its free tier stopped the app after a period of inactivity and the paid tier was hard to justify for a beta, so I removed it and rebuilt persistence and sync on TanStack Query and a queue I own. I would make that call sooner now. The dependency was doing work I could describe precisely, which is usually a sign I should write it.
+This was my first React Native app, and I started by reaching for a hosted sync engine to keep the device and the database in step. Its free tier stopped the app after a spell of inactivity and the paid tier was hard to justify for a beta, so I pulled it out and built the syncing myself.
+
+I would make that call sooner now. The dependency was doing work I could describe precisely, which is usually a sign I should just write it.

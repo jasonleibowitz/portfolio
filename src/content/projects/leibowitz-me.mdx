@@ -53,28 +53,20 @@ draft: false
 
 ## The problem
 
-The site this replaces is a GitHub Pages blog, and its apex record points at IP addresses GitHub deprecated years ago, so the domain cannot serve HTTPS at all. An engineer whose own domain fails a certificate check has a credibility problem before anyone reads a word of it.
-
-Repointing DNS would have fixed that much. Rebuilding was for the other half: a personal site is a work sample, and a blog theme is somebody else's. The harder requirement is that it has to keep working after I stop looking for a job. A site that only makes sense mid-search becomes a liability the day the search ends, so nothing here is built on being available. That is one line of copy, not a structure.
+The last version of this site was written in 2014, in hand-rolled jQuery and CSS, before React was the default way to build anything. It looked and read like it. I also wanted somewhere of my own to publish writing and keep lists, rather than renting space on someone else's platform.
 
 ## What it does
 
-It is one address that holds the work. Projects with a case study each, writing going back to 2014, a few lists, and a resume one click from the About page. Every page is an entry point, because people arrive sideways from a link rather than through the front door, so no page assumes another one was read first.
-
-Writing lives at `/writing`, with a tag rail that filters the list in place rather than navigating, and every old `/blog` URL redirects into it. A post sets on a 46rem measure with a table of contents, a reading-progress bar, and footnotes that open as popovers instead of throwing you to the bottom of the page and back. There is a light theme and a dark one, and switching sweeps the new theme out from the toggle as a circle.
+This is my online resume and everything around it: where I have worked, what I have built on my own time, what I have written, and a few lists of things I like enough to rank.
 
 ## How it's built
 
-Astro 7, content in MDX, Tailwind 4 configured entirely in CSS with no config file and no PostCSS step. It ships no framework runtime: no islands, no hydration, and no JavaScript files at all. The client-side code is a handful of hand-written vanilla modules that Astro inlines into the page, under two kilobytes gzipped on the homepage, covering the theme toggle, the progress bar, tag filtering and the mobile nav.
+Astro and MDX, styled with Tailwind, deployed to Cloudflare. It ships no framework runtime and no JavaScript files at all, just under two kilobytes of hand-written script on the homepage, so a page arrives as HTML and renders straight away.
 
-Content is three collections validated by zod at build time, and the schema owns each entry's address. A slug outside small letters, digits and single dashes fails the build rather than publishing a page nobody can link to, and two entries claiming one address fails it as well, because the loader on its own only warns and keeps the last of the two, which costs a page while the build stays green.
-
-Images go through sharp, so a file dropped beside a post is resized, re-encoded and given a srcset instead of being served at whatever size it was saved. The build also draws a 1200x630 link-preview card for every post and list through a single headless Chrome, which is why a card can never be older than the thing it describes.
-
-It deploys to Cloudflare Workers Static Assets. Every pull request uploads its own version behind a preview URL with drafts visible, so an unpublished post can be read in the real design rather than on localhost.
+Images are optimized as part of the build, every post gets its own link-preview card drawn for it, and each pull request publishes a working preview of itself.
 
 ## What I'd do differently
 
-I built a way to mark unfinished copy on the page before checking whether it was needed: a frontmatter field on all three collections, a component to wrap the text, and a utility to draw a dotted underline. The field cost a key on every collection and exactly one entry ever set it. The underline never drew anything at all, because MDX nested the paragraph inside the element carrying the class and HTML does not allow that, so the style landed on an empty element while the copy rendered unmarked. Three moving parts, no pixels, and a green build the whole time.
+I built a way to mark unfinished copy on the page before checking whether anything needed one: a frontmatter field on every collection, a component to wrap the text, and a style to draw a dotted underline. Exactly one entry ever used it, and the underline never drew anything at all, because of how MDX nests a paragraph. Three moving parts, no pixels, and a passing build the whole time.
 
-All of it is deleted. Unfinished copy now opens with the word "Placeholder", which is the entire mechanism. I would have got there in an afternoon by opening the page and looking at it, rather than reading the source and assuming it did what it said.
+All of it is deleted. Unfinished copy now starts with the word "Placeholder", which is the entire mechanism. I would have got there in an afternoon by opening the page and looking at it.
