@@ -57,7 +57,7 @@ const ctas = [
     href: testflightRequestHref(data.title),
     icon: 'lucide:mail',
   },
-  data.cta && { ...data.cta, icon: undefined },
+  data.cta,
 ].filter((cta) => cta !== false && cta != null);
 ---
 

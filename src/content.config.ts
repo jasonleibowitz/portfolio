@@ -220,7 +220,14 @@ const projects = defineCollection({
       specs: z
         .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
-      cta: z.object({ label: z.string(), href: z.string() }).optional(),
+      cta: z
+        .object({
+          label: z.string(),
+          href: z.string(),
+          /** An `astro-icon` name, e.g. `lucide:square-arrow-out-up-right`. */
+          icon: z.string().optional(),
+        })
+        .optional(),
       is_beta_open: z.boolean().default(false),
       is_featured: z.boolean().default(false),
       order: z.number().optional(),
