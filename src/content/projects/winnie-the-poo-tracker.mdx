@@ -33,13 +33,18 @@ draft: false
 
 ## The problem
 
-Placeholder. Two or three sentences on the itch that made this worth building.
+During the height of the Covid lockdown I was diagnosed with Crohn's Disease. My doctor wanted me to keep a log of all of my _bowel movements_ to report back to him. As someone who likes spreadsheets and apps I looked for an existing app that would do this for me, but they were all pretty _shitty_. So I built Winnie the Poo Tracker as a very simple _BM_ log that surfaces interesting and important stats for both you and your doctor.
 
 ## How it works
 
-Placeholder. The interesting technical decision: why Supabase, what the
-offline story is, how sync behaves when two people log the same walk.
+The app is pretty simple. The main screen is just a log of your _BMs_, then stats surfaces important and interesting stats and trends for you to share with your doctor.
+
+When building a health-focused app, privacy is of paramount concern. I also wanted to focus on a fully featured offline-first app. The app uses TanStack Query (with `persistQueryClient`) and MMKV. All data is optimistically updated locally. If the user is offline data syncs as soon as they're back online.
+
+There is no separate API and all logic is processed client-side in the app.
 
 ## What I'd do differently
 
-Placeholder. The honest retrospective; the section engineers actually read.
+This was my first React Native app and I was focused on making it an entirely offline experience. For simplicity and speed I used Supabase for authentication and the database, but wanted the app to work fully offline. Initially I set up PowerSync as a Database Sync Engine. Unfortunately their free tier killed the app after a short period of inactivity and their paid tier wasn't cheap.
+
+I rebuilt the app with TanStack Query handling any offline persistence and syncing.
