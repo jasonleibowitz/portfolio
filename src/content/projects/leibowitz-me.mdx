@@ -67,6 +67,6 @@ Images are optimized as part of the build, every post gets its own link-preview 
 
 ## What I'd do differently
 
-I built a way to mark unfinished copy on the page before checking whether anything needed one: a frontmatter field on every collection, a component to wrap the text, and a style to draw a dotted underline. Exactly one entry ever used it, and the underline never drew anything at all, because of how MDX nests a paragraph. Three moving parts, no pixels, and a passing build the whole time.
+Every word on this site lives in a markdown file committed to the repo. That was the right call for getting it built and it is the wrong one for living with it. Changing anything means pulling the repo, starting a dev server, writing markdown, previewing it locally, then committing and pushing before it is real. That is a lot of ceremony for fixing a typo, and enough friction that small changes wait for a batch.
 
-All of it is deleted. Unfinished copy now starts with the word "Placeholder", which is the entire mechanism. I would have got there in an afternoon by opening the page and looking at it.
+What it needs is an admin only I can reach: write and edit in the browser, press publish, and have publishing trigger the rebuild on its own. The site stays a static build, because that is what makes it fast to serve and cheap to host. What changes is that editing a sentence stops requiring a terminal.
