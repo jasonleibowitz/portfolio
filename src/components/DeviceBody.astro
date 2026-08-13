@@ -22,19 +22,39 @@ import { tv } from '@lib/tv';
 interface Props {
   kind?: 'phone' | 'window';
   size?: 'default' | 'wide' | 'shot';
+  /**
+   * Give the slot its width and nothing else. A capture of a browser arrives
+   * with its own window already around it, chrome and shadow and all, thus a
+   * drawn body would put a window inside a monitor.
+   */
+  bare?: boolean;
   class?: string;
 }
 
 const frame = tv({
-  base: 'relative shrink-0 snap-start w-[var(--shot-w)] border border-white/12 bg-[#1d1d1f] p-[calc(var(--shot-w)*0.021)] shadow-lift',
+  base: 'relative shrink-0 snap-start w-[var(--shot-w)]',
   variants: {
+    chrome: {
+      true: 'border border-white/12 bg-[#1d1d1f] p-[calc(var(--shot-w)*0.021)] shadow-lift',
+      false: '',
+    },
     kind: {
-      phone: 'rounded-[calc(var(--shot-w)*0.141)]',
-      window: 'rounded-[calc(var(--shot-w)*0.045)]',
+      phone: '',
+      window: '',
     },
     size: { default: '', wide: '', shot: '' },
   },
   compoundVariants: [
+    {
+      chrome: true,
+      kind: 'phone',
+      class: 'rounded-[calc(var(--shot-w)*0.141)]',
+    },
+    {
+      chrome: true,
+      kind: 'window',
+      class: 'rounded-[calc(var(--shot-w)*0.045)]',
+    },
     { kind: 'phone', size: 'default', class: '[--shot-w:140px]' },
     {
       kind: 'phone',
@@ -51,21 +71,28 @@ const frame = tv({
       size: 'wide',
       class: '[--shot-w:240px] card:[--shot-w:280px]',
     },
-    { kind: 'window', size: 'shot', class: '[--shot-w:240px]' },
+    /* A page is landscape and dense, thus it needs more width than a phone to
+       read as the site rather than as a grey rectangle. */
+    { kind: 'window', size: 'shot', class: '[--shot-w:440px]' },
   ],
-  defaultVariants: { kind: 'phone', size: 'default' },
+  defaultVariants: { kind: 'phone', size: 'default', chrome: true },
 });
 
-const { kind = 'phone', size = 'default', class: className } = Astro.props;
+const {
+  kind = 'phone',
+  size = 'default',
+  bare = false,
+  class: className,
+} = Astro.props;
 ---
 
-<div class={frame({ kind, size, class: className })}>
+<div class={frame({ kind, size, chrome: !bare, class: className })}>
   <slot />
 
   {
     /* The island is the phone and not the picture, thus it sits above whatever
       is on the screen and is kept from a screen reader. */
-    kind === 'phone' && (
+    kind === 'phone' && !bare && (
       <span
         class="absolute top-[calc(var(--shot-w)*0.046)] left-1/2 aspect-[125/37] w-[calc(var(--shot-w)*0.268)] -translate-x-1/2 rounded-full bg-black"
         aria-hidden="true"

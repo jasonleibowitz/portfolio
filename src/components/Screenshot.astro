@@ -31,10 +31,13 @@ const {
   class: className,
 } = Astro.props;
 
-const radius =
-  kind === 'phone'
-    ? 'rounded-[calc(var(--shot-w)*0.120)]'
-    : 'rounded-[calc(var(--shot-w)*0.028)]';
+/*
+ * A capture of a browser already holds its own window, thus it gets width and
+ * nothing else: its chrome, its corners and its shadow are in the picture. A
+ * capture of an app holds only the screen, thus the site draws the phone.
+ */
+const bare = kind === 'window';
+const radius = bare ? '' : 'rounded-[calc(var(--shot-w)*0.120)]';
 const shared = `block w-full ${radius}`;
 
 /*
@@ -52,7 +55,7 @@ const shared = `block w-full ${radius}`;
  */
 ---
 
-<DeviceBody kind={kind} size={size} class={className}>
+<DeviceBody kind={kind} size={size} bare={bare} class={className}>
   <Image
     src={shot.light}
     alt={shot.alt}
