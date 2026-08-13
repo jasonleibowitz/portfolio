@@ -168,9 +168,10 @@ const lists = defineCollection({
  * `development` is every step before that. `Status.astro` owns the wording, so
  * two projects at one stage cannot describe it differently.
  *
- * `testflight` adds the "Join the beta" button, with the mail already written.
- * It is a field of its own because `status` cannot say it: a web app in test
- * has nothing to join.
+ * `is_beta_open` adds the "Join the beta" button, with the mail already
+ * written. It is a field of its own because `status` cannot say it: a web app
+ * in test has nothing to join. The mail it opens asks for the things TestFlight
+ * needs, because both apps that carry the flag are iOS.
  *
  * `specs` fills the rows beside the write-up, in the order they are written. A
  * row holds any label, thus add `Role` only where it separates the work of one
@@ -220,7 +221,7 @@ const projects = defineCollection({
         .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
       cta: z.object({ label: z.string(), href: z.string() }).optional(),
-      testflight: z.boolean().default(false),
+      is_beta_open: z.boolean().default(false),
       is_featured: z.boolean().default(false),
       order: z.number().optional(),
       links: z

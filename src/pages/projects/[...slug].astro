@@ -52,7 +52,7 @@ const shotSize =
 
 /** The beta invite first, because it is the one that asks for a reply. */
 const ctas = [
-  data.testflight && {
+  data.is_beta_open && {
     label: 'Join the beta',
     href: testflightRequestHref(data.title),
     icon: 'lucide:mail',
