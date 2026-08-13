@@ -54,7 +54,7 @@ draft: false
 
 ## The problem
 
-There is always more to watch than anyone could get through. The problem is choosing, and on your own that is twenty minutes of scrolling. With other people it is twenty minutes of scrolling and a negotiation. The apps meant to help share three flaws, and Reel is built around all three.
+There is always more to watch than anyone could get through. The problem is choosing, and on your own that is twenty minutes of scrolling. With other people it is even more scrolling plus a negotiation. The apps meant to help share three flaws, and Reel is built around all three.
 
 1. **Rating in the abstract does not work.** Is Forrest Gump a 4.5 or a 5? I will not give the same answer twice. Ask whether I liked it more than Finding Nemo and the answer is immediate, and it is still true a year later.
 2. **A new app knows nothing about what you have already seen.** There is no realistic way to enter a thousand films you have watched, so it spends its first months recommending things you saw years ago.
@@ -72,12 +72,12 @@ Reel is a single-player app first, because a recommendation engine that does not
 
 ## How it's built
 
-A Django API and an Expo app in one monorepo, with the mobile client's types generated from the API's own schema, so the two halves cannot drift apart without the build saying so. Film data comes from TMDB and OMDB, kept current by background jobs and insulated well enough that a slow provider costs a detail rather than the whole screen.
+Ranking a film starts with one tap on its poster: Liked It, or Not For Me. After that it is a binary search. Every head-to-head comparison halves the range the film could sit in, so slotting it into a library of hundreds takes a handful of questions rather than a walk down the list, and it stays a handful as the library grows.
 
-How a pile of comparisons turns into a score, and into a recommendation, is the part I would rather not publish.
+The score falls out of where it lands. Each of the two answers owns a slice of the ten-point scale, and a film's position inside its slice interpolates a number within it, so a film you said you liked never prints in the 4s. That matters more than it sounds. People read a 4 as a bad film, because a 4 is a bad film on IMDb and Letterboxd, and a scale that argues with the ones already in someone's head loses. No score is ever stored either. It is computed from position each time it is read, which is why scores shift a little as a library fills out, and why a 9.1 in Reel says something about your taste rather than borrowing a scale everyone reads differently.
+
+Behind that, a Django API and an Expo app in one monorepo, with the mobile client's types generated from the API's own schema, so the two halves cannot drift apart without the build saying so. Film data comes from TMDB and OMDB, kept current by background jobs and insulated well enough that a slow provider costs a detail rather than the whole screen.
 
 ## What I'd do differently
 
-I built the ranking mechanic first and assumed the rest would follow from it. It works, and it was never where people fell off: everyone who signed up ranked films and finished the flow. What I had not built was a reason to open the app on a night you did not watch anything.
-
-The fix was not a better algorithm, it was recommendations and knowing where things stream. I would have found that sooner by measuring the app before building the next thing for it.
+Coming soon, after the app goes live.
