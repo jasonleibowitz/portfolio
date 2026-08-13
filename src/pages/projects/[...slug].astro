@@ -97,7 +97,11 @@ const ctas = [
         {
           data.screenshots.length > 0
             ? data.screenshots.map((shot) => (
-                <Screenshot shot={shot} kind={data.frame} size="shot" />
+                <Screenshot
+                  shot={shot}
+                  kind={shot.frame ?? data.frame}
+                  size="shot"
+                />
               ))
             : [0, 1, 2].map((variant) => (
                 <DeviceFrame

@@ -199,6 +199,12 @@ const projects = defineCollection({
       light: image(),
       dark: image().optional(),
       alt: z.string(),
+      /**
+       * What the site draws around this one capture, where that differs from
+       * the project's own `frame`. A responsive site is shot in a browser and
+       * on a phone, and the two need different hardware in the same row.
+       */
+      frame: z.enum(['phone', 'window']).optional(),
     });
 
     const project = z.object({

@@ -51,7 +51,7 @@ const variant = (index % 3) as 0 | 1 | 2;
         data.screenshots.length > 0 ? (
           <Screenshot
             shot={data.screenshots[0]}
-            kind={data.frame}
+            kind={data.screenshots[0].frame ?? data.frame}
             size="wide"
             class="transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
           />

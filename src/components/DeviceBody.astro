@@ -61,9 +61,21 @@ const frame = tv({
       size: 'wide',
       class: '[--shot-w:140px] card:[--shot-w:200px]',
     },
-    /* Wider than the write-up column can hold, thus that row scrolls. At 160px
-       a screen was a thumbnail; at 280px its body copy reads, which is the
-       whole reason the captures are on the page. */
+    /*
+     * The two `shot` widths below are picked to draw the same height, 594px,
+     * because a row mixing a phone and a browser reads as broken when one is
+     * twice the other. They differ because the shapes do: a capture of a page
+     * is landscape and a capture of an app is portrait, thus equal height buys
+     * a wide window and a narrow phone, and the row scrolls.
+     *
+     * Each is derived from its own capture: a phone is 1320x2868 inside a
+     * bezel of 2.1%, and a page is 1968x1349 bare. A capture of another shape
+     * needs these worked out again.
+     *
+     * Wider than the write-up column can hold, thus that row scrolls. At 160px
+     * a screen was a thumbnail; at 280px its body copy reads, which is the
+     * whole reason the captures are on the page.
+     */
     { kind: 'phone', size: 'shot', class: '[--shot-w:280px]' },
     { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
     {
@@ -71,9 +83,7 @@ const frame = tv({
       size: 'wide',
       class: '[--shot-w:240px] card:[--shot-w:280px]',
     },
-    /* A page is landscape and dense, thus it needs more width than a phone to
-       read as the site rather than as a grey rectangle. */
-    { kind: 'window', size: 'shot', class: '[--shot-w:440px]' },
+    { kind: 'window', size: 'shot', class: '[--shot-w:867px]' },
   ],
   defaultVariants: { kind: 'phone', size: 'default', chrome: true },
 });
