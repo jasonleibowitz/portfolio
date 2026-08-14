@@ -1,48 +1,191 @@
 ---
+/* Only TypeScript sees `ImageMetadata` as a global. Import it, or eslint
+   reads it as undefined. */
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
 import { Icon } from 'astro-icon/components';
 
 /**
- * The shell a capture opens into: an empty modal, filled by `lightbox.ts` from
- * whichever row was clicked.
+ * The modal a project capture opens into, and the rail it pages on.
  *
- * Render it once per page, beside a row marked `data-shots`. It ships the
+ * Render it once per page, beside the row marked `data-shots`. It ships the
  * behavior with it, the way `Chip` ships `charge.ts`, so a page with no
- * captures ships none of this. The chrome is here rather than built in JS
- * because icons come from `astro-icon` at build time, and because markup
- * belongs in a component.
+ * captures ships none of this.
+ *
+ * The slides are drawn here rather than built in JS, which is what lets them
+ * be styled like everything else on the site. Nothing about a capture is known
+ * only at runtime: `lightbox.ts` used to read the row's own `data-` attributes
+ * back out of the DOM and rebuild this markup from them, which was a round
+ * trip through the page for data the build already had.
  */
 interface Props {
   /** Names the group for a screen reader. Usually the project's title. */
   label: string;
+  /** The captures, in the order the row shows them. */
+  shots: {
+    light: ImageMetadata;
+    dark?: ImageMetadata;
+    alt: string;
+    caption?: string;
+  }[];
 }
 
-const { label } = Astro.props;
+/**
+ * How hard the full-size renditions are compressed.
+ *
+ * The sources carry no encoding policy at all: at one identical 1320x2868 they
+ * run from 48 kB to 561 kB, because each was exported by whatever drew it. One
+ * number here replaces twenty-two separate accidents.
+ */
+const FULL_QUALITY = 78;
+
+/**
+ * A capture at the source's own width and no wider.
+ *
+ * `layout: 'none'` is load bearing. `image.layout: 'constrained'` in
+ * `astro.config.mjs` reaches every `getImage` call, and a `srcset` per
+ * rendition put 10.1 MB into `dist/` where these want 3.4 MB. It also stops
+ * `quality` applying at all, so the sources passed through untouched.
+ */
+const rendition = (src: ImageMetadata) =>
+  getImage({
+    src,
+    width: src.width,
+    format: 'webp',
+    quality: FULL_QUALITY,
+    layout: 'none',
+  });
+
+const { label, shots } = Astro.props;
+
+const slides = await Promise.all(
+  shots.map(async (shot) => ({
+    alt: shot.alt,
+    caption: shot.caption,
+    width: shot.light.width,
+    height: shot.light.height,
+    light: (await rendition(shot.light)).src,
+    dark: shot.dark ? (await rendition(shot.dark)).src : undefined,
+  }))
+);
+
+/* The foot is reserved for the whole row, not per capture. Sized slide by
+   slide, a capture would change size as the reader paged between one that has
+   a caption and one that does not, which reads as the layout breaking. */
+const captioned = slides.some((slide) => slide.caption);
 
 /* A control on the ink backdrop, at the 44px floor the system sets. Not a
-   `Button`: that one is an anchor, and carries the page's own surface. */
-const control =
-  'lb-btn inline-flex size-11 items-center justify-center rounded-full';
+   `Button`: that one is an anchor, and carries the page's own surface. The
+   fill is the scrim rather than a wash of the label color, because a control
+   floats over the capture wherever the capture fills the screen, and a light
+   wash over bright poster art measured 1.07:1 against its own glyph. */
+const control = [
+  'inline-flex size-11 items-center justify-center rounded-full',
+  'text-on-scrim bg-[color-mix(in_srgb,var(--color-scrim)_88%,transparent)]',
+  'border border-[color-mix(in_srgb,var(--color-on-scrim)_24%,transparent)]',
+  'transition-[background-color,opacity] duration-200 ease-orbit',
+  'enabled:hover:bg-scrim disabled:opacity-30',
+].join(' ');
+
+/* Two rows: the capture takes what is left, the caption takes what it needs.
+   `minmax(0,1fr)` and never `auto` for the first -- an `auto` row sizes to the
+   capture's own 2868px, and the `max-height:100%` below then measures against
+   that row instead of against the viewport. A captioned row reserves two lines
+   under every capture, including the ones with none, or an empty caption row
+   collapses and that capture draws a line taller than the rest. */
+const slide = [
+  'grid h-full w-full flex-[0_0_100%] items-center justify-items-center gap-3',
+  'snap-center snap-always p-4 pb-[68px]',
+  captioned
+    ? 'grid-rows-[minmax(0,1fr)_minmax(calc(var(--text-meta)*3),auto)]'
+    : 'grid-rows-[minmax(0,1fr)_auto]',
+].join(' ');
+
+/* Both dimensions auto, clamped by the two maximums. That is the one
+   combination that keeps a capture's proportions while it fits, and it needs
+   the element's intrinsic size to be the capture's own, which is what the
+   width and height attributes below give it before any file arrives.
+
+   `touch-action` is the arbitration: at rest the browser owns the horizontal
+   axis, which is what lets the rail page, and a zoomed capture gives it none
+   so Panzoom can pan. Panzoom is told `touchAction: ''` precisely so these two
+   decide it. */
+const capture = [
+  'h-auto w-auto max-h-full min-h-0 max-w-full rounded-card',
+  'touch-pan-x data-[zoomed]:touch-none',
+  'cursor-zoom-in data-[zoomed]:cursor-grab',
+].join(' ');
 ---
 
 {
-  /* Empty and closed. A `dialog` without `open` is `display: none`, so with no
-    JS this is nothing on the page rather than chrome that does nothing. */
+  /* Closed. A `dialog` without `open` is `display: none`, so with no JS this is
+    nothing on the page rather than chrome that does nothing, and none of the
+    captures below is fetched. */
 }
-<dialog data-lightbox class="lb" aria-label={`${label} screenshots`}>
+<dialog
+  data-lightbox
+  class="group m-0 h-dvh max-h-dvh w-screen max-w-[100vw] overflow-hidden border-0 bg-transparent p-0 text-on-scrim backdrop:bg-scrim"
+  aria-label={`${label} screenshots`}
+>
+  {
+    /* Every part of paging that feels expensive -- 1:1 tracking, momentum
+      carried past the release, snapping, and rubber-banding at the two ends --
+      is the browser's own scroller, and none of it is written anywhere. */
+  }
   <div
     data-lb-rail
-    class="lb-rail"
+    class="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-contain [scrollbar-width:none] focus-visible:outline-none [&::-webkit-scrollbar]:hidden"
     tabindex="-1"
     role="group"
     aria-label={`${label} screenshots, enlarged`}
   >
+    {
+      slides.map((shot) => (
+        <figure
+          class={slide}
+          data-lb-slide
+          data-full={shot.light}
+          data-full-dark={shot.dark}
+        >
+          {/* No `src`. The attributes give the slide its box, so a capture
+              that has not been reached holds its place and costs nothing;
+              `lightbox.ts` assigns the one that matches the theme. */}
+          <img
+            alt={shot.alt}
+            width={shot.width}
+            height={shot.height}
+            draggable="false"
+            class={capture}
+          />
+
+          {shot.caption && (
+            <figcaption class="m-0 max-w-[min(var(--container-measure),100%)] text-center font-mono text-meta leading-normal text-balance text-[color-mix(in_srgb,var(--color-on-scrim)_78%,transparent)]">
+              {shot.caption}
+            </figcaption>
+          )}
+        </figure>
+      ))
+    }
   </div>
 
-  <button data-lb-close class={control} type="button" aria-label="Close">
+  <button
+    data-lb-close
+    class:list={['absolute top-3 right-3', control]}
+    type="button"
+    aria-label="Close"
+  >
     <Icon name="lucide:x" class="size-5" />
   </button>
 
-  <div class="lb-pager">
+  {
+    /* A cursor has no swipe, so it gets controls; a finger has one, so its
+      controls stay out of the way. The close button is the exception and is
+      always there, because dismissing is the one thing a reader must never
+      have to guess at. */
+  }
+  <div
+    class="absolute right-3 bottom-3 left-3 flex items-center justify-center gap-3 transition-opacity duration-200 ease-orbit pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100"
+  >
     <button
       data-lb-prev
       class={control}
@@ -52,7 +195,12 @@ const control =
       <Icon name="lucide:chevron-left" class="size-5" />
     </button>
 
-    <p data-lb-count class="lb-count" aria-live="polite"></p>
+    <p
+      data-lb-count
+      class="m-0 min-w-[5ch] rounded-sm bg-[color-mix(in_srgb,var(--color-scrim)_88%,transparent)] px-2.5 py-1 text-center font-mono text-meta tracking-data text-on-scrim"
+      aria-live="polite"
+    >
+    </p>
 
     <button
       data-lb-next

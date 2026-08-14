@@ -75,9 +75,11 @@ function visibleImg(within: Element): HTMLImageElement | undefined {
 interface Slide {
   el: HTMLElement;
   img: HTMLImageElement;
-  full: string;
+  light: string;
+  dark?: string;
+  /** Which theme the loaded file belongs to, so a flip between opens is seen. */
+  theme?: string;
   panzoom?: PanzoomObject;
-  loaded?: boolean;
   /** The drawn size at rest, which every pan bound is measured against. */
   baseW: number;
   baseH: number;
@@ -107,7 +109,6 @@ export function initLightbox() {
   const animated = () =>
     !reduced && !!document.startViewTransition && !document.hidden;
 
-  let slides: Slide[] = [];
   let index = 0;
   let opener: HTMLElement | null = null;
   /* Whether the reader reached the lightbox by keyboard, which decides
@@ -124,13 +125,15 @@ export function initLightbox() {
    * does nothing, and the captures are meant to render exactly as they do now
    * when there is no JS. `footnotes.ts` upgrades its references the same way.
    */
-  frames.forEach((frame) => {
+  const frameList = Array.from(frames, (frame) => {
     /* Before the children move, because afterwards the frame holds none. */
     const alt = frame.querySelector('img')?.alt ?? '';
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `${frame.className} shot-btn`;
+    /* `shot-btn` carries the reset in `base.css`, which needs no specificity;
+       the focus rule is a utility, and utilities outrank `@layer base`. */
+    button.className = `${frame.className} shot-btn data-[quiet-focus]:focus-visible:outline-none`;
     Object.assign(button.dataset, frame.dataset);
     button.append(...frame.childNodes);
     button.setAttribute('aria-label', alt ? `Enlarge: ${alt}` : 'Enlarge');
@@ -142,65 +145,24 @@ export function initLightbox() {
     });
 
     frame.replaceWith(button);
+    return button;
   });
 
   /* ----------------------------------------------------------------- slides */
 
-  const buildRail = (row: HTMLElement) => {
-    const theme = document.documentElement.dataset.theme;
-
-    const shots = Array.from(row.querySelectorAll<HTMLElement>('[data-shot]'));
-    /*
-     * The foot is reserved for the whole row, not per capture. Sized slide by
-     * slide, a capture would change size as the reader paged between one that
-     * has a caption and one that does not, which reads as the layout breaking
-     * rather than as two different captures.
-     */
-    rail.toggleAttribute(
-      'data-captioned',
-      shots.some((shot) => shot.dataset.caption)
-    );
-
-    rail.replaceChildren();
-    slides = shots.map((shot) => {
-      const el = document.createElement('figure');
-      el.className = 'lb-slide';
-
-      const img = document.createElement('img');
-      img.alt = shot.querySelector('img')?.alt ?? '';
-      img.draggable = false;
-      /* The drawn size is known before the file is, so the rail has its final
-         geometry on the first frame and nothing reflows as the captures
-         arrive. */
-      img.width = Number(shot.dataset.fullW) || 0;
-      img.height = Number(shot.dataset.fullH) || 0;
-      /* No `src` yet. The attributes above already give the slide its box, so
-         a capture that has not been reached costs nothing and still holds its
-         place. */
-      el.append(img);
-
-      /* `textContent`, so a caption is text and never markup. */
-      if (shot.dataset.caption) {
-        const caption = document.createElement('figcaption');
-        caption.className = 'lb-caption';
-        caption.textContent = shot.dataset.caption;
-        el.append(caption);
-      }
-
-      rail.append(el);
-
-      return {
-        el,
-        img,
-        baseW: 0,
-        baseH: 0,
-        full: fullSrcFor(
-          { light: shot.dataset.full!, dark: shot.dataset.fullDark },
-          theme
-        ),
-      };
-    });
-  };
+  /* The slides are markup `Lightbox.astro` rendered, not something this file
+     builds, so they are read once and outlive every open. */
+  const slides: Slide[] = Array.from(
+    rail.querySelectorAll<HTMLElement>('[data-lb-slide]'),
+    (el) => ({
+      el,
+      img: el.querySelector('img')!,
+      light: el.dataset.full!,
+      dark: el.dataset.fullDark,
+      baseW: 0,
+      baseH: 0,
+    })
+  );
 
   /**
    * Fetches a slide's capture, once. Called for the one being opened and for
@@ -208,9 +170,15 @@ export function initLightbox() {
    * eight captures never costs eight downloads to read one.
    */
   const load = (slide?: Slide) => {
-    if (!slide || slide.loaded || !slide.full) return Promise.resolve();
-    slide.loaded = true;
-    slide.img.src = slide.full;
+    if (!slide) return Promise.resolve();
+    /* The slides outlive an open now, so a reader who changed theme between
+       two opens would otherwise be shown the rendition of the old one. */
+    const theme = document.documentElement.dataset.theme ?? 'light';
+    const src = fullSrcFor({ light: slide.light, dark: slide.dark }, theme);
+    if (slide.theme === theme || !src) return Promise.resolve();
+
+    slide.theme = theme;
+    slide.img.src = src;
     return slide.img
       .decode()
       .then(() => armZoom(slide))
@@ -271,10 +239,13 @@ export function initLightbox() {
       panOnlyWhenZoomed: true,
       /* Panzoom would otherwise write `touch-action: none` onto the image and
          the rail, which stops the rail scrolling at all. The pair of values
-         this needs is a function of the zoom, so `lightbox.css` owns it and
-         keys it off `data-zoomed`. */
+         this needs is a function of the zoom, so the utilities on the capture
+         in `Lightbox.astro` own it and key it off `data-zoomed`. */
       touchAction: '',
-      cursor: 'zoom-in',
+      /* Empty for the same reason. Panzoom writes a cursor inline whether it
+         is asked to or not, and an inline style outranks any class, so the
+         grab cursor on a zoomed capture never appeared. */
+      cursor: '',
       animate: true,
       duration: 180,
       step: 0.35,
@@ -286,7 +257,7 @@ export function initLightbox() {
 
     slide.img.addEventListener('panzoomchange', (event) => {
       const { scale } = (event as CustomEvent<{ scale: number }>).detail;
-      slide.el.toggleAttribute('data-zoomed', scale > 1.01);
+      slide.img.toggleAttribute('data-zoomed', scale > 1.01);
       clampPan(slide, event as CustomEvent<Pan>);
     });
   };
@@ -345,7 +316,7 @@ export function initLightbox() {
   const resetZoom = (slide?: Slide) => {
     if (!slide?.panzoom) return;
     slide.panzoom.reset({ animate: false });
-    slide.el.removeAttribute('data-zoomed');
+    slide.img.removeAttribute('data-zoomed');
   };
 
   /* ---------------------------------------------------------------- paging */
@@ -416,8 +387,7 @@ export function initLightbox() {
 
   /* ------------------------------------------------------------ open/close */
 
-  const show = (row: HTMLElement, start: number) => {
-    buildRail(row);
+  const show = (start: number) => {
     dialog.showModal();
 
     /* `clientWidth` is 0 while the dialog is display:none, so the rail can
@@ -430,29 +400,21 @@ export function initLightbox() {
     rail.focus({ preventScroll: true });
   };
 
-  async function open(button: HTMLElement) {
-    const row = button.closest<HTMLElement>('[data-shots]');
-    if (!row) return;
-
-    const shots = Array.from(row.querySelectorAll<HTMLElement>('[data-shot]'));
-    const start = Math.max(0, shots.indexOf(button));
+  async function open(button: HTMLButtonElement) {
+    const start = frameList.indexOf(button);
+    if (start < 0 || !slides[start]) return;
     opener = button;
 
     if (!animated()) {
-      show(row, start);
+      show(start);
       return;
     }
 
     /* Warm the capture before the transition rather than during it, or the
        frame grows into an image that has not arrived. Raced, because a slow
        connection must delay the open by a blink and not by a download. */
-    const warm = new Image();
-    warm.src = fullSrcFor(
-      { light: button.dataset.full!, dark: button.dataset.fullDark },
-      document.documentElement.dataset.theme
-    );
     await Promise.race([
-      warm.decode().catch(() => {}),
+      load(slides[start]),
       new Promise((r) => setTimeout(r, WARM_MS)),
     ]);
 
@@ -464,7 +426,7 @@ export function initLightbox() {
     document
       .startViewTransition(() => {
         if (from) from.style.removeProperty('view-transition-name');
-        show(row, start);
+        show(start);
         slides[start].img.style.viewTransitionName = 'lb-shot';
       })
       /* `ready` and `finished` reject whenever the browser skips a
@@ -481,12 +443,14 @@ export function initLightbox() {
    * `close` event for any dismissal this file did not perform itself.
    */
   const teardown = () => {
-    slides.forEach((slide) => slide.panzoom?.destroy());
-    slides = [];
-    rail.replaceChildren();
-    /* Without `preventScroll` the browser drags the snap row to bring the
-       frame into view, and it lands on a different capture than the one that
-       was opened. */
+    /* The rail is markup now, so it is left standing: only the zoom is given
+       back, and the next open re-arms whichever slides it needs. */
+    slides.forEach((slide) => {
+      slide.panzoom?.destroy();
+      slide.panzoom = undefined;
+      slide.img.removeAttribute('data-zoomed');
+      slide.img.style.removeProperty('transform');
+    });
     /*
      * Focus goes back either way, because a reader who cannot see the capture
      * must not be dropped at the top of the document. The ring is the part
@@ -616,7 +580,7 @@ export function initLightbox() {
     if (!near || !slide?.panzoom) return;
 
     lastTap.t = 0;
-    if (slide.el.hasAttribute('data-zoomed')) {
+    if (slide.img.hasAttribute('data-zoomed')) {
       resetZoom(slide);
       return;
     }

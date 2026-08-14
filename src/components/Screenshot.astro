@@ -2,7 +2,7 @@
 /* Only TypeScript sees `ImageMetadata` as a global. Import it, or eslint
    reads it as undefined. */
 import type { ImageMetadata } from 'astro';
-import { Image, getImage } from 'astro:assets';
+import { Image } from 'astro:assets';
 import DeviceBody from './DeviceBody.astro';
 
 /**
@@ -24,8 +24,8 @@ interface Props {
   size?: 'default' | 'wide' | 'shot' | 'mixed';
   class?: string;
   /**
-   * Draw a full-size rendition of each capture, and mark the frame so
-   * `lightbox.ts` can turn it into a control that opens one.
+   * Mark the frame so `lightbox.ts` can turn it into a control that opens the
+   * matching slide in `Lightbox.astro`.
    *
    * Off by default, and deliberately opt-in rather than automatic: on
    * `/projects` a `Screenshot` sits inside the anchor that makes the whole row
@@ -46,15 +46,6 @@ const INTRINSIC = {
   window: { default: 250, wide: 290, shot: 650, mixed: 650 },
 } as const;
 
-/**
- * How hard the full-size renditions are compressed.
- *
- * The sources carry no encoding policy at all: at one identical 1320x2868 they
- * run from 48 kB to 561 kB, because each was exported by whatever drew it.
- * One number here replaces twenty-two separate accidents.
- */
-const FULL_QUALITY = 78;
-
 const {
   shot,
   kind = 'phone',
@@ -62,46 +53,6 @@ const {
   class: className,
   lightbox = false,
 } = Astro.props;
-
-/**
- * The rendition the lightbox opens, at the source's own width and no wider.
- *
- * Held in a `data-` attribute rather than in a second image element, so a
- * project page transfers nothing extra until a capture is opened. 1320 is one
- * image pixel per device pixel on a 3x phone and 1968 is the same on a 2x
- * display, so there is no detail above the source to go and fetch.
- */
-const full = lightbox
-  ? {
-      light: await getImage({
-        src: shot.light,
-        width: shot.light.width,
-        format: 'webp',
-        quality: FULL_QUALITY,
-        layout: 'none',
-      }),
-      dark: shot.dark
-        ? await getImage({
-            src: shot.dark,
-            width: shot.dark.width,
-            format: 'webp',
-            quality: FULL_QUALITY,
-            layout: 'none',
-          })
-        : undefined,
-    }
-  : undefined;
-
-const hooks = full && {
-  'data-shot': '',
-  'data-full': full.light.src,
-  'data-full-dark': full.dark?.src,
-  'data-full-w': String(shot.light.width),
-  'data-full-h': String(shot.light.height),
-  /* Only where there is one. `lightbox.ts` reads the attribute's absence to
-     decide whether the row reserves a foot for captions at all. */
-  'data-caption': shot.caption,
-};
 
 /*
  * A capture of a browser already holds its own window, thus it gets width and
@@ -128,7 +79,13 @@ const width = INTRINSIC[kind][size];
  */
 ---
 
-<DeviceBody kind={kind} size={size} bare={bare} class={className} {...hooks}>
+<DeviceBody
+  kind={kind}
+  size={size}
+  bare={bare}
+  class={className}
+  {...lightbox ? { 'data-shot': '' } : {}}
+>
   <Image
     src={shot.light}
     alt={shot.alt}
