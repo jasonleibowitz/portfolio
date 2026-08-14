@@ -207,6 +207,13 @@ Vanilla TypeScript in `src/lib/`, imported from an Astro `<script>`:
 - `charge.ts` — lights a chip that was touched rather than pointed at. Imported from a `<script>` in `Chip.astro` rather than from `BaseLayout`, so the behavior travels with the component and a page that renders no chip ships none of it. Astro hoists a component script once per page however many times the component renders, and the listener is delegated, so the 36 chips on `/about` cost what one costs: 93 bytes gzipped, and nothing on the six pages with no chips. **This is the pattern to copy** when a single component needs a few lines of behavior; `chrome.ts` is for what every page needs.
 - `filter.ts` — tag filtering. **A page has at most one `[data-filter-root]`.** Rows and group headings are scoped to it; the count and empty-state elements are looked up page-wide, because on a list page the count sits up in the page header.
 - `footnotes.ts` — upgrades GFM footnote references into popovers. Progressive: with JS off the anchors and the footnote list still work.
+- `lightbox.ts` — opens a project capture full size. Imported from `Lightbox.astro`, which a project page renders once beside its `[data-shots]` row, so only those three pages ship it (2.7 kB gzipped) and `@panzoom/panzoom` (3.6 kB) is a dynamic import that nothing fetches until a capture is opened. Most of it is the platform: `showModal()` for the focus trap, Escape, `inert` and `::backdrop`, and a `scroll-snap` rail for paging with real momentum and rubber-banding. Panzoom is only there for pinch. Progressive the same way `footnotes.ts` is: the frames render as plain `div`s and are upgraded to buttons at runtime, because a server-rendered button whose handler never arrives is a control that does nothing.
+
+Three things that will bite here:
+
+- **`panOnlyWhenZoomed` is what stops the two drags fighting.** At rest a horizontal drag is the rail paging; zoomed, it is Panzoom panning. Pair it with `touchAction: ''` — Panzoom otherwise writes `touch-action: none` onto the image _and_ the rail, which stops the rail scrolling at all, so `lightbox.css` owns that pair and keys it off `data-zoomed`.
+- **`contain: 'inside'`, never `'outside'`.** A capture is letterboxed in its slide, so its box is smaller than the slide; asking it to cover a parent it cannot cover produced a 3107px translation and put the picture off screen at rest.
+- **A trackpad pinch is a `wheel` event with `ctrlKey`, and a two-finger scroll is the same event without it.** Panzoom's `zoomWithWheel` does not read the flag, and its own docs say it "may not handle all use cases", so binding it directly zooms the capture whenever a reader scrolls.
 
 Two things that will bite:
 

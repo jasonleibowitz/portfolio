@@ -1,0 +1,72 @@
+---
+import { Icon } from 'astro-icon/components';
+
+/**
+ * The shell a capture opens into: an empty modal, filled by `lightbox.ts` from
+ * whichever row was clicked.
+ *
+ * Render it once per page, beside a row marked `data-shots`. It ships the
+ * behavior with it, the way `Chip` ships `charge.ts`, so a page with no
+ * captures ships none of this. The chrome is here rather than built in JS
+ * because icons come from `astro-icon` at build time, and because markup
+ * belongs in a component.
+ */
+interface Props {
+  /** Names the group for a screen reader. Usually the project's title. */
+  label: string;
+}
+
+const { label } = Astro.props;
+
+/* A control on the ink backdrop, at the 44px floor the system sets. Not a
+   `Button`: that one is an anchor, and carries the page's own surface. */
+const control =
+  'lb-btn inline-flex size-11 items-center justify-center rounded-full';
+---
+
+{
+  /* Empty and closed. A `dialog` without `open` is `display: none`, so with no
+    JS this is nothing on the page rather than chrome that does nothing. */
+}
+<dialog data-lightbox class="lb" aria-label={`${label} screenshots`}>
+  <div
+    data-lb-rail
+    class="lb-rail"
+    tabindex="-1"
+    role="group"
+    aria-label={`${label} screenshots, enlarged`}
+  >
+  </div>
+
+  <button data-lb-close class={control} type="button" aria-label="Close">
+    <Icon name="lucide:x" class="size-5" />
+  </button>
+
+  <div class="lb-pager">
+    <button
+      data-lb-prev
+      class={control}
+      type="button"
+      aria-label="Previous screenshot"
+    >
+      <Icon name="lucide:chevron-left" class="size-5" />
+    </button>
+
+    <p data-lb-count class="lb-count" aria-live="polite"></p>
+
+    <button
+      data-lb-next
+      class={control}
+      type="button"
+      aria-label="Next screenshot"
+    >
+      <Icon name="lucide:chevron-right" class="size-5" />
+    </button>
+  </div>
+</dialog>
+
+<script>
+  import { initLightbox } from '@lib/lightbox';
+
+  initLightbox();
+</script>

@@ -20,5 +20,9 @@
    blocks, and the footnotes remark generates. */
 @import './content.css';
 
+/* The modal a project capture opens into, and the rail it pages on. Here for
+   the same reason `content.css` is: `lightbox.ts` builds that markup. */
+@import './lightbox.css';
+
 /* The circular sweep between themes. */
 @import './transitions.css';

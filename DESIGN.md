@@ -192,6 +192,8 @@ Near-monochrome ink on warm paper, lit from behind by a single two-hue spectrum 
 
 **The Re-derive Rule.** Dark mode overrides the same custom properties rather than adding `dark:` variants, so every utility recomputes automatically. Reach for the `dark:` variant only when a property genuinely has no token behind it.
 
+**The Held Tokens.** Three tokens deliberately do not re-derive: `--color-on-spectrum`, `--color-sun`, and the pair `--color-scrim` / `--color-on-scrim` behind the capture lightbox. A capture opens on ink in both themes because the capture itself already follows the reader, and any lit surface beside it competes with the body copy the enlargement exists to make legible. A held token needs that kind of reason; the default is to re-derive.
+
 ## Typography
 
 **Display Font:** Space Grotesk Variable (with Avenir Next, system-ui) **Body Font:** Inter Variable (with -apple-system, Segoe UI) **Label/Mono Font:** JetBrains Mono (with ui-monospace, SFMono-Regular, Menlo)
