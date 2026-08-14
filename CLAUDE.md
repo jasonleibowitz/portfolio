@@ -67,7 +67,7 @@ Frontmatter dates have no time or zone, so zod coerces them to UTC midnight. For
 
 **One rule for all three, `address` in `src/content.config.ts`.** The loader reads a `slug` whether a schema declares it or not, so the choice was never whether the field exists, only whether it is checked. Undeclared, `slug: 'Favorite Movies/2024'` on a list built a page at `/lists/Favorite Movies/2024/`, linked it from the index, wrote its share card into a _directory_ of that name, and exited 0. Small letters, digits and single dashes are what a route can serve. The rule cannot gate the id, since the loader reads raw frontmatter before any schema runs, so it fails the build instead. That file says "small letters" rather than the one-word spelling on purpose: Tailwind scans it, and the one word is a class name it would emit into the site's CSS.
 
-**A slug is free to change, and nothing redirects the old one.** No post has ever been published, so no URL here carries an inbound link and none of them is load bearing. Do not reason from SEO or from "a decade of inbound links" about anything under `/writing`: that claim is false, whatever a document says. This stops being true the day the site serves leibowitz.me, and a rename after that needs a redirect the site cannot currently write. Issue #29, PR 6 owns it, and holds what a redirect here costs: Cloudflare's `_redirects` serves real 301s from a static-assets Worker, while Astro's `redirects` only emits `<meta http-equiv="refresh">` pages.
+**A slug change now needs a redirect, and the site cannot yet write one.** Nothing redirects an old address here, which was safe while the site was unpublished: no post had ever been served, so no URL carried an inbound link and none of them was load bearing. That ended on 14 August 2026, when `leibowitz.me` began serving this site. An address that has been live can be linked, so a rename from here breaks whatever points at it. Issue #29, PR 6 owns the fix and holds what a redirect costs: Cloudflare's `_redirects` serves real 301s from a static-assets Worker, while Astro's `redirects` only emits `<meta http-equiv="refresh">` pages.
 
 **Two entries with one slug is a build failure.** Astro only warns on a duplicate id and keeps the last of the two, so the earlier entry loses its page while the build stays green; that was measured, not assumed. `refuseDuplicateAddresses()` in `scripts/addresses.ts` refuses it, called from `scripts/og-card.ts`, because that script is the only reader of the content directory outside Astro and by the time a route runs the loader has already dropped one. It covers all three collections and counts drafts, since a draft is what a preview build renders. Projects draw no card, so `og-card.ts` reads them for the check alone. The check sits in its own file because `og-card.ts` launches Chrome as it loads, which a test cannot import.
 
@@ -133,7 +133,7 @@ The exception, and it is a real one: two posts still carry embeds written as raw
 | `/lists`              | Card grid                                                     |
 | `/lists/[...slug]`    | Ranked or grouped, with a tag rail                            |
 
-**`/writing` is canonical.** `/blog/*` redirects to it via `redirects` in `astro.config.mjs`; the old posts have a decade of inbound links. Astro validates redirect targets against real routes at build time, so a broken redirect fails the build.
+**`/writing` is canonical.** `/blog/*` redirects to it via `redirects` in `astro.config.mjs`. Nothing links to a `/blog` address, so those redirects are free insurance rather than a constraint. Astro validates redirect targets against real routes at build time, so a broken redirect fails the build.
 
 - `getStaticPaths` over `getPublished(...)`, `params: { slug: entry.id }`, then `render(entry)` from `astro:content` (**not** the removed `entry.render()`).
 - `rss.xml.ts` exports **`GET()`** (Astro 3+ renamed it from `get()`).
@@ -253,37 +253,45 @@ The About bio, the employment record and the "Beyond the CV" numbers are real co
 
 Target is **Cloudflare Workers Static Assets** at leibowitz.me, not Cloudflare Pages. Pages was the original decision; Workers is where Cloudflare's feature work goes, its config lives in a tracked file rather than a dashboard, and `wrangler versions upload` publishes a build without deploying it, which is what a per-PR preview needs.
 
-Until DNS cuts over, the live site is still served by the separate `jasonleibowitz.github.io` repo — and its apex record points at deprecated GitHub Pages IPs, so HTTPS is currently broken. **DNS is most of what holds production back, but not all of it:** the staging job also overrides `SITE_URL` and runs `scripts/noindex.mjs`, and neither belongs in a production build. Everything below is already live on `*.workers.dev`.
-
 `wrangler.jsonc` declares one Worker, `portfolio`, serving `dist/` with no `main` — there is no Worker script, so every request is a static asset request, which Cloudflare does not bill.
+
+**The apex is canonical.** `leibowitz.me` is a custom domain on that Worker, declared in `wrangler.jsonc` rather than clicked in the dashboard, so a deploy reads the same file a reviewer does. `www` redirects to it with a 301 from a zone rule, and is deliberately not a second custom domain: a custom domain makes the Worker answer for the hostname, and a Worker with no `main` has nothing to answer a redirect with, so `www` would serve a duplicate site instead of pointing at the real one.
+
+The zone lives on Cloudflare, which is not a preference: a Worker custom domain needs an active zone in the same account, so the nameservers had to move off Namecheap rather than the records staying there. Cloudflare issues the certificate, which is what fixed the HTTPS failure the old GitHub Pages apex record caused.
 
 ### What deploys where
 
 | Trigger        | Command                                           | URL                                        |
 | -------------- | ------------------------------------------------- | ------------------------------------------ |
 | Pull request   | `wrangler versions upload --preview-alias pr-<n>` | `pr-<n>-portfolio.<subdomain>.workers.dev` |
-| Push to `main` | `wrangler deploy`                                 | `portfolio.<subdomain>.workers.dev`        |
+| Push to `main` | `wrangler deploy`                                 | `leibowitz.me`                             |
 
 A preview is a **version** of the one Worker reached through an alias, not a separate environment. Nothing is provisioned per branch, so nothing needs tearing down — and nothing can be: Cloudflare has no API to delete an alias, only LRU eviction past 1,000 of them.
 
-Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
+Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. **Only the preview job runs `scripts/noindex.mjs`**, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. Production ships no such header, and must not: that file is generated rather than committed to `public/` precisely so a copy cannot reach the real site and suppress it.
 
-**A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The staging deployment does serve the full value, which is how the two were told apart. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
+**A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The two were told apart back when the `main` deployment wrote `_headers` too and served the full value. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
+
+**`workers_dev: false` retires `portfolio.<subdomain>.workers.dev`.** That host served the same build as the apex, and it stopped sending `noindex` the moment this deployment became production, so it was a second crawlable address for one site. The canonical tag would have consolidated it, but an address nothing links to earns nothing by existing. Production is reachable at `leibowitz.me` and nowhere else.
+
+**`preview_urls: true` is not redundant beside it.** `preview_urls` defaults to whatever `workers_dev` is, so deleting that line would take every pull request preview down along with the production host. It is written out to break that coupling, and it is the reason previews still work.
 
 **Cloudflare edge-caches a preview response.** A URL can still serve the previous build for a while after a green deploy. Append a query string (`?cb=1`) to see the new one. A preview that looks like it did not pick up the last commit is usually this, not a broken upload.
 
 ### Why the preview build is not the production build
 
-Two env vars make a preview deliberately differ, which is why the deploy jobs rebuild instead of reusing `verify`'s `dist/`:
+Two env vars make a preview deliberately differ, and a job gets no files from another job, which together are why the deploy jobs rebuild rather than reuse `verify`'s `dist/`:
 
-- **`SITE_URL`** overrides `site` in `astro.config.mjs`. Left at `https://leibowitz.me`, the canonical tag, `og:image` and every RSS link would point at a domain still serving the old site. CI can compute the value before building because the alias is deterministic.
-- **`SHOW_DRAFTS`** (an `astro:env` boolean, default false) makes `getPublished` return drafts. Set on pull request previews only, so an unpublished post can be reviewed in the real design and shared. Staging leaves it off and shows exactly the published set.
+- **`SITE_URL`** overrides `site` in `astro.config.mjs`, and **only the preview job sets it**. Without it a preview's canonical tag, `og:image` and RSS links would all name `leibowitz.me` and send a reader to production instead of to the thing under review. CI can compute the value before building because the alias is deterministic. A production build sets nothing and takes the default, so `astro.config.mjs` is the one file that names the domain — and `verify` builds the exact URLs production ships.
+- **`SHOW_DRAFTS`** (an `astro:env` boolean, default false) makes `getPublished` return drafts. Set on pull request previews only, so an unpublished post can be reviewed in the real design and shared. Production leaves it off and shows exactly the published set.
 
 ### Setup this depends on
 
 Repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the repo **variable** `CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above, currently `jasonaleibowitz`). It is a variable rather than a secret because it is baked into the built `site` value; without it the workflow builds a URL with an empty segment that will not resolve.
 
-The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and `Memberships`. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages, Containers, Observability), which a static site never touches, and its `Zone: Workers Routes` entry cannot even be saved while the account has no zone. Routes matter at DNS cutover, not before.
+The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and `Memberships`, and now `Zone: Workers Routes: Edit` on the `leibowitz.me` zone as well. That last grant could not be saved until the zone existed, which is why it was added at the cutover and not with the others. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages, Containers, Observability), which a static site never touches.
+
+**The routes grant is what a `main` deploy needs, and only a `main` deploy.** `wrangler deploy` applies the `routes` in `wrangler.jsonc`; `wrangler versions upload` documents that it changes no routing, so a pull request preview keeps working on the narrower token. A deploy that fails after a green build, on a permission rather than on the site, is this.
 
 **`wrangler versions upload` cannot create a Worker.** It fails with "You cannot upload a new version of a Worker that does not yet exist", so a brand new Worker has to be created by one `wrangler deploy` before any preview can upload. This is undocumented and was found by hitting it. It is a one-time bootstrap, already done for `portfolio` — but it repeats for any new Worker, and it means the `preview` job cannot be the first thing that ever runs.
 
