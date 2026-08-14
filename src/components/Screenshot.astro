@@ -8,10 +8,9 @@ import DeviceBody from './DeviceBody.astro';
 /**
  * One real capture, on the screen of a device.
  *
- * A screen holds both themes, and the pair swaps on `data-theme` rather than
- * fusing into one diagonal image. A fused image is what a store listing needs,
- * where nothing can know the reader; this page does know, thus each theme gets
- * a capture taken in it.
+ * A screen holds both themes and the pair swaps on `data-theme`, rather than
+ * fusing into one diagonal image. A fused image is for a store listing, where
+ * nothing can know the reader. This page does.
  */
 interface Props {
   shot: {
@@ -24,22 +23,19 @@ interface Props {
   size?: 'default' | 'wide' | 'shot' | 'mixed';
   class?: string;
   /**
-   * Mark the frame so `lightbox.ts` can turn it into a control that opens the
-   * matching slide in `Lightbox.astro`.
-   *
-   * Off by default, and deliberately opt-in rather than automatic: on
-   * `/projects` a `Screenshot` sits inside the anchor that makes the whole row
-   * a link, and a button nested in a link is neither valid nor clickable.
+   * Mark the frame so `lightbox.ts` can make it a control that opens the
+   * matching slide. Opt-in and never automatic: on `/projects` a `Screenshot`
+   * sits inside the anchor that makes the whole row a link, and a button
+   * nested in a link is neither valid nor clickable.
    */
   lightbox?: boolean;
 }
 
 /**
- * The widest each slot is ever drawn, in CSS pixels, rounded up. `densities`
- * doubles it for a retina screen, thus one number here decides whether a
- * capture is sharp. A single figure for every slot is what made the browser
- * shots mush: 400 covered a 280px phone twice over and left a 640px window
- * upscaling a file smaller than the space it had to fill.
+ * The widest each slot is ever drawn, in CSS pixels. `densities` doubles it
+ * for a retina screen, so one number here decides whether a capture is sharp.
+ * One figure for every slot is what made the browser shots mush: 400 covered
+ * a 280px phone twice over and left a 640px window upscaling.
  */
 const INTRINSIC = {
   phone: { default: 150, wide: 210, shot: 290, mixed: 220 },
@@ -54,29 +50,29 @@ const {
   lightbox = false,
 } = Astro.props;
 
-/*
- * A capture of a browser already holds its own window, thus it gets width and
- * nothing else: its chrome, its corners and its shadow are in the picture. A
- * capture of an app holds only the screen, thus the site draws the phone.
- */
+/* A capture of a browser already holds its own window: chrome, corners and
+   shadow are in the picture, so it gets width and nothing else. A capture of
+   an app holds only the screen, so the site draws the phone. */
 const bare = kind === 'window';
 const radius = bare ? '' : 'rounded-[calc(var(--shot-w)*0.120)]';
 const shared = `block w-full ${radius}`;
-const width = INTRINSIC[kind][size];
 
-/*
- * Both files ship, and both say `eager`, which `<Image>` needs told: it lazies
- * by default, and a lazy image that starts `display: none` is never fetched.
- * Showing it does not reliably start the fetch either, thus the first toggle
- * drew empty frames for every screen the reader had not already seen. The
- * theme can change at any moment after load, so the pair is one unit: both
- * load, or the swap has nothing to swap to.
+/**
+ * What both renditions share.
  *
- * Both carry the same `alt`, and neither is hidden by hand. `display: none`
- * already takes the one that is not shown out of the accessibility tree, thus
- * exactly one is read. Marking the second `aria-hidden` instead leaves dark
- * mode announcing nothing at all.
+ * `eager` has to be said: `<Image>` lazies by default, a lazy image that
+ * starts `display: none` is never fetched, and showing it later does not
+ * reliably start the fetch. The theme can change at any moment, so the pair is
+ * one unit -- both load, or the swap has nothing to swap to. Both carry the
+ * same `alt`, because `display: none` already takes the hidden one out of the
+ * accessibility tree and exactly one is read.
  */
+const pair = {
+  alt: shot.alt,
+  width: INTRINSIC[kind][size],
+  densities: [1, 2],
+  loading: 'eager' as const,
+};
 ---
 
 <DeviceBody
@@ -88,10 +84,7 @@ const width = INTRINSIC[kind][size];
 >
   <Image
     src={shot.light}
-    alt={shot.alt}
-    width={width}
-    densities={[1, 2]}
-    loading="eager"
+    {...pair}
     class:list={[shared, shot.dark && 'dark:hidden']}
   />
 
@@ -99,10 +92,7 @@ const width = INTRINSIC[kind][size];
     shot.dark && (
       <Image
         src={shot.dark}
-        alt={shot.alt}
-        width={width}
-        densities={[1, 2]}
-        loading="eager"
+        {...pair}
         class:list={[shared, 'hidden dark:block']}
       />
     )
