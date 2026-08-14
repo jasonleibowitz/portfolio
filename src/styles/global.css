@@ -20,8 +20,11 @@
    blocks, and the footnotes remark generates. */
 @import './content.css';
 
-/* The modal a project capture opens into, and the rail it pages on. Here for
-   the same reason `content.css` is: `lightbox.ts` builds that markup. */
+/* The modal a project capture opens into, and the rail it pages on. Global,
+   because there is no cheaper place: Tailwind flattens every import here into
+   the one stylesheet every page already links, so scoping this to the three
+   project pages means a second file and a second request, to save the 3.3% of
+   a bundle that a visitor fetches once for the whole site. */
 @import './lightbox.css';
 
 /* The circular sweep between themes. */

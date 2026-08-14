@@ -1,10 +1,16 @@
 /* ---------------------------------------------------------------------------
    The capture lightbox.
 
-   Plain CSS rather than utilities for the same reason `content.css` is: the
-   rail and its slides are built by `lightbox.ts` at runtime, so there is no
-   markup to hang a class on. The chrome in `Lightbox.astro` is authored, and
-   uses utilities like everything else; only the generated parts are here.
+   Not the reason `content.css` is plain CSS. That file styles HTML this repo
+   does not author; this markup is authored, by `lightbox.ts`, which builds the
+   rail and its slides at runtime and so leaves no element for a utility to sit
+   on. Server-rendering those slides from `Lightbox.astro` would put nearly all
+   of this into Tailwind, and is where it should go if this file grows. The
+   chrome there is authored already, and uses utilities like everything else.
+
+   The view transition rules at the foot are the exception, and no structure
+   reaches them: those pseudo-elements are generated on the document root and
+   descend from no element, so no class can ever name one.
    --------------------------------------------------------------------------- */
 
 /*
