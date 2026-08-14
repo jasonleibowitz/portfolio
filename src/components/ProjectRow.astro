@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import Status from './ui/Status.astro';
 import Chip from './ui/Chip.astro';
 import DeviceFrame from './DeviceFrame.astro';
+import Screenshot from './Screenshot.astro';
 import { projectHref } from '@lib/content';
 import Typography from './ui/Typography.astro';
 
@@ -22,9 +23,6 @@ const { data } = project;
 // Art alternates sides. The frames cycle so three in a column do not repeat.
 const flip = index % 2 === 1;
 const variant = (index % 3) as 0 | 1 | 2;
-
-// A browser window is landscape, so it takes a wider slot than a phone.
-const isWindow = data.frame === 'window';
 ---
 
 <a
@@ -42,21 +40,34 @@ const isWindow = data.frame === 'window';
       /* Stacked, the art is a fixed-width object in a full-width column, so
         center it. */
     }
-    <div
-      class:list={[
-        'mx-auto shrink-0 card:mx-0',
-        isWindow ? 'w-[240px] card:w-[300px]' : 'w-[140px] card:w-[190px]',
-      ]}
-    >
-      <DeviceFrame
-        kind={data.frame}
-        variant={variant}
-        class="max-w-none transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
-      />
+    <div class="mx-auto shrink-0 card:mx-0">
+      {
+        /* The first capture is the one that says what the project is, thus the
+          row shows that one and the page shows the set. Both forms size
+          themselves from `size`, because a device body derives its corners and
+          its island from its own width. */
+      }
+      {
+        data.screenshots.length > 0 ? (
+          <Screenshot
+            shot={data.screenshots[0]}
+            kind={data.screenshots[0].frame ?? data.frame}
+            size="wide"
+            class="transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
+          />
+        ) : (
+          <DeviceFrame
+            kind={data.frame}
+            size="wide"
+            variant={variant}
+            class="transition-transform duration-300 ease-orbit group-hover:-translate-y-1"
+          />
+        )
+      }
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col gap-3">
-      <Status status={data.status}>{data.status_text}</Status>
+      <Status status={data.status} />
 
       {/* The page h1 is the masthead, and a row is its first subsection. */}
       <Typography variant="heading2">

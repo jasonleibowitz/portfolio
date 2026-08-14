@@ -1,22 +1,41 @@
 ---
 title: 'leibowitz.me'
 slug: 'portfolio-website'
-description: 'This site. A static Astro build with the content in MDX, no client-side framework, and a design I keep arguing with myself about.'
+description: 'This site. Astro and MDX, styled with Tailwind, deployed to Cloudflare Workers.'
 status: 'live'
-status_text: 'Live · being rebuilt'
-stack: ['Astro', 'Tailwind', 'TypeScript', 'Cloudflare Pages']
+stack:
+  [
+    'Astro',
+    'MDX',
+    'Tailwind',
+    'TypeScript',
+    'Sharp',
+    'Puppeteer',
+    'Vitest',
+    'Cloudflare Workers',
+    'GitHub Actions',
+  ]
 frame: 'window'
+screenshots:
+  - light: './screenshots/leibowitz-me/home-light.webp'
+    dark: './screenshots/leibowitz-me/home-dark.webp'
+    alt: 'The home page in a browser, its headline reading "I build things that delight" beside a portrait, over an At a glance table of roles, schools and location.'
+  - light: './screenshots/leibowitz-me/writing-light.webp'
+    dark: './screenshots/leibowitz-me/writing-dark.webp'
+    alt: 'The writing archive in a browser, posts listed by date and title with a rail of tags beside them for filtering the list in place.'
+  - light: './screenshots/leibowitz-me/home-mobile-light.webp'
+    dark: './screenshots/leibowitz-me/home-mobile-dark.webp'
+    frame: 'phone'
+    alt: 'The home page on a phone, the headline and portrait stacked into one column, with the navigation collapsed into a control floating over the corner.'
+  - light: './screenshots/leibowitz-me/writing-mobile-light.webp'
+    dark: './screenshots/leibowitz-me/writing-mobile-dark.webp'
+    frame: 'phone'
+    alt: 'The writing archive on a phone, the tag rail reflowed above the posts as a scrolling row of chips, each carrying its own count.'
 specs:
   - { label: 'Status', value: 'Live' }
   - { label: 'Platform', value: 'Web' }
-  - { label: 'Framework', value: 'Astro' }
-  - { label: 'Content', value: 'MDX' }
-  - { label: 'Hosting', value: 'Cloudflare Pages' }
-cta:
-  {
-    label: 'View the repo',
-    href: 'https://github.com/jasonleibowitz/portfolio',
-  }
+  - { label: 'Framework', value: 'Astro 7' }
+  - { label: 'Started', value: 'August 2026' }
 links:
   site: 'https://leibowitz.me'
   repo: 'https://github.com/jasonleibowitz/portfolio'
@@ -27,14 +46,20 @@ draft: false
 
 ## The problem
 
-Placeholder. Why rebuild a personal site that already worked: what the old one
-couldn't do, and what finally made it worth the weekend.
+The last version of this site was written in 2014, in hand-rolled jQuery and CSS, before React was the default way to build anything. Twelve years on, the design was dated and so was everything it said about me. I also wanted somewhere of my own to publish writing and keep lists, rather than renting space on someone else's platform.
 
-## How it works
+## What it does
 
-Placeholder. The interesting technical decision: why a static build, how the
-content collections are shaped, and what the zero-JS constraint bought.
+This is my online resume and everything around it: where I have worked, what I have built on my own time, what I have written, and a few lists of things I like enough to rank.
+
+## How it's built
+
+It ships no framework runtime and no JavaScript files at all, just under two kilobytes of hand-written script on the homepage, so a page arrives as HTML and renders straight away.
+
+Images are optimized as part of the build, every post gets its own link-preview card drawn for it, and each pull request publishes a working preview of itself.
 
 ## What I'd do differently
 
-Placeholder. The honest retrospective; the section engineers actually read.
+Every word on this site lives in a markdown file committed to the repo. That was the right call for getting it built and it is the wrong one for living with it. Changing anything means pulling the repo, starting a dev server, writing markdown, previewing it locally, then committing and pushing before it is real. That is a lot of ceremony for fixing a typo, and enough friction that small changes wait for a batch.
+
+What it needs is an admin only I can reach: write and edit in the browser, press publish, and have publishing trigger the rebuild on its own. The site stays a static build, because that is what makes it fast to serve and cheap to host. What changes is that editing a sentence stops requiring a terminal.

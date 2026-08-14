@@ -1,0 +1,93 @@
+---
+/* Only TypeScript sees `ImageMetadata` as a global. Import it, or eslint
+   reads it as undefined. */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import DeviceBody from './DeviceBody.astro';
+
+/**
+ * One real capture, on the screen of a device.
+ *
+ * A screen holds both themes, and the pair swaps on `data-theme` rather than
+ * fusing into one diagonal image. A fused image is what a store listing needs,
+ * where nothing can know the reader; this page does know, thus each theme gets
+ * a capture taken in it.
+ */
+interface Props {
+  shot: {
+    light: ImageMetadata;
+    dark?: ImageMetadata;
+    alt: string;
+  };
+  kind?: 'phone' | 'window';
+  size?: 'default' | 'wide' | 'shot' | 'mixed';
+  class?: string;
+}
+
+/**
+ * The widest each slot is ever drawn, in CSS pixels, rounded up. `densities`
+ * doubles it for a retina screen, thus one number here decides whether a
+ * capture is sharp. A single figure for every slot is what made the browser
+ * shots mush: 400 covered a 280px phone twice over and left a 640px window
+ * upscaling a file smaller than the space it had to fill.
+ */
+const INTRINSIC = {
+  phone: { default: 150, wide: 210, shot: 290, mixed: 220 },
+  window: { default: 250, wide: 290, shot: 650, mixed: 650 },
+} as const;
+
+const {
+  shot,
+  kind = 'phone',
+  size = 'default',
+  class: className,
+} = Astro.props;
+
+/*
+ * A capture of a browser already holds its own window, thus it gets width and
+ * nothing else: its chrome, its corners and its shadow are in the picture. A
+ * capture of an app holds only the screen, thus the site draws the phone.
+ */
+const bare = kind === 'window';
+const radius = bare ? '' : 'rounded-[calc(var(--shot-w)*0.120)]';
+const shared = `block w-full ${radius}`;
+const width = INTRINSIC[kind][size];
+
+/*
+ * Both files ship, and both say `eager`, which `<Image>` needs told: it lazies
+ * by default, and a lazy image that starts `display: none` is never fetched.
+ * Showing it does not reliably start the fetch either, thus the first toggle
+ * drew empty frames for every screen the reader had not already seen. The
+ * theme can change at any moment after load, so the pair is one unit: both
+ * load, or the swap has nothing to swap to.
+ *
+ * Both carry the same `alt`, and neither is hidden by hand. `display: none`
+ * already takes the one that is not shown out of the accessibility tree, thus
+ * exactly one is read. Marking the second `aria-hidden` instead leaves dark
+ * mode announcing nothing at all.
+ */
+---
+
+<DeviceBody kind={kind} size={size} bare={bare} class={className}>
+  <Image
+    src={shot.light}
+    alt={shot.alt}
+    width={width}
+    densities={[1, 2]}
+    loading="eager"
+    class:list={[shared, shot.dark && 'dark:hidden']}
+  />
+
+  {
+    shot.dark && (
+      <Image
+        src={shot.dark}
+        alt={shot.alt}
+        width={width}
+        densities={[1, 2]}
+        loading="eager"
+        class:list={[shared, 'hidden dark:block']}
+      />
+    )
+  }
+</DeviceBody>

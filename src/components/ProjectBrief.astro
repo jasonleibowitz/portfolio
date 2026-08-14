@@ -123,7 +123,7 @@ const hasIcon = Boolean(data.icon);
       as="ul"
       class="order-first flex shrink-0 flex-wrap items-center gap-x-3 text-muted feature:order-none feature:flex-col feature:items-end feature:gap-y-1 feature:text-right"
     >
-      <li><Status status={data.status}>{data.status_text}</Status></li>
+      <li><Status status={data.status} /></li>
       {ledger(data).map((entry) => <li>{entry}</li>)}
     </Typography>
   </div>

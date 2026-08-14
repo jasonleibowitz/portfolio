@@ -282,14 +282,16 @@ Two shapes break the rules deliberately. The **dock** uses per-position radii so
 - **Shape:** Full pill (`999px`), minimum height 50px, horizontal padding 22px.
 - **Primary:** The spectrum gradient (`bg-linear-100 from-violet to-cyan`) with a transparent border. The label is white in light mode and `#14141D` in dark — it carries the ink color of the _opposite_ theme, because the gradient itself does not invert.
 - **Default:** `line` hairline border over the translucent panel fill, ink label.
-- **Hover:** Rises 2px and gains `shadow-lift`, over 200ms on `cubic-bezier(0.2, 0.8, 0.2, 1)`. Transition is scoped to `transform` and `box-shadow` only.
+- **Hover:** Rises 2px and gains `shadow-lift`, over 200ms on `cubic-bezier(0.2, 0.8, 0.2, 1)`. Transition is scoped to `translate` and `box-shadow` only.
 - **Icons:** 20px, from `astro-icon` (`lucide:*`, `simple-icons:*`), never hand-pasted SVG paths.
 
 ### Chips
 
 - **Style:** Pill, hairline `line` border, transparent fill, monospace at `0.6875rem` with `0.04em` tracking, muted text.
-- **Sizes:** `default` for stack and project chips; `mini` (tighter padding) for tag markers inside a dense meta row.
+- **Sizes:** three, chosen by what the chip sits beside rather than by taste. `default` (11px) for stack and project chips, whose neighbours are 12px metadata. `mini` (tighter padding) for tag markers inside a dense meta row. `prose` (13px, roomier padding, 35px tall) for the stack on a case study, where the neighbours are a 31px heading and 22px longform and `default` reads at half the size of the paragraph below it.
 - **Accent:** A single `violet` variant that swaps the border to `violet/45`. Reserved for genuine emphasis — the AI row on the About stack list uses it.
+- **Charge:** Pointing at a chip fills it with the spectrum at 18% and lays the spectrum over its hairline, and the label lifts from muted to ink. It arrives in 140ms and leaves over 1800ms, so a pointer swept along a row leaves a wake of chips at different points of the same fade rather than one chip highlighted. A finger gets the same beat through `data-charged`, since a touch delivers no hover, and the hover rule is guarded by `@media (hover: hover)` so iOS cannot stick a chip on with an emulated one. It animates `opacity` and `color` rather than an interpolated `@property` number, because a browser that will not transition a registered custom property drops the whole effect to an instant state change.
+- **Where they appear:** the About stack list, every project row on `/projects` and the homepage, the tag markers on a post row and a list entry, and the full stack under the captures on a project's case study.
 
 ### Cards / Containers
 
@@ -337,6 +339,7 @@ A dashed `line-strong` circle around the homepage portrait, rotating once every 
 ### Don't:
 
 - **Don't** add a marquee, ticker, or any content that scrolls horizontally on its own. This was rejected explicitly and is a standing ban.
+- **Don't** name `transform` in an arbitrary `transition-[…]` list. Tailwind 4 writes `translate`, `scale` and `rotate` as their own CSS properties, so such a list animates nothing and the movement snaps while everything beside it fades. The named `transition-transform` utility expands to all four; an arbitrary list covers only what it spells. Read `getAnimations()` on the element to confirm a transition is actually running.
 - **Don't** put a `backdrop-filter` on anything but the header and the dock.
 - **Don't** give a `Panel` a shadow, or give a photograph none.
 - **Don't** let Aurora Teal carry body text, or be the only signal that something is active.

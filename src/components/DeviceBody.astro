@@ -1,0 +1,143 @@
+---
+import { tv } from '@lib/tv';
+
+/**
+ * The device a screen sits in: the body, the bezel, the corners and, on a
+ * phone, the Dynamic Island. It draws no content of its own and slots whatever
+ * belongs on the screen, thus a real capture and a drawn stand-in wear the same
+ * hardware.
+ *
+ * Every length derives from one number, `--shot-w`, the width of the whole
+ * body, so a frame keeps its proportions at any size:
+ *
+ *   0.021  the bezel, even on all four sides
+ *   0.141  the corner of the body, which is the screen's corner plus the bezel
+ *   0.120  the corner of the screen, near 12.5% of the screen's own width
+ *   0.268  the Dynamic Island, near 28% of the screen's width
+ *   0.046  how far the island sits below the top of the body
+ *
+ * A width set from outside would leave those five scaled to a number the frame
+ * no longer has, thus the size comes from `size` and never from a parent.
+ *
+ * Where a size has to answer to the width of the row, it is written in `cqw`
+ * against the row's own container, and never in `%`. A percentage inside a
+ * custom property is resolved by whatever reads it, against that element's own
+ * containing block: the frame took its width from the row, while the screen
+ * took its corner from the frame and the island took its size from the bezel.
+ * The screen came out nearly square inside a rounded body and the island came
+ * out a quarter of its size, which reads as a picture clipped by its frame.
+ * One container unit means every reader gets the same number.
+ */
+interface Props {
+  kind?: 'phone' | 'window';
+  size?: 'default' | 'wide' | 'shot' | 'mixed';
+  /**
+   * Give the slot its width and nothing else. A capture of a browser arrives
+   * with its own window already around it, chrome and shadow and all, thus a
+   * drawn body would put a window inside a monitor.
+   */
+  bare?: boolean;
+  class?: string;
+}
+
+const frame = tv({
+  base: 'relative shrink-0 snap-start w-[var(--shot-w)]',
+  variants: {
+    chrome: {
+      true: 'border border-white/12 bg-[#1d1d1f] p-[calc(var(--shot-w)*0.021)] shadow-lift',
+      false: '',
+    },
+    kind: {
+      phone: '',
+      window: '',
+    },
+    size: { default: '', wide: '', shot: '', mixed: '' },
+  },
+  compoundVariants: [
+    {
+      chrome: true,
+      kind: 'phone',
+      class: 'rounded-[calc(var(--shot-w)*0.141)]',
+    },
+    {
+      chrome: true,
+      kind: 'window',
+      class: 'rounded-[calc(var(--shot-w)*0.045)]',
+    },
+    { kind: 'phone', size: 'default', class: '[--shot-w:140px]' },
+    {
+      kind: 'phone',
+      size: 'wide',
+      class: '[--shot-w:140px] card:[--shot-w:200px]',
+    },
+    /* At 160px a screen was a thumbnail; at 280px its body copy reads, which
+       is the whole reason the captures are on the page. */
+    {
+      kind: 'phone',
+      size: 'shot',
+      class: '[--shot-w:min(280px,calc(100cqw-40px))]',
+    },
+
+    /*
+     * `mixed` is for a row holding both a phone and a browser. The two are
+     * opposite shapes, thus one height for the pair buys a wide window and a
+     * narrow phone. The window leads, and the phone takes 0.3231 of its width,
+     * which is what draws the two the same height:
+     *
+     *   a page  1968x1349 bare, thus it is 0.6855 as tall as it is wide
+     *   a phone 1320x2868 in a bezel, thus 2.1214 as tall as it is wide
+     *   0.6855 / 2.1214 = 0.3231
+     *
+     * 642px is what lets the window sit inside the write-up column with the
+     * phone showing past it, and `min` hands the column back the decision
+     * wherever it is narrower than that, which is every phone. A fixed width
+     * here is what cropped the window on a small screen: the row scrolls, so
+     * nothing overflowed the page and only the picture was cut.
+     */
+    {
+      kind: 'phone',
+      size: 'mixed',
+      class: '[--shot-w:calc(min(642px,calc(100cqw-40px))*0.3231)]',
+    },
+    {
+      kind: 'window',
+      size: 'mixed',
+      class: '[--shot-w:min(642px,calc(100cqw-40px))]',
+    },
+    { kind: 'window', size: 'default', class: '[--shot-w:240px]' },
+    {
+      kind: 'window',
+      size: 'wide',
+      class: '[--shot-w:240px] card:[--shot-w:280px]',
+    },
+    {
+      kind: 'window',
+      size: 'shot',
+      class: '[--shot-w:min(640px,calc(100cqw-40px))]',
+    },
+  ],
+  defaultVariants: { kind: 'phone', size: 'default', chrome: true },
+});
+
+const {
+  kind = 'phone',
+  size = 'default',
+  bare = false,
+  class: className,
+} = Astro.props;
+---
+
+<div class={frame({ kind, size, chrome: !bare, class: className })}>
+  <slot />
+
+  {
+    /* The island is the phone and not the picture, thus it sits above whatever
+      is on the screen and is kept from a screen reader. */
+    kind === 'phone' && !bare && (
+      <span
+        class="absolute top-[calc(var(--shot-w)*0.046)] left-1/2 aspect-[125/37] w-[calc(var(--shot-w)*0.268)] -translate-x-1/2 rounded-full bg-black"
+        aria-hidden="true"
+      />
+    )
+  }
+</div>

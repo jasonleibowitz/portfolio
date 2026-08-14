@@ -13,10 +13,10 @@ import aboutPhoto from '@images/json-drinking-coffee.jpg';
 import Typography from '@components/ui/Typography.astro';
 
 const BIO = [
-  "I grew up in Virginia Beach and moved to New York to attend NYU - I've called the city home ever since. Over the past decade, I've had the opportunity to build products across consumer, healthcare, and fintech, working on everything from Broadway ticket lotteries to real-time pharmacy delivery tracking and financial software used by thousands of businesses.",
+  "Over the past decade, I've had the opportunity to build products across consumer, healthcare, and fintech, working on everything from Broadway ticket lotteries to real-time pharmacy delivery tracking and financial software used by thousands of businesses.",
   "What I enjoy most about engineering isn't just writing code, it's turning ambitious, often ambiguous ideas into polished products that people genuinely enjoy using. I love collaborating with product managers, designers, and engineers to figure out what to build, breaking complex problems into achievable milestones, and shipping value early and often. Whether I'm building a thoughtful user experience, designing backend systems, or leading a cross-functional initiative, my goal is always the same: solve the right problems and leave the product better than I found it.",
-  "I'm especially passionate about building software that's elegant, intuitive, accessible, and maintainable. I believe users notice the details, performance is a feature, and the best products come from close collaboration, not silos. Along the way, I've found just as much satisfaction in mentoring engineers, strengthening teams, and helping the people around me do their best work.",
-  "Outside of work, you'll usually find me on a pickleball court, experimenting with the perfect cup of coffee, planning my next trip, exploring New York City, or making dad jokes that are only occasionally appreciated.",
+  // "I'm especially passionate about building software that's elegant, intuitive, accessible, and maintainable. I believe users notice the details, performance is a feature, and the best products come from close collaboration, not silos. Along the way, I've found just as much satisfaction in mentoring engineers, strengthening teams, and helping the people around me do their best work.",
+  "Outside of work, you'll usually find me on a pickleball court, attempting to brew the perfect cup of coffee or making dad jokes that are only occasionally appreciated.",
 ];
 
 /** The AI row is marked, because it is the one people scan for right now. */
@@ -45,7 +45,7 @@ const STACK = [
     label: 'Platform',
     items: [
       'AWS',
-      'Cloudflare Pages',
+      'Cloudflare Workers',
       'Docker',
       'Kubernetes',
       'Terraform',
@@ -63,7 +63,7 @@ const STACK = [
 
 const STATS = [
   { value: '15', label: 'Countries visited' },
-  { value: '50', label: 'Podcasts subscribed' },
+  { value: '50+', label: 'Podcasts subscribed' },
   { value: '2', label: 'Apps in TestFlight' },
   // Derived from the career start rather than typed, so it never goes stale.
   { value: String(yearsShipping()), label: 'Years shipping' },

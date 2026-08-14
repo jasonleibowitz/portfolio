@@ -72,14 +72,16 @@ Confirmed and load-bearing:
 - Static site: Astro 7, MDX content, Tailwind 4, TypeScript. **Zero JS islands** — no framework runtime, only small hand-written vanilla modules. Node >= 24, pnpm.
 - Three content collections: `blog` (`/writing`), `lists` (`/lists`), `projects` (`/projects`, with a case study per entry). Five posts spanning 2014–2023, two lists, three projects.
 - `/writing` is canonical; `/blog/*` must keep redirecting to it. The decade of inbound links is a permanent constraint, not a migration step.
-- Deploy target is Cloudflare Pages. DNS has not cut over: leibowitz.me is still served by the old `jasonleibowitz.github.io` repo, whose apex record points at deprecated GitHub Pages IPs, so **HTTPS is currently broken on the live domain.** Undecided: when the cutover happens.
-- No test suite. The four gates are `build`, `check`, `lint`, `format:check` — none of which render a page.
+- Deploy target is **Cloudflare Workers Static Assets**, not Cloudflare Pages. Pages was the original decision and was replaced; everything is already live on `*.workers.dev`, with a per-PR preview URL per pull request. DNS has not cut over: leibowitz.me is still served by the old `jasonleibowitz.github.io` repo, whose apex record points at deprecated GitHub Pages IPs, so **HTTPS is currently broken on the live domain.** DNS is most of what holds production back but not all of it, and when the cutover happens is undecided.
+- Five gates: `build`, `check`, `lint`, `format:check` and `test`. **`test` is Vitest and covers pure functions only**, deliberately: `slugify()` and `refuseDuplicateAddresses()` each decide an address, and a wrong address is a wrong page. Anything that reads the filesystem, renders a component or draws a card has no test. **None of the five renders a page**, so layout, motion and anything client-side is verified in a browser or not at all.
 - The writing archive is **evidence, not a publication**. It demonstrates that Jason thinks and writes clearly; there is no committed cadence and no obligation to headline it. Presented, not promoted.
 - **Search-phase state must be isolated.** Availability wording and contact emphasis live in one editable place (a config value or a single content field), so flipping phases is an edit, not a project. See the two-phase requirement above.
 
-**Placeholder policy — a product rule, not a styling one.** Copy Jason has not written yet is marked (`placeholder: []` in frontmatter, `placeholder-copy`) and rendered with a dotted underline so the gap is visible on the page rather than buried in a document. **Nothing in that set may be invented or filled in on his behalf.**
+**Placeholder policy — a product rule, not a styling one.** Copy Jason has not written yet **opens with the word "Placeholder", and that is the whole signal.** Nothing in the design marks it: the frontmatter field, the component and the dotted underline that once did are all deleted, and rebuilding any of them needs a better argument than they had. **Nothing in that set may be invented or filled in on his behalf**, and no page-level note should list which paragraphs are unfinished, because the paragraphs already say so and a summary can only go stale.
 
-One deliberate exception: the two `Started` dates on the app projects are provisional and are **not** marked, because per-row spec marking was removed in favour of fewer components. They render as fact, and correcting them before launch is a thing Jason remembers rather than a thing the page shows.
+All three case-study bodies are written, so nothing on the site currently carries the marker.
+
+One thing is provisional without saying so: the two `Started` dates on the app projects render as fact. Correcting them before launch is a thing Jason remembers rather than a thing the page shows.
 
 ## Brand Commitments
 
@@ -93,7 +95,7 @@ One deliberate exception: the two `Started` dates on the app projects are provis
 
 Real:
 
-- Five published posts, 2014–2023, with images in `public/blog-images/`. One (the espresso post) is currently `draft: true`.
+- Five published posts, 2014–2023, each a folder with its own images beside it, so deleting a post deletes its images and renaming one carries them. All five are `draft: false`.
 - Two lists — favorite movies, podcasts — in `src/content/lists/`.
 - Three projects in `src/content/projects/`: Winnie the Poo Tracker (TestFlight beta, Expo/RN + Supabase), Reel Watch (TestFlight beta, Expo/RN + Django Ninja/Supabase/Turborepo), and this site.
 - **The full employment record** — six employers, nine roles, October 2014 to present, in `src/lib/career.ts`: Carta (Senior Software Engineer II), Capsule Pharmacy (Senior Software Engineer, plus Technical Lead held **concurrently** from Jul 2021), Invitae, TodayTix, Reserve, and Tigerspike. Dates are stored once as `YYYY-MM` and every display string, tenure span and overlap marker is derived from them.
@@ -103,19 +105,20 @@ Real:
 - **`public/resume.pdf`** — the real résumé, in place and downloadable. Its text has never been extracted into the repo (subsetted font, no encoding map), so it is an authority the site cannot read; anything taken from it is transcribed by Jason, not parsed.
 - **"Beyond the CV" numbers:** 15 countries, 50 podcasts, 2 apps in TestFlight, and years shipping — the last derived at build time from the earliest month in the employment record, so it cannot go stale or contradict the homepage.
 - **App pitches**, in Jason's own words and marked for later sharpening: "Bowel movement tracker for IBS/IBD patients" and "Better movie recommendations."
+- **Real screenshots** for all three projects, light and dark. The CSS-drawn device frame is the fallback for a project that has none.
+- **All three case-study bodies**, written: the problem, what it does, how it's built, and what he'd do differently.
 
 **Absent — must not be fabricated:**
 
-- Every **accomplishment bullet** — what each role owned, its scale, its outcomes. This is now the largest remaining gap: the timeline renders company, title and dates, and stops. Bullets attach to a role in `src/lib/career.ts`.
-- **All case-study body copy** — "The problem," "How it works," "What I'd do differently," across all three projects.
-- **App screenshots.** The device frames are drawn in CSS.
 - No testimonials, references, metrics, press, or third-party validation of any kind exist. None may be invented.
+
+**Accomplishment bullets under Experience are not a gap.** The timeline renders company, title and dates by design, because the résumé is where a recruiter reads what a role achieved. A role showing title and dates alone is finished.
 
 ## Product Principles
 
 1. **Specifics carry the pitch.** Named companies, real stacks, shipped artifacts. Every adjective is a place where a fact should have been.
 2. **The site is the work sample.** For the peer engineer, how it is built is evidence — so craft, performance, and the zero-JS constraint are part of the argument, not overhead.
-3. **A visible gap beats an invented fact.** Placeholder copy stays marked and unwritten until Jason writes it. This protects the one thing the site is selling.
+3. **A visible gap beats an invented fact.** Placeholder copy says so in its own first word and stays unwritten until Jason writes it. This protects the one thing the site is selling.
 4. **Build for the hired version too.** Anything that only makes sense during a job search is a liability. The search shows up as one adjustable signal, not as the site's premise.
 5. **Every page is a landing page.** Visitors arrive sideways from a link, so no surface may assume the homepage was read first.
 6. **Permanence is a feature.** Old URLs keep working. A decade of inbound links is an asset, and breaking them costs more than any redesign gains.

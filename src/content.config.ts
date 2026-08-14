@@ -163,14 +163,15 @@ const lists = defineCollection({
  * with no icon shows none, because a tile made from the first letter says
  * nothing.
  *
- * Three fields carry the state of the work. `status` colors the dot: `testing`
- * means real users have a build, and `development` is every step before that.
- * `status_text` says the same thing in words, and `status_text_long` replaces
- * it on the page of the project, where there is room for a clause.
+ * `status` carries the state of the work on its own. It colors the dot and it
+ * supplies the word beside it: `testing` means real users have a build, and
+ * `development` is every step before that. `Status.astro` owns the wording, so
+ * two projects at one stage cannot describe it differently.
  *
- * `testflight` adds the "Join the beta" button, with the mail already written.
- * It is a field of its own because `status` cannot say it: a web app in test
- * has nothing to join.
+ * `is_beta_open` adds the "Join the beta" button, with the mail already
+ * written. It is a field of its own because `status` cannot say it: a web app
+ * in test has nothing to join. The mail it opens asks for the things TestFlight
+ * needs, because both apps that carry the flag are iOS.
  *
  * `specs` fills the rows beside the write-up, in the order they are written. A
  * row holds any label, thus add `Role` only where it separates the work of one
@@ -179,32 +180,76 @@ const lists = defineCollection({
  * `is_featured` picks what the home page shows, thus a new project does not
  * change that page. `order` takes over when "newest first" is the wrong
  * sequence, and `frame` picks the shape the site draws around a screenshot.
+ *
+ * `screenshots` are the real captures, in the order the page shows them. One
+ * entry is one screen, and it holds both themes of that screen, because the
+ * site re-derives every color from `data-theme` and a capture that does not
+ * follow the reader sits in the page looking like a mistake. `alt` describes
+ * the screen, thus it belongs to the pair and not to either file: a reader who
+ * cannot see them is told what the screen does, which is the same sentence in
+ * both themes.
+ *
+ * The rule below refuses a project where some screens carry `dark` and others
+ * do not. That state draws a page where one frame answers the theme toggle and
+ * the rest ignore it, which reads as broken rather than as partial.
  */
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
-  schema: ({ image }) =>
-    z.object({
+  schema: ({ image }) => {
+    const screenshot = z.object({
+      light: image(),
+      dark: image().optional(),
+      alt: z.string(),
+      /**
+       * What the site draws around this one capture, where that differs from
+       * the project's own `frame`. A responsive site is shot in a browser and
+       * on a phone, and the two need different hardware in the same row.
+       */
+      frame: z.enum(['phone', 'window']).optional(),
+    });
+
+    const project = z.object({
       title: z.string(),
       slug: address,
       description: z.string(),
       icon: image().optional(),
       status: z.enum(['development', 'testing', 'live']),
-      status_text: z.string(),
-      status_text_long: z.string().optional(),
       stack: z.array(z.string()),
       frame: z.enum(['phone', 'window']).default('phone'),
+      screenshots: z.array(screenshot).default([]),
       specs: z
         .array(z.object({ label: z.string(), value: z.string() }))
         .default([]),
-      cta: z.object({ label: z.string(), href: z.string() }).optional(),
-      testflight: z.boolean().default(false),
+      cta: z
+        .object({
+          label: z.string(),
+          href: z.string(),
+          /** An `astro-icon` name, e.g. `lucide:square-arrow-out-up-right`. */
+          icon: z.string().optional(),
+        })
+        .optional(),
+      is_beta_open: z.boolean().default(false),
       is_featured: z.boolean().default(false),
       order: z.number().optional(),
       links: z
         .object({ site: z.string().optional(), repo: z.string().optional() })
         .optional(),
       draft: z.boolean().default(false),
-    }),
+    });
+
+    return project.superRefine((data, ctx) => {
+      const withDark = data.screenshots.filter((shot) => shot.dark).length;
+
+      if (withDark > 0 && withDark < data.screenshots.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['screenshots'],
+          message:
+            'either every screenshot carries a `dark` twin, or none of them does',
+        });
+      }
+    });
+  },
 });
 
 export const collections = { blog, lists, projects };

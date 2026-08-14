@@ -4,16 +4,48 @@ slug: 'reel'
 description: 'Beli for Movies. Get better movie recommendations.'
 icon: './icons/reel-watch.webp'
 status: 'development'
-status_text: 'In Development'
-stack: ['Django', 'Django Ninja', 'Turborepo', 'Expo', 'Supabase']
+stack:
+  [
+    'Django',
+    'Django Ninja',
+    'Python',
+    'Celery',
+    'Turborepo',
+    'Expo',
+    'Expo Router',
+    'React Native',
+    'TypeScript',
+    'TanStack Query',
+    'Zod',
+    'Sentry',
+    'PostHog',
+    'Supabase',
+    'Orval',
+  ]
 frame: 'phone'
+# The detail and list screens draw over a poster and look the same in either
+# theme, thus both themes name the same file. Saying it twice is deliberate:
+# leaving `dark` out would read as a capture nobody got round to taking.
+screenshots:
+  - light: './screenshots/reel-watch/movie-detail.webp'
+    dark: './screenshots/reel-watch/movie-detail.webp'
+    alt: 'A film page for Back to the Future over its own poster art, with the runtime and genre, four critic scores from Rotten Tomatoes, IMDb, TMDB and Metacritic, a personal 10.0, and the opening of the synopsis.'
+  - light: './screenshots/reel-watch/top-ten-list.webp'
+    dark: './screenshots/reel-watch/top-ten-list.webp'
+    alt: 'A Top 10 from the 1990s list, its posters fanned above the title, a span of 1994 to 1999 and a total runtime, then the ranking beginning with The Shawshank Redemption at 9.9.'
+  - light: './screenshots/reel-watch/trending-light.webp'
+    dark: './screenshots/reel-watch/trending-dark.webp'
+    alt: 'The home screen, with rows of movie posters under Trending Now, Critically Acclaimed and Best of the 2020s, each poster captioned with its year.'
+  - light: './screenshots/reel-watch/library-light.webp'
+    dark: './screenshots/reel-watch/library-dark.webp'
+    alt: 'The library, filtered to Must Watch, ranking saved films by score: Back to the Future at 10.0, then Part II and The Shawshank Redemption at 9.9.'
 specs:
-  - { label: 'Status', value: 'TestFlight' }
-  - { label: 'Platform', value: 'iOS' }
+  - { label: 'Status', value: 'In Development' }
+  - { label: 'Platform', value: 'iOS · Android' }
   - { label: 'Client', value: 'Expo · RN' }
-  - { label: 'Backend', value: 'Django Ninja' }
+  - { label: 'Backend', value: 'Django' }
   - { label: 'Started', value: 'May 2026' }
-testflight: true
+is_beta_open: true
 is_featured: true
 order: 2
 draft: false
@@ -21,13 +53,30 @@ draft: false
 
 ## The problem
 
-Placeholder. Two or three sentences on the itch that made this worth building.
+There is always more to watch than anyone could get through. The problem is choosing, and on your own that is twenty minutes of scrolling. With other people it is even more scrolling plus a negotiation. Existing movie apps share three flaws, and Reel is built around all three.
 
-## How it works
+1. **Rating in the abstract does not work.** Is Forrest Gump a 4.5 or a 5? Whatever I pick is arbitrary, and I would not be able to defend it a year later. Ask whether I liked it more than Finding Nemo and the answer is immediate, and it's still true a year from now.
+2. **A new app knows nothing about what you have already seen.** There is no realistic way to enter a thousand films you have watched, so these apps constantly recommend movies you have already seen. That is as bad as no recommendation at all.
+3. **A recommendation you cannot act on is not one.** Being told to watch something excellent on a service you don't subscribe to just annoys people and never actually solves the problem.
 
-Placeholder. The interesting technical decision: what the API boundary looks
-like, why a monorepo, what the app caches and what it refetches.
+## What it does
+
+Reel asks you to compare, not to score. It puts the film you just watched beside one you have already ranked and asks which you liked more. A few answers is all it takes, and the order that comes out is one you still agree with a year later.
+
+Most people arrive having already seen hundreds of films. You can bulk log them without putting each one through the comparison flow. That allows you to seed your library in a single sitting and unlocks recommendations much sooner. Your library holds what you have watched, what you want to watch, your own notes, and a movie detail screen carrying Rotten Tomatoes, IMDb, TMDB and Metacritic alongside your score.
+
+From there Reel learns what you actually like, and every recommendation tells you where the film is streaming, so it reads "watch this, it is on your Netflix" rather than sending you to a service you do not pay for.
+
+Reel is a single-player app first, because a recommendation engine that does not know you is worth nothing to your friends either. Following people, matching taste between libraries, and choosing something for a room rather than a person are what comes after.
+
+## How it's built
+
+Ranking a film starts with one tap on its poster: _Liked It_ or _Not For Me_. After that it is a binary search. Every head-to-head comparison halves the range the film could sit in, so slotting it into a library of hundreds takes a handful of questions rather than a walk down the list, and it stays a handful as the library grows.
+
+The score falls out of where it lands. Each of the two answers owns a slice of the ten-point scale, and a film's position inside its slice interpolates a number within it, so a film you said you liked never prints in the 4s. That matters more than it sounds. People read a 4 as a bad film, because a 4 is a bad film on IMDb and Letterboxd, and a scale that argues with the ones already in someone's head loses. No score is ever stored either. It is computed from position each time it is read, which is why scores shift a little as a library fills out, and why a 9.1 in Reel says something about your taste rather than borrowing a scale everyone reads differently.
+
+Behind that, a Django API and an Expo app in one monorepo, with the mobile client's types generated from the API's own schema, so the two halves cannot drift apart without the build saying so. Film data comes from TMDB and OMDB, kept current by background jobs and insulated well enough that a slow provider costs a detail rather than the whole screen.
 
 ## What I'd do differently
 
-Placeholder. The honest retrospective; the section engineers actually read.
+Coming soon, after the app goes live.

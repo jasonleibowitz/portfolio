@@ -12,6 +12,8 @@ import Fact from '@components/ui/Fact.astro';
 import Status from '@components/ui/Status.astro';
 import Button from '@components/ui/Button.astro';
 import DeviceFrame from '@components/DeviceFrame.astro';
+import Screenshot from '@components/Screenshot.astro';
+import Chip from '@components/ui/Chip.astro';
 import { getPublished } from '@lib/content';
 import { testflightRequestHref } from '@lib/site';
 
@@ -38,14 +40,24 @@ const shareIcon = data.icon
   ? await getImage({ src: data.icon, format: 'png' })
   : undefined;
 
+/**
+ * A row holding one shape draws it as large as the column allows. A row
+ * holding both a phone and a browser has to settle on one height for the two,
+ * which makes each of them smaller, thus it is only paid for where it is owed.
+ */
+const shotSize =
+  new Set(data.screenshots.map((shot) => shot.frame ?? data.frame)).size > 1
+    ? 'mixed'
+    : 'shot';
+
 /** The beta invite first, because it is the one that asks for a reply. */
 const ctas = [
-  data.testflight && {
+  data.is_beta_open && {
     label: 'Join the beta',
     href: testflightRequestHref(data.title),
     icon: 'lucide:mail',
   },
-  data.cta && { ...data.cta, icon: undefined },
+  data.cta,
 ].filter((cta) => cta !== false && cta != null);
 ---
 
@@ -60,9 +72,7 @@ const ctas = [
   imageHeight={data.icon?.height}
 >
   <Section flush={false}>
-    <Status status={data.status}>
-      {data.status_text_long ?? data.status_text}
-    </Status>
+    <Status status={data.status} />
     <Typography variant="heading1" class="my-3">
       {data.title}
     </Typography>
@@ -81,22 +91,41 @@ const ctas = [
     <div
       class="grid gap-8 spec:grid-cols-[minmax(0,1fr)_268px] spec:items-start spec:gap-x-16 [&>*]:min-w-0"
     >
+      {
+        /* The captures are drawn big enough to read rather than big enough to
+        identify, thus the set of them runs past the column and the row is a
+        scroller. It takes a tabindex for that: a region that scrolls and holds
+        no link of its own is unreachable by keyboard without one. Each capture
+        still fits, so the edge of the column shows the next one and not the
+        middle of the current one. */
+      }
       <div
-        class="flex gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1"
+        class="@container flex snap-x snap-mandatory gap-6 overflow-x-auto pt-2 pb-6 spec:col-start-1 spec:row-start-1 [scrollbar-width:thin]"
+        tabindex="0"
+        role="group"
+        aria-label={`${data.title} screenshots`}
       >
         {
-          [0, 1, 2].map((variant) => (
-            <DeviceFrame
-              kind={data.frame}
-              size="shot"
-              variant={variant as 0 | 1 | 2}
-            />
-          ))
+          data.screenshots.length > 0
+            ? data.screenshots.map((shot) => (
+                <Screenshot
+                  shot={shot}
+                  kind={shot.frame ?? data.frame}
+                  size={shotSize}
+                />
+              ))
+            : [0, 1, 2].map((variant) => (
+                <DeviceFrame
+                  kind={data.frame}
+                  size="shot"
+                  variant={variant as 0 | 1 | 2}
+                />
+              ))
         }
       </div>
 
       <aside
-        class="spec:sticky spec:top-header spec:col-start-2 spec:row-start-1 spec:row-end-3"
+        class="spec:sticky spec:top-header spec:col-start-2 spec:row-start-1 spec:row-end-4"
       >
         <FactBox>
           {
@@ -121,7 +150,22 @@ const ctas = [
         }
       </aside>
 
-      <div class="spec:col-start-1 spec:row-start-2">
+      {
+        /* The rail names the one platform this runs on; this names everything
+          it is built out of. It sits under the captures rather than in the
+          rail because the rail is a ledger of short values and a stack is a
+          set of them. Its heading is the same `heading2` a `##` in the body
+          gets, so it reads as the first section of the write-up and not as a
+          label on the row above it. */
+      }
+      <div class="border-t border-line pt-6 spec:col-start-1 spec:row-start-2">
+        <Typography variant="heading2">Stack</Typography>
+        <div class="mt-4 flex flex-wrap gap-1.5">
+          {data.stack.map((tool) => <Chip size="prose">{tool}</Chip>)}
+        </div>
+      </div>
+
+      <div class="spec:col-start-1 spec:row-start-3">
         <Typography variant="longform" class="markdown max-w-measure">
           <Content components={{ h2: Heading2, h3: Heading3, a: TextLink }} />
         </Typography>
