@@ -110,6 +110,9 @@ export function initLightbox() {
   let slides: Slide[] = [];
   let index = 0;
   let opener: HTMLElement | null = null;
+  /* Whether the reader reached the lightbox by keyboard, which decides
+     whether returning focus should be visible. */
+  let byKeyboard = false;
   let Panzoom: typeof import('@panzoom/panzoom').default | null = null;
 
   /* ---------------------------------------------------------------- frames */
@@ -131,7 +134,12 @@ export function initLightbox() {
     Object.assign(button.dataset, frame.dataset);
     button.append(...frame.childNodes);
     button.setAttribute('aria-label', alt ? `Enlarge: ${alt}` : 'Enlarge');
-    button.addEventListener('click', () => open(button));
+    /* `detail` is 0 when a click came from Enter or Space rather than from a
+       pointer, which is the only reliable way to tell the two apart here. */
+    button.addEventListener('click', (event) => {
+      byKeyboard = event.detail === 0;
+      void open(button);
+    });
 
     frame.replaceWith(button);
   });
@@ -220,7 +228,14 @@ export function initLightbox() {
    * the time, which for a slide with no file yet is no zoom at all.
    */
   const armZoom = (slide: Slide) => {
-    if (!Panzoom) return;
+    /*
+     * Both halves or neither. Panzoom is fetched while the captures are, and
+     * either can arrive first. A capture with no decoded file has no natural
+     * width, and a ceiling worked out from that is 1, which is a capture that
+     * cannot be zoomed; waiting means the ceiling is right the first time
+     * rather than right after a correction that has to arrive.
+     */
+    if (!Panzoom || !slide.img.naturalWidth) return;
 
     /* The drawn size with the zoom taken back out, which is what every bound
        below is a ratio against. Read rather than stored, so a rotation or a
@@ -472,8 +487,28 @@ export function initLightbox() {
     /* Without `preventScroll` the browser drags the snap row to bring the
        frame into view, and it lands on a different capture than the one that
        was opened. */
-    opener?.focus({ preventScroll: true });
+    /*
+     * Focus goes back either way, because a reader who cannot see the capture
+     * must not be dropped at the top of the document. The ring is the part
+     * that is conditional: `:focus-visible` is meant to answer this, and
+     * Safari matches it for a programmatic focus even when the reader has
+     * only ever tapped, which left a violet outline around the capture after
+     * every tap-and-close. This says what the browser could not work out.
+     */
+    const back = opener;
     opener = null;
+    if (!back) return;
+
+    if (!byKeyboard) {
+      back.setAttribute('data-quiet-focus', '');
+      /* Two ways out, because leaving it set would cost a keyboard reader the
+         ring on this capture for the rest of the page's life: focus moving off
+         it, and any key at all, which means a keyboard is now driving. */
+      const restore = () => back.removeAttribute('data-quiet-focus');
+      back.addEventListener('blur', restore, { once: true });
+      document.addEventListener('keydown', restore, { once: true });
+    }
+    back.focus({ preventScroll: true });
   };
 
   const close = () => {

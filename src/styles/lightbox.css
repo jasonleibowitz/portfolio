@@ -24,6 +24,22 @@
   cursor: zoom-in;
 }
 
+/*
+ * A capture that was tapped, and had focus handed back to it when the lightbox
+ * closed, takes no focus ring. It still takes focus: a reader who cannot see
+ * the capture must not be dropped at the top of the document.
+ *
+ * `:focus-visible` in `base.css` is what should decide this, and Safari
+ * matches it for a programmatic focus even where the reader has only ever
+ * tapped, which left a violet outline around every capture after it was
+ * closed. `lightbox.ts` sets the attribute only for a pointer, and drops it
+ * the moment focus leaves, so the next Tab is drawn normally. Unlayered, so it
+ * wins over the `@layer base` rule whatever the specificity.
+ */
+.shot-btn[data-quiet-focus]:focus-visible {
+  outline: none;
+}
+
 .lb {
   width: 100vw;
   max-width: 100vw;
