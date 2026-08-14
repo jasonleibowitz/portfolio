@@ -22,9 +22,6 @@ const DRAG_SLOP = 10;
 /** How long an open waits for its capture before going without it. */
 const WARM_MS = 220;
 
-/** How far a finger must travel past a zoomed capture's own edge to page. */
-const HANDOFF_PX = 90;
-
 /** Symmetric clamp, because every bound here is the same distance either way. */
 const clamp = (value: number, min: number) =>
   Math.min(Math.max(value, min), -min);
@@ -77,12 +74,6 @@ interface Slide {
   /** The drawn size at rest, which every pan bound is measured against. */
   baseW: number;
   baseH: number;
-  /** Where the pan sat when this gesture began, so a sideways drag can be
-      told from a vertical one. */
-  startX?: number;
-  startY?: number;
-  /** Set once a gesture has paged, so one drag cannot page twice. */
-  handedOff?: boolean;
   /** Set while this file is correcting a pan, so the correction does not
       re-enter as another change to correct. */
   clamping?: boolean;
@@ -96,6 +87,7 @@ export function initLightbox() {
   const rail = dialog.querySelector<HTMLElement>('[data-lb-rail]')!;
   const counter = dialog.querySelector<HTMLElement>('[data-lb-count]')!;
   const closeBtn = dialog.querySelector<HTMLElement>('[data-lb-close]')!;
+  const fitBtn = dialog.querySelector<HTMLElement>('[data-lb-fit]')!;
   const prevBtn = dialog.querySelector<HTMLButtonElement>('[data-lb-prev]')!;
   const nextBtn = dialog.querySelector<HTMLButtonElement>('[data-lb-next]')!;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -228,35 +220,26 @@ export function initLightbox() {
       step: 0.35,
     });
 
-    slide.img.addEventListener('panzoomstart', (event) => {
-      const { x, y } = (event as CustomEvent<Pan>).detail;
-      slide.startX = x;
-      slide.startY = y;
-      slide.handedOff = false;
-    });
-
     slide.img.addEventListener('panzoomchange', (event) => {
       const { scale } = (event as CustomEvent<{ scale: number }>).detail;
-      slide.img.toggleAttribute('data-zoomed', scale > 1.01);
+      markZoom(slide, scale > 1.01);
       clampPan(slide, event as CustomEvent<Pan>);
     });
   };
 
   /**
-   * Holds a zoomed capture inside its own edges, and hands a drag that pushes
-   * past them to the rail.
+   * Holds a zoomed capture inside its own edges.
    *
    * The bound is how far the picture reaches beyond the slide, which is
    * nothing until it is zoomed, so a capture recentres itself on the way back
-   * down. A drag that keeps going past the bound pages instead: iOS composes
-   * that from nested scroll views, and here the outer one is the rail.
+   * down.
    *
-   * How far past is read fresh each time, never summed. Panzoom reports a drag
-   * as its distance from where the gesture began, so a finger resting past the
-   * edge sends the same value every frame; adding those up paged after about
-   * three frames of holding still. A zoomed phone capture is narrow enough to
-   * sit against its horizontal bound for a whole vertical drag, which is how
-   * that turned into paging while the reader was only scrolling.
+   * A drag that pushes past the bound does nothing else. It used to page, the
+   * way iOS hands a pan at the edge to the scroll view outside it, and three
+   * attempts at that all paged when the reader meant to look around: a finger
+   * resting past the edge, a vertical drag on a capture already pinned
+   * sideways, and a pinch whose midpoint drifts. Zoomed is its own mode now,
+   * and the control in the corner is the way out of it.
    */
   const clampPan = (slide: Slide, event: CustomEvent<Pan>) => {
     if (slide.clamping) return;
@@ -266,27 +249,18 @@ export function initLightbox() {
       Math.max(0, base / 2 - box / (2 * scale));
     const cx = clamp(x, -limit(slide.baseW, slide.el.clientWidth));
     const cy = clamp(y, -limit(slide.baseH, slide.el.clientHeight));
+    if (cx === x && cy === y) return;
 
-    if (cx !== x || cy !== y) {
-      slide.clamping = true;
-      slide.panzoom!.pan(cx, cy, { animate: false, force: true });
-      slide.clamping = false;
-    }
+    slide.clamping = true;
+    slide.panzoom!.pan(cx, cy, { animate: false, force: true });
+    slide.clamping = false;
+  };
 
-    if (slide.handedOff) return;
-    /* Panzoom's units are the picture's, before the zoom multiplies them, so
-       this is scaled back up to the distance the finger actually travelled. */
-    const past = (x - cx) * scale;
-    if (Math.abs(past) < HANDOFF_PX) return;
-
-    /* Sideways only. Pushing past the top of a capture means the reader is at
-       the top of it, not that they want the next one. */
-    const dx = Math.abs(x - (slide.startX ?? x));
-    const dy = Math.abs(y - (slide.startY ?? y));
-    if (dx <= dy) return;
-
-    slide.handedOff = true;
-    go(index + (past < 0 ? 1 : -1));
+  /* The capture carries it for its own `touch-action` and cursor; the dialog
+     carries it so the control that undoes the zoom knows to appear. */
+  const markZoom = (slide: Slide, zoomed: boolean) => {
+    slide.img.toggleAttribute('data-zoomed', zoomed);
+    dialog.toggleAttribute('data-zoomed', zoomed);
   };
 
   /** Loads Panzoom the first time a capture is opened, and never before. */
@@ -297,8 +271,8 @@ export function initLightbox() {
 
   const resetZoom = (slide?: Slide) => {
     if (!slide?.panzoom) return;
-    slide.panzoom.reset({ animate: false });
-    slide.img.removeAttribute('data-zoomed');
+    slide.panzoom.reset({ animate: true, duration: 180 });
+    markZoom(slide, false);
   };
 
   /* ---------------------------------------------------------------- paging */
@@ -425,6 +399,7 @@ export function initLightbox() {
       slide.img.removeAttribute('data-zoomed');
       slide.img.style.removeProperty('transform');
     });
+    dialog.removeAttribute('data-zoomed');
     /* Focus goes back either way: a reader who cannot see the capture must not
        be dropped at the top of the document. Only the ring is conditional, and
        only because Safari matches `:focus-visible` for a programmatic focus
@@ -483,6 +458,7 @@ export function initLightbox() {
   /* ----------------------------------------------------------------- input */
 
   closeBtn.addEventListener('click', close);
+  fitBtn.addEventListener('click', () => resetZoom(slides[index]));
   prevBtn.addEventListener('click', () => go(index - 1));
   nextBtn.addEventListener('click', () => go(index + 1));
 
