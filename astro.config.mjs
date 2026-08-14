@@ -32,8 +32,10 @@ export default defineConfig({
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
     },
   },
-  // /writing is the canonical path. The posts under /blog have inbound links
-  // going back a decade and must not 404.
+  // /writing is the canonical path. No post has ever been published, thus no
+  // /blog address has an inbound link and none of these is load bearing. They
+  // stay because a redirect that nobody follows costs nothing, and because
+  // Astro checks each target against a real route at build time.
   redirects: {
     '/blog': '/writing',
     '/blog/[...slug]': '/writing/[...slug]',

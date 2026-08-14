@@ -62,7 +62,7 @@ These are durable — they stay true in both phases, which is part of why the sp
 - The hiring-manager evaluation is a scan measured in seconds, often on a phone, frequently alongside a stack of other candidates. The résumé PDF is a real part of that workflow and is expected to exist.
 - The peer-engineer path runs deeper: a post, its footnotes and code, then usually the projects or the repo.
 - Post-hire, the inbound does not stop — recruiters keep finding the site, and that traffic is wanted. It simply arrives against a higher bar for what would make Jason move.
-- A decade of inbound links point at `/blog/*` URLs. Those visitors are search readers arriving at a single old post.
+- No post has ever been published, so no `/blog/*` address carries an inbound link. There is no arriving search traffic to preserve, and no SEO argument applies to any URL on this site yet.
 - Jason is employed while looking, so nothing on the site should read as an announcement of a search.
 
 ## Capabilities and Constraints
@@ -71,7 +71,7 @@ Confirmed and load-bearing:
 
 - Static site: Astro 7, MDX content, Tailwind 4, TypeScript. **Zero JS islands** — no framework runtime, only small hand-written vanilla modules. Node >= 24, pnpm.
 - Three content collections: `blog` (`/writing`), `lists` (`/lists`), `projects` (`/projects`, with a case study per entry). Five posts spanning 2014–2023, two lists, three projects.
-- `/writing` is canonical; `/blog/*` must keep redirecting to it. The decade of inbound links is a permanent constraint, not a migration step.
+- `/writing` is canonical, and `/blog/*` redirects to it. That redirect is insurance rather than a constraint: nothing links to a `/blog` address, so it is kept because it is free, not because anything depends on it.
 - Deploy target is **Cloudflare Workers Static Assets**, not Cloudflare Pages. Pages was the original decision and was replaced. **leibowitz.me is the production site**, served by the `portfolio` Worker as a custom domain on a Cloudflare-hosted zone, with a per-PR preview URL per pull request. The apex is canonical and `www` 301s to it. Cloudflare issues the certificate, which ended the HTTPS failure caused by the old `jasonleibowitz.github.io` apex record.
 - Five gates: `build`, `check`, `lint`, `format:check` and `test`. **`test` is Vitest and covers pure functions only**, deliberately: `slugify()` and `refuseDuplicateAddresses()` each decide an address, and a wrong address is a wrong page. Anything that reads the filesystem, renders a component or draws a card has no test. **None of the five renders a page**, so layout, motion and anything client-side is verified in a browser or not at all.
 - The writing archive is **evidence, not a publication**. It demonstrates that Jason thinks and writes clearly; there is no committed cadence and no obligation to headline it. Presented, not promoted.
@@ -121,7 +121,7 @@ Real:
 3. **A visible gap beats an invented fact.** Placeholder copy says so in its own first word and stays unwritten until Jason writes it. This protects the one thing the site is selling.
 4. **Build for the hired version too.** Anything that only makes sense during a job search is a liability. The search shows up as one adjustable signal, not as the site's premise.
 5. **Every page is a landing page.** Visitors arrive sideways from a link, so no surface may assume the homepage was read first.
-6. **Permanence is a feature.** Old URLs keep working. A decade of inbound links is an asset, and breaking them costs more than any redesign gains.
+6. **Permanence is a feature.** An address, once published, keeps working. No URL here has an inbound link yet, which is exactly why this is cheap to adopt now: the site went live in August 2026, and from that day every address can start collecting links that a later rename would break.
 
 ## Accessibility & Inclusion
 
