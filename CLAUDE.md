@@ -272,7 +272,7 @@ Both jobs `needs: verify`, so a build that fails any of the five gates never pro
 
 **A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The two were told apart back when the `main` deployment wrote `_headers` too and served the full value. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
 
-The Worker also still answers at `portfolio.<subdomain>.workers.dev`, which is useful for checking a deploy independently of DNS. It serves the same build, whose canonical tag names `leibowitz.me`, so it does not compete with the real site for indexing. Setting `workers_dev: false` would retire that host without touching preview URLs, which are a separate setting.
+The Worker also still answers at `portfolio.<subdomain>.workers.dev`, which is useful for checking a deploy independently of DNS. It serves the same build, whose canonical tag names `leibowitz.me`, so it does not compete with the real site for indexing. Setting `workers_dev: false` would retire that host, and previews would survive it: `preview_urls` defaults to whatever `workers_dev` is, but `wrangler.jsonc` sets it to `true` outright, which overrides that default. Do not remove the explicit `preview_urls: true` on the assumption that it is redundant, because it is what makes the pair separable.
 
 **Cloudflare edge-caches a preview response.** A URL can still serve the previous build for a while after a green deploy. Append a query string (`?cb=1`) to see the new one. A preview that looks like it did not pick up the last commit is usually this, not a broken upload.
 
