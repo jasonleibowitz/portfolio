@@ -18,6 +18,7 @@ interface Props {
     light: ImageMetadata;
     dark?: ImageMetadata;
     alt: string;
+    caption?: string;
   };
   kind?: 'phone' | 'window';
   size?: 'default' | 'wide' | 'shot' | 'mixed';
@@ -97,6 +98,9 @@ const hooks = full && {
   'data-full-dark': full.dark?.src,
   'data-full-w': String(shot.light.width),
   'data-full-h': String(shot.light.height),
+  /* Only where there is one. `lightbox.ts` reads the attribute's absence to
+     decide whether the row reserves a foot for captions at all. */
+  'data-caption': shot.caption,
 };
 
 /*

@@ -120,37 +120,55 @@ export function initLightbox() {
   const buildRail = (row: HTMLElement) => {
     const theme = document.documentElement.dataset.theme;
 
-    rail.replaceChildren();
-    slides = Array.from(row.querySelectorAll<HTMLElement>('[data-shot]')).map(
-      (shot) => {
-        const el = document.createElement('div');
-        el.className = 'lb-slide';
-
-        const img = document.createElement('img');
-        img.alt = shot.querySelector('img')?.alt ?? '';
-        img.draggable = false;
-        /* The drawn size is known before the file is, so the rail has its
-           final geometry on the first frame and nothing reflows as the
-           captures arrive. */
-        img.width = Number(shot.dataset.fullW) || 0;
-        img.height = Number(shot.dataset.fullH) || 0;
-        /* No `src` yet. The attributes above already give the slide its box,
-           so a capture that has not been reached costs nothing and still
-           holds its place. */
-
-        el.append(img);
-        rail.append(el);
-
-        return {
-          el,
-          img,
-          full: fullSrcFor(
-            { light: shot.dataset.full!, dark: shot.dataset.fullDark },
-            theme
-          ),
-        };
-      }
+    const shots = Array.from(row.querySelectorAll<HTMLElement>('[data-shot]'));
+    /*
+     * The foot is reserved for the whole row, not per capture. Sized slide by
+     * slide, a capture would change size as the reader paged between one that
+     * has a caption and one that does not, which reads as the layout breaking
+     * rather than as two different captures.
+     */
+    rail.toggleAttribute(
+      'data-captioned',
+      shots.some((shot) => shot.dataset.caption)
     );
+
+    rail.replaceChildren();
+    slides = shots.map((shot) => {
+      const el = document.createElement('figure');
+      el.className = 'lb-slide';
+
+      const img = document.createElement('img');
+      img.alt = shot.querySelector('img')?.alt ?? '';
+      img.draggable = false;
+      /* The drawn size is known before the file is, so the rail has its final
+         geometry on the first frame and nothing reflows as the captures
+         arrive. */
+      img.width = Number(shot.dataset.fullW) || 0;
+      img.height = Number(shot.dataset.fullH) || 0;
+      /* No `src` yet. The attributes above already give the slide its box, so
+         a capture that has not been reached costs nothing and still holds its
+         place. */
+      el.append(img);
+
+      /* `textContent`, so a caption is text and never markup. */
+      if (shot.dataset.caption) {
+        const caption = document.createElement('figcaption');
+        caption.className = 'lb-caption';
+        caption.textContent = shot.dataset.caption;
+        el.append(caption);
+      }
+
+      rail.append(el);
+
+      return {
+        el,
+        img,
+        full: fullSrcFor(
+          { light: shot.dataset.full!, dark: shot.dataset.fullDark },
+          theme
+        ),
+      };
+    });
   };
 
   /**

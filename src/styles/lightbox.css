@@ -70,15 +70,20 @@
 }
 
 /*
- * Flex and not grid. A grid's implicit row is `auto`, so it sizes to the
- * capture's own 2868px and `max-height: 100%` then measures against that row
- * rather than against the viewport, which left every capture overflowing its
- * slide by the difference. A flex line has no such row to grow.
+ * Two rows: the capture takes what is left, the caption takes what it needs.
+ *
+ * `minmax(0, 1fr)` and never `auto` for the first one. An `auto` row sizes to
+ * the capture's own 2868px, and the `max-height: 100%` below then measures
+ * against that row instead of against the viewport, which left every capture
+ * overflowing its slide by the difference. The explicit track is definite, so
+ * the percentage resolves against the space there actually is.
  */
 .lb-slide {
-  display: flex;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: center;
+  justify-items: center;
+  gap: 12px;
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
@@ -106,6 +111,7 @@
   height: auto;
   max-width: 100%;
   max-height: 100%;
+  min-height: 0;
   border-radius: var(--radius-card);
   /*
    * At rest the browser owns the horizontal axis, which is what lets the rail
@@ -117,6 +123,43 @@
 .lb-slide[data-zoomed] img {
   touch-action: none;
   cursor: grab;
+}
+
+/*
+ * The caption sits under its own capture rather than in the dialog's chrome,
+ * so it travels with the capture as the rail pages instead of swapping text
+ * under a picture that is still moving.
+ *
+ * It never covers the capture: the row above it is what is left after this row
+ * is measured, thus a longer caption draws a smaller capture and neither ever
+ * reaches the other. The same reason the foot is reserved for the whole row
+ * and not per slide -- `data-captioned` is set when any capture in the row has
+ * one, so the captures stay one size as the reader pages.
+ */
+.lb-caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  max-width: min(var(--container-measure), 100%);
+  color: color-mix(in srgb, var(--color-on-scrim) 78%, transparent);
+  margin: 0;
+}
+
+/*
+ * A captioned row reserves two lines under every capture, including the ones
+ * with no caption. Left to size itself, an empty caption row collapses and
+ * that one capture draws a line taller than the rest, so paging past it moved
+ * every other capture by 18px. The track still grows for a caption that needs
+ * a third line; nothing is ever cut off.
+ *
+ * The padding clears the pager, which may float over a capture but must never
+ * sit on top of a caption.
+ */
+.lb-rail[data-captioned] .lb-slide {
+  grid-template-rows: minmax(0, 1fr) minmax(calc(var(--text-meta) * 3), auto);
+  padding-bottom: 68px;
 }
 
 /* ------------------------------------------------------------------- chrome */
