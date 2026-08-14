@@ -3,13 +3,11 @@ import type { PanzoomObject } from '@panzoom/panzoom';
 /**
  * Opens a project capture full size, in a modal that pages and zooms.
  *
- * The row on a project page draws its captures to be recognized, not read: a
- * phone matched to a browser's height never reaches the 280px where body copy
- * resolves. This is the other half. Almost all of it is the platform's:
- * `showModal()` gives the focus trap, Escape, the inert background and the
- * `::backdrop`, and a scroll-snap rail gives 1:1 tracking, momentum, snapping
- * and rubber-banding that no hand-written pager matches. Panzoom is loaded on
- * the first open, for the one thing neither of those has, which is pinch.
+ * The row draws its captures to be recognized, not read: a phone matched to a
+ * browser's height never reaches the 280px where body copy resolves. Almost
+ * all of the answer is the platform's, `showModal()` and a scroll-snap rail
+ * between them. Panzoom is loaded on the first open for the one thing neither
+ * has, which is pinch.
  */
 
 /** How near two taps must fall, in ms and px, to read as one double tap. */
@@ -38,11 +36,9 @@ interface Pan {
 }
 
 /**
- * Picks the rendition that matches the theme on the page.
- *
- * Two captures deliberately name one file for both themes, because they are
- * drawn over poster art and there is nothing to re-take, so `dark` equalling
- * `light` is a normal input and not a mistake.
+ * Picks the rendition that matches the theme on the page. Two captures name
+ * one file for both, because they are drawn over poster art and there is
+ * nothing to re-take, so `dark` equalling `light` is a normal input.
  */
 export function fullSrcFor(
   sources: { light: string; dark?: string },
@@ -54,12 +50,10 @@ export function fullSrcFor(
 /**
  * How far a capture may be zoomed, as a multiple of the width it is drawn at.
  *
- * The tempting ceiling is one image pixel per device pixel, and it is wrong
- * here. A browser capture is 1968px wide holding a ~984pt window; on a 3x
- * phone that ceiling stops at 1.68, well before the window reaches the size
- * it was captured at, which is the one size its body copy is known to read.
- * Natural width over drawn width always clears that point, and the cap keeps
- * a small capture in a large viewport from zooming absurdly.
+ * Not one image pixel per device pixel. That ceiling stops a 1968px browser
+ * capture at 1.68 on a 3x phone, short of the ~984pt width its body copy is
+ * known to read at. The cap stops a small capture in a large viewport zooming
+ * absurdly.
  */
 export function maxScaleFor(naturalWidth: number, drawnWidth: number): number {
   if (!naturalWidth || !drawnWidth) return 1;
@@ -101,11 +95,9 @@ export function initLightbox() {
   const prevBtn = dialog.querySelector<HTMLButtonElement>('[data-lb-prev]')!;
   const nextBtn = dialog.querySelector<HTMLButtonElement>('[data-lb-next]')!;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /*
-   * Checked per call, not once. A hidden document gets no rendering
-   * opportunity, and `startViewTransition` holds its update callback until it
-   * does, so a lightbox opened in a background tab would never open at all.
-   */
+  /* Per call, not once: a hidden document gets no rendering opportunity, and
+     `startViewTransition` holds its callback until it does, so a lightbox
+     opened in a background tab would never open at all. */
   const animated = () =>
     !reduced && !!document.startViewTransition && !document.hidden;
 
@@ -119,11 +111,10 @@ export function initLightbox() {
   /* ---------------------------------------------------------------- frames */
 
   /**
-   * Turns each frame into a button at runtime rather than rendering one.
-   *
-   * A server-rendered button whose handler never arrives is a control that
-   * does nothing, and the captures are meant to render exactly as they do now
-   * when there is no JS. `footnotes.ts` upgrades its references the same way.
+   * Turns each frame into a button at runtime rather than rendering one. A
+   * server-rendered button whose handler never arrives is a control that does
+   * nothing, and with no JS the captures must render exactly as they do now.
+   * `footnotes.ts` upgrades its references the same way.
    */
   const frameList = Array.from(frames, (frame) => {
     /* Before the children move, because afterwards the frame holds none. */
@@ -165,14 +156,14 @@ export function initLightbox() {
   );
 
   /**
-   * Fetches a slide's capture, once. Called for the one being opened and for
-   * its two neighbours, so paging never lands on an empty frame and a row of
-   * eight captures never costs eight downloads to read one.
+   * Fetches a slide's capture, once per theme. The one being opened and its
+   * two neighbours, so paging never lands on an empty frame and a row of eight
+   * never costs eight downloads to read one.
    */
   const load = (slide?: Slide) => {
     if (!slide) return Promise.resolve();
-    /* The slides outlive an open now, so a reader who changed theme between
-       two opens would otherwise be shown the rendition of the old one. */
+    /* Per theme, because the slides outlive an open and the reader may have
+       changed it in between. */
     const theme = document.documentElement.dataset.theme ?? 'light';
     const src = fullSrcFor({ light: slide.light, dark: slide.dark }, theme);
     if (slide.theme === theme || !src) return Promise.resolve();
@@ -188,26 +179,18 @@ export function initLightbox() {
   /* ------------------------------------------------------------------- zoom */
 
   /**
-   * Gives a slide its zoom, and re-reads its ceiling every time it is called.
+   * Gives a slide its zoom, once both halves are in hand.
    *
-   * The ceiling is a ratio against the file, and Panzoom is loaded in parallel
-   * with the captures, so whichever arrives first calls this and the other
-   * corrects it. Setting it once would pin a capture to whatever was known at
-   * the time, which for a slide with no file yet is no zoom at all.
+   * Panzoom is fetched while the captures are and either can arrive first. A
+   * capture with no decoded file has no natural width, and a ceiling worked
+   * from that is 1: a capture that cannot be zoomed at all.
    */
   const armZoom = (slide: Slide) => {
-    /*
-     * Both halves or neither. Panzoom is fetched while the captures are, and
-     * either can arrive first. A capture with no decoded file has no natural
-     * width, and a ceiling worked out from that is 1, which is a capture that
-     * cannot be zoomed; waiting means the ceiling is right the first time
-     * rather than right after a correction that has to arrive.
-     */
     if (!Panzoom || !slide.img.naturalWidth) return;
 
-    /* The drawn size with the zoom taken back out, which is what every bound
-       below is a ratio against. Read rather than stored, so a rotation or a
-       resize cannot leave it describing a capture that has since changed. */
+    /* The drawn size with the zoom taken back out, which every bound below is
+       a ratio against. Read rather than stored, so a resize cannot leave it
+       describing a capture that has changed. */
     const scaleNow = slide.panzoom?.getScale() ?? 1;
     const rect = slide.img.getBoundingClientRect();
     slide.baseW = rect.width / scaleNow;
@@ -223,28 +206,18 @@ export function initLightbox() {
     slide.panzoom = Panzoom(slide.img, {
       maxScale,
       minScale: 1,
-      /*
-       * No `contain`. Panzoom's two modes both assume a fixed relationship
-       * between the element and its parent that a fitted capture does not
-       * have. `'outside'` asks a letterboxed capture to cover a parent it
-       * cannot cover, and answered with a 3107px translation that put the
-       * picture off screen at rest. `'inside'` is worse in the other
-       * direction: a capture fitted to its slide already fills it, so
-       * "never leave the parent" pins the scale at 1 and there is no zoom at
-       * all. `clampPan` below holds the picture instead, and it is a function
-       * of the zoom rather than a mode.
-       */
+      /* No `contain`: neither mode fits a fitted capture. `'outside'` threw
+         the picture off screen at rest, `'inside'` pinned the scale at 1, and
+         `clampPan` below holds it instead. */
       /* Apple's rule, and Panzoom states it as an option: at rest a drag is
          the rail paging, and only a zoomed capture takes the drag as a pan. */
       panOnlyWhenZoomed: true,
       /* Panzoom would otherwise write `touch-action: none` onto the image and
-         the rail, which stops the rail scrolling at all. The pair of values
-         this needs is a function of the zoom, so the utilities on the capture
-         in `Lightbox.astro` own it and key it off `data-zoomed`. */
+         the rail, which stops the rail scrolling at all. The capture's own
+         utilities own that pair and key it off `data-zoomed`. */
       touchAction: '',
-      /* Empty for the same reason. Panzoom writes a cursor inline whether it
-         is asked to or not, and an inline style outranks any class, so the
-         grab cursor on a zoomed capture never appeared. */
+      /* Same again: Panzoom writes a cursor inline whether asked or not, and
+         inline outranks any class. */
       cursor: '',
       animate: true,
       duration: 180,
@@ -266,21 +239,16 @@ export function initLightbox() {
    * Holds a zoomed capture inside its own edges, and hands a drag that pushes
    * past them to the rail.
    *
-   * Panning is bounded by how far the picture reaches beyond the slide, which
-   * is nothing until it is zoomed: at rest the limit is zero on both axes, so
-   * a capture recentres itself the moment the reader zooms back out.
+   * The bound is how far the picture reaches beyond the slide, which is
+   * nothing until it is zoomed, so a capture recentres itself on the way back
+   * down. What is dragged past it accumulates, and enough in one direction
+   * pages: iOS composes that from nested scroll views, and here the outer one
+   * is the rail.
    *
-   * What the reader drags past that limit is not thrown away. It accumulates,
-   * and enough of it in one direction moves to the next capture, which is what
-   * makes a zoomed capture still feel like one of a set rather than a dead end.
-   * iOS composes this out of nested scroll views; on the web the outer one is
-   * the rail and this is the join between them.
-   *
-   * The total is cleared per gesture, by `panzoomstart`, and never by a pan
-   * that lands in bounds. Correcting a pan makes Panzoom report the corrected
-   * value back, and that report arrives after the guard below has cleared, so
-   * treating an in-bounds value as "the reader stopped pushing" zeroed the
-   * total on every frame and no amount of dragging ever reached the threshold.
+   * The total is cleared per gesture and never by a pan that lands in bounds.
+   * A correction is reported back after the guard clears, so treating that as
+   * "the reader stopped pushing" zeroed it on every frame and nothing ever
+   * reached the threshold.
    */
   const clampPan = (slide: Slide, event: CustomEvent<Pan>) => {
     if (slide.clamping) return;
@@ -322,12 +290,10 @@ export function initLightbox() {
   /* ---------------------------------------------------------------- paging */
 
   /**
-   * Moves to a capture, marking it before the scroll rather than after.
-   *
-   * The rail is still the truth for a finger, but it cannot be the only
-   * source: a scroll that reports nothing back leaves the index behind, and
-   * the next press then computes its target from a stale number and asks for
-   * the position the rail is already at, which reads as a dead control.
+   * Moves to a capture, marking it before the scroll rather than after. A
+   * scroll that reports nothing back would leave the index behind, and the
+   * next press would aim at where the rail already is, which reads as a dead
+   * control.
    */
   const go = (to: number) => {
     const next = Math.min(Math.max(to, 0), slides.length - 1);
@@ -363,13 +329,9 @@ export function initLightbox() {
     void load(slides[next - 1]);
   };
 
-  /*
-   * A finger can move the rail without anything above being called, so the
-   * position is read back off the scroller itself. `scrollLeft` over the
-   * rail's width is the whole calculation, which is why this is a scroll
-   * listener and not an `IntersectionObserver` watching four slides for a
-   * ratio: same answer, one concept instead of two.
-   */
+  /* A finger moves the rail without anything above being called, so the
+     position is read back off the scroller. `scrollLeft` over the rail's width
+     is the whole calculation. */
   let ticking = false;
   rail.addEventListener(
     'scroll',
@@ -438,36 +400,29 @@ export function initLightbox() {
   }
 
   /**
-   * Gives back everything an open took: the zoom instances, the rail, and the
-   * focus. Idempotent, because it is called directly and is also wired to the
-   * `close` event for any dismissal this file did not perform itself.
+   * Gives back what an open took: the zoom instances and the focus. The rail
+   * is markup and stays standing. Idempotent, because it is called directly
+   * and is also wired to `close` for any dismissal this file did not perform.
    */
   const teardown = () => {
-    /* The rail is markup now, so it is left standing: only the zoom is given
-       back, and the next open re-arms whichever slides it needs. */
     slides.forEach((slide) => {
       slide.panzoom?.destroy();
       slide.panzoom = undefined;
       slide.img.removeAttribute('data-zoomed');
       slide.img.style.removeProperty('transform');
     });
-    /*
-     * Focus goes back either way, because a reader who cannot see the capture
-     * must not be dropped at the top of the document. The ring is the part
-     * that is conditional: `:focus-visible` is meant to answer this, and
-     * Safari matches it for a programmatic focus even when the reader has
-     * only ever tapped, which left a violet outline around the capture after
-     * every tap-and-close. This says what the browser could not work out.
-     */
+    /* Focus goes back either way: a reader who cannot see the capture must not
+       be dropped at the top of the document. Only the ring is conditional, and
+       only because Safari matches `:focus-visible` for a programmatic focus
+       even when the reader has done nothing but tap. */
     const back = opener;
     opener = null;
     if (!back) return;
 
     if (!byKeyboard) {
       back.setAttribute('data-quiet-focus', '');
-      /* Two ways out, because leaving it set would cost a keyboard reader the
-         ring on this capture for the rest of the page's life: focus moving off
-         it, and any key at all, which means a keyboard is now driving. */
+      /* Two ways out, or a keyboard reader loses the ring on this capture for
+         the rest of the page's life. */
       const restore = () => back.removeAttribute('data-quiet-focus');
       back.addEventListener('blur', restore, { once: true });
       document.addEventListener('keydown', restore, { once: true });
@@ -549,11 +504,10 @@ export function initLightbox() {
   });
 
   /**
-   * A trackpad reports a pinch as a wheel event with `ctrlKey` set, and a
-   * two-finger scroll as the same event without it. Panzoom's own
-   * `zoomWithWheel` does not read the flag, and its documentation says as
-   * much, so binding it directly would zoom the capture whenever a reader
-   * scrolled.
+   * A trackpad reports a pinch as a wheel event with `ctrlKey`, and a
+   * two-finger scroll as the same event without it. Panzoom's `zoomWithWheel`
+   * does not read the flag, so binding it directly zooms the capture whenever
+   * a reader scrolls.
    */
   rail.addEventListener(
     'wheel',
