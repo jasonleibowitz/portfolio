@@ -22,7 +22,7 @@ const DRAG_SLOP = 10;
 /** How long an open waits for its capture before going without it. */
 const WARM_MS = 220;
 
-/** How far a zoomed capture must be dragged past its own edge to page. */
+/** How far a finger must travel past a zoomed capture's own edge to page. */
 const HANDOFF_PX = 90;
 
 /** Symmetric clamp, because every bound here is the same distance either way. */
@@ -77,8 +77,12 @@ interface Slide {
   /** The drawn size at rest, which every pan bound is measured against. */
   baseW: number;
   baseH: number;
-  /** How far the reader has dragged past an edge in this one gesture. */
-  overshoot?: number;
+  /** Where the pan sat when this gesture began, so a sideways drag can be
+      told from a vertical one. */
+  startX?: number;
+  startY?: number;
+  /** Set once a gesture has paged, so one drag cannot page twice. */
+  handedOff?: boolean;
   /** Set while this file is correcting a pan, so the correction does not
       re-enter as another change to correct. */
   clamping?: boolean;
@@ -224,8 +228,11 @@ export function initLightbox() {
       step: 0.35,
     });
 
-    slide.img.addEventListener('panzoomstart', () => {
-      slide.overshoot = 0;
+    slide.img.addEventListener('panzoomstart', (event) => {
+      const { x, y } = (event as CustomEvent<Pan>).detail;
+      slide.startX = x;
+      slide.startY = y;
+      slide.handedOff = false;
     });
 
     slide.img.addEventListener('panzoomchange', (event) => {
@@ -241,14 +248,15 @@ export function initLightbox() {
    *
    * The bound is how far the picture reaches beyond the slide, which is
    * nothing until it is zoomed, so a capture recentres itself on the way back
-   * down. What is dragged past it accumulates, and enough in one direction
-   * pages: iOS composes that from nested scroll views, and here the outer one
-   * is the rail.
+   * down. A drag that keeps going past the bound pages instead: iOS composes
+   * that from nested scroll views, and here the outer one is the rail.
    *
-   * The total is cleared per gesture and never by a pan that lands in bounds.
-   * A correction is reported back after the guard clears, so treating that as
-   * "the reader stopped pushing" zeroed it on every frame and nothing ever
-   * reached the threshold.
+   * How far past is read fresh each time, never summed. Panzoom reports a drag
+   * as its distance from where the gesture began, so a finger resting past the
+   * edge sends the same value every frame; adding those up paged after about
+   * three frames of holding still. A zoomed phone capture is narrow enough to
+   * sit against its horizontal bound for a whole vertical drag, which is how
+   * that turned into paging while the reader was only scrolling.
    */
   const clampPan = (slide: Slide, event: CustomEvent<Pan>) => {
     if (slide.clamping) return;
@@ -259,20 +267,26 @@ export function initLightbox() {
     const cx = clamp(x, -limit(slide.baseW, slide.el.clientWidth));
     const cy = clamp(y, -limit(slide.baseH, slide.el.clientHeight));
 
-    if (cx === x && cy === y) return;
+    if (cx !== x || cy !== y) {
+      slide.clamping = true;
+      slide.panzoom!.pan(cx, cy, { animate: false, force: true });
+      slide.clamping = false;
+    }
 
-    slide.clamping = true;
-    slide.panzoom!.pan(cx, cy, { animate: false, force: true });
-    slide.clamping = false;
+    if (slide.handedOff) return;
+    /* Panzoom's units are the picture's, before the zoom multiplies them, so
+       this is scaled back up to the distance the finger actually travelled. */
+    const past = (x - cx) * scale;
+    if (Math.abs(past) < HANDOFF_PX) return;
 
-    /* Only sideways. Pushing past the top of a capture means the reader is at
+    /* Sideways only. Pushing past the top of a capture means the reader is at
        the top of it, not that they want the next one. */
-    slide.overshoot = (slide.overshoot ?? 0) + (x - cx);
-    if (Math.abs(slide.overshoot) < HANDOFF_PX) return;
+    const dx = Math.abs(x - (slide.startX ?? x));
+    const dy = Math.abs(y - (slide.startY ?? y));
+    if (dx <= dy) return;
 
-    const forward = slide.overshoot < 0;
-    slide.overshoot = 0;
-    go(index + (forward ? 1 : -1));
+    slide.handedOff = true;
+    go(index + (past < 0 ? 1 : -1));
   };
 
   /** Loads Panzoom the first time a capture is opened, and never before. */
