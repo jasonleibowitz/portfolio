@@ -201,18 +201,10 @@ const projects = defineCollection({
       dark: image().optional(),
       alt: z.string(),
       /**
-       * A label for this capture, shown under it in the lightbox and nowhere
-       * else. Optional, and a capture without one is finished, not unfinished.
-       *
-       * The same rule the figures in a post body follow: a caption and an
-       * `alt` are different sentences. `alt` describes what is in the frame,
-       * for a reader who cannot see it; a caption names what the frame is an
-       * example of, for a reader who can. A caption that repeats the `alt`
-       * says one thing twice, because a screen reader reads both.
-       *
-       * Keep it to a line or two. The lightbox gives it the foot of the slide
-       * and takes that space off the capture, so a paragraph here is a smaller
-       * capture, which is the opposite of what the lightbox is for.
+       * A label for this capture, shown in the lightbox and nowhere else. Not
+       * the `alt` again: that says what is in the frame, this says what the
+       * frame is an example of, and a screen reader reads both. One line or
+       * two, because the space it takes comes off the capture.
        */
       caption: z.string().optional(),
       /**
