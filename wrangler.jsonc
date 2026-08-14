@@ -15,22 +15,19 @@
     "not_found_handling": "404-page",
   },
 
-  // The apex is a custom domain, so Cloudflare writes the DNS record and keeps
-  // the certificate. It is declared here and not clicked in the dashboard,
-  // which is the reason this project is on Workers rather than Pages: a deploy
-  // that reads this file is a deploy that cannot disagree with it.
-  //
-  // `www` is deliberately absent. A custom domain makes the Worker answer for
-  // the hostname, and this Worker has no `main` to answer with a redirect, so
-  // `www` would serve a second copy of the site instead of pointing at the
-  // first. It redirects to the apex from a zone rule instead.
-  //
-  // A deploy creates the domain, thus CLOUDFLARE_API_TOKEN needs
-  // `Zone: Workers Routes: Edit` on this zone. Without it a deploy fails here
-  // and not at the build.
+  // A deploy applies this, thus CLOUDFLARE_API_TOKEN needs
+  // `Zone: Workers Routes: Edit` on the zone. `www` is absent on purpose: a
+  // custom domain makes the Worker answer for the hostname, and a Worker with
+  // no `main` cannot answer a redirect, so a zone rule redirects it instead.
   "routes": [{ "pattern": "leibowitz.me", "custom_domain": true }],
 
-  // Preview URLs for each version. CI gives each version an alias with
-  // `--preview-alias`, which it sets to `pr-<number>`.
+  // Retires `portfolio.<subdomain>.workers.dev`, which served the same build as
+  // the apex and stopped sending `noindex` at production. leibowitz.me is the
+  // only address.
+  "workers_dev": false,
+
+  // Preview URLs for each version. CI names each one `pr-<number>` with
+  // `--preview-alias`. Not redundant beside the line above: `preview_urls`
+  // defaults to `workers_dev`, so deleting it takes every preview down too.
   "preview_urls": true,
 }

@@ -272,7 +272,9 @@ Both jobs `needs: verify`, so a build that fails any of the five gates never pro
 
 **A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The two were told apart back when the `main` deployment wrote `_headers` too and served the full value. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
 
-The Worker also still answers at `portfolio.<subdomain>.workers.dev`, which is useful for checking a deploy independently of DNS. It serves the same build, whose canonical tag names `leibowitz.me`, so it does not compete with the real site for indexing. Setting `workers_dev: false` would retire that host, and previews would survive it: `preview_urls` defaults to whatever `workers_dev` is, but `wrangler.jsonc` sets it to `true` outright, which overrides that default. Do not remove the explicit `preview_urls: true` on the assumption that it is redundant, because it is what makes the pair separable.
+**`workers_dev: false` retires `portfolio.<subdomain>.workers.dev`.** That host served the same build as the apex, and it stopped sending `noindex` the moment this deployment became production, so it was a second crawlable address for one site. The canonical tag would have consolidated it, but an address nothing links to earns nothing by existing. Production is reachable at `leibowitz.me` and nowhere else.
+
+**`preview_urls: true` is not redundant beside it.** `preview_urls` defaults to whatever `workers_dev` is, so deleting that line would take every pull request preview down along with the production host. It is written out to break that coupling, and it is the reason previews still work.
 
 **Cloudflare edge-caches a preview response.** A URL can still serve the previous build for a while after a green deploy. Append a query string (`?cb=1`) to see the new one. A preview that looks like it did not pick up the last commit is usually this, not a broken upload.
 

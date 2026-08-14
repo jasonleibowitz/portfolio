@@ -11,9 +11,8 @@ import remarkFigure from './plugins/remark-figure.ts';
 // https://astro.build/config
 export default defineConfig({
   // `site` sets the canonical tag, the og:image URL and the RSS links. This
-  // default is the production host, and it is the only place that names it: a
-  // production build takes it as it is. A preview overrides it, because a
-  // preview serves from a workers.dev host.
+  // default is the production host and the only place that names it. A preview
+  // overrides it, because a preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), sitemap(), icon()],
   // A post body writes an image as `![]()`, thus no component can take a prop.
@@ -32,10 +31,9 @@ export default defineConfig({
       themes: { light: 'github-light', dark: 'github-dark-dimmed' },
     },
   },
-  // /writing is the canonical path. No post has ever been published, thus no
-  // /blog address has an inbound link and none of these is load bearing. They
-  // stay because a redirect that nobody follows costs nothing, and because
-  // Astro checks each target against a real route at build time.
+  // /writing is the canonical path. No /blog address has an inbound link, so
+  // these are free insurance rather than a constraint. Astro checks each target
+  // against a real route at build time.
   redirects: {
     '/blog': '/writing',
     '/blog/[...slug]': '/writing/[...slug]',

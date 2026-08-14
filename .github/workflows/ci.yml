@@ -254,10 +254,9 @@ jobs:
           echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "subject=$subject" >> "$GITHUB_OUTPUT"
 
-      # No SITE_URL. `site` in astro.config.mjs already holds the production
-      # host, so one file names the domain and this job takes the default.
-      # `verify` builds the same way, which makes the gate run against the very
-      # URLs that production ships.
+      # No SITE_URL: `site` in astro.config.mjs already holds the production
+      # host, so one file names the domain. `verify` builds the same way, thus
+      # its gate runs the URLs production ships.
       - name: Build
         run: pnpm build
 
