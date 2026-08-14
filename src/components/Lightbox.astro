@@ -1,0 +1,202 @@
+---
+/* Only TypeScript sees `ImageMetadata` as a global. Import it, or eslint
+   reads it as undefined. */
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+
+/**
+ * The modal a project capture opens into, and the rail it pages on.
+ *
+ * Render it once per page, alongside the row of captures. It carries its own
+ * behavior the way `Chip` carries `charge.ts`, so a page with no captures
+ * ships none of this.
+ */
+interface Props {
+  /** Names the group for a screen reader. Usually the project's title. */
+  label: string;
+  /** The captures, in the order the row shows them. */
+  shots: {
+    light: ImageMetadata;
+    dark?: ImageMetadata;
+    alt: string;
+    caption?: string;
+  }[];
+}
+
+/* One encoding policy for the lot. The sources have none: at one identical
+   1320x2868 they run from 48 kB to 561 kB. */
+const FULL_QUALITY = 78;
+
+/**
+ * A capture at the source's own width and no wider. `layout: 'none'` is load
+ * bearing: `image.layout: 'constrained'` in `astro.config.mjs` reaches every
+ * `getImage` call, and a `srcset` per rendition put 10.1 MB in `dist/` and
+ * stopped `quality` applying at all.
+ */
+const rendition = (src: ImageMetadata) =>
+  getImage({
+    src,
+    width: src.width,
+    format: 'webp',
+    quality: FULL_QUALITY,
+    layout: 'none',
+  });
+
+const { label, shots } = Astro.props;
+
+const slides = await Promise.all(
+  shots.map(async (shot) => ({
+    alt: shot.alt,
+    caption: shot.caption,
+    width: shot.light.width,
+    height: shot.light.height,
+    light: (await rendition(shot.light)).src,
+    dark: shot.dark ? (await rendition(shot.dark)).src : undefined,
+  }))
+);
+
+const captioned = slides.some((slide) => slide.caption);
+
+/* Closed, so with no JS this is nothing on the page and no capture is
+   fetched. */
+const shell = [
+  'group m-0 h-dvh max-h-dvh w-screen max-w-[100vw] overflow-hidden',
+  'border-0 bg-transparent p-0 text-on-scrim backdrop:bg-scrim',
+].join(' ');
+
+/* The scroller is the pager. 1:1 tracking, momentum past the release,
+   snapping and rubber-banding at the ends are all the browser's own. */
+const rail = [
+  'flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden',
+  'overscroll-contain [scrollbar-width:none] focus-visible:outline-none',
+  '[&::-webkit-scrollbar]:hidden',
+].join(' ');
+
+/* A control on the scrim, at the 44px floor. Not a `Button`: that one is an
+   anchor and carries the page's own surface. The fill is the scrim and not a
+   wash of the label color, because a light wash over bright poster art
+   measured 1.07:1 against its own glyph. */
+const control = [
+  'inline-flex size-11 items-center justify-center rounded-full',
+  'text-on-scrim bg-[color-mix(in_srgb,var(--color-scrim)_88%,transparent)]',
+  'border border-[color-mix(in_srgb,var(--color-on-scrim)_24%,transparent)]',
+  'transition-[background-color,opacity] duration-200 ease-orbit',
+  'enabled:hover:bg-scrim disabled:opacity-30',
+].join(' ');
+
+/* `minmax(0,1fr)` and never `auto` for the capture's row: an `auto` row sizes
+   to the capture's own 2868px, and the `max-h-full` below then measures
+   against that rather than against the viewport. The caption's row is reserved
+   for the whole rail, or an uncaptioned capture draws a line taller than the
+   rest and every capture moves as the reader pages past it. */
+const slide = [
+  'grid h-full w-full flex-[0_0_100%] items-center justify-items-center gap-3',
+  'snap-center snap-always p-4 pb-[68px]',
+  captioned
+    ? 'grid-rows-[minmax(0,1fr)_minmax(calc(var(--text-meta)*3),auto)]'
+    : 'grid-rows-[minmax(0,1fr)_auto]',
+].join(' ');
+
+/* Both dimensions auto, clamped by the two maximums: the one combination that
+   keeps a capture's proportions while it fits. `touch-action` is the
+   arbitration -- at rest the browser owns the horizontal axis so the rail can
+   page, and a zoomed capture gives it none so Panzoom can pan. */
+const capture = [
+  'h-auto w-auto max-h-full min-h-0 max-w-full rounded-card',
+  'touch-pan-x data-[zoomed]:touch-none',
+  'cursor-zoom-in data-[zoomed]:cursor-grab',
+].join(' ');
+
+const caption = [
+  'm-0 max-w-[min(var(--container-measure),100%)] text-center text-balance',
+  'font-mono text-meta leading-normal',
+  'text-[color-mix(in_srgb,var(--color-on-scrim)_78%,transparent)]',
+].join(' ');
+
+/* A cursor has no swipe, so it gets controls, and they stay out of the way
+   until the pointer is in the dialog. Close is always there. */
+const pager = [
+  'absolute right-3 bottom-3 left-3 flex items-center justify-center gap-3',
+  'transition-opacity duration-200 ease-orbit pointer-fine:opacity-0',
+  'pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100',
+].join(' ');
+
+const count = [
+  'm-0 min-w-[5ch] rounded-sm px-2.5 py-1 text-center text-on-scrim',
+  'bg-[color-mix(in_srgb,var(--color-scrim)_88%,transparent)]',
+  'font-mono text-meta tracking-data',
+].join(' ');
+---
+
+<dialog data-lightbox class={shell} aria-label={`${label} screenshots`}>
+  <div
+    data-lb-rail
+    class={rail}
+    tabindex="-1"
+    role="group"
+    aria-label={`${label} screenshots, enlarged`}
+  >
+    {
+      slides.map((shot) => (
+        <figure
+          class={slide}
+          data-lb-slide
+          data-full={shot.light}
+          data-full-dark={shot.dark}
+        >
+          {/* No `src`: the width and height give the slide its box, and
+              `lightbox.ts` assigns the rendition matching the theme. */}
+          <img
+            alt={shot.alt}
+            width={shot.width}
+            height={shot.height}
+            draggable="false"
+            class={capture}
+          />
+
+          {shot.caption && (
+            <figcaption class={caption}>{shot.caption}</figcaption>
+          )}
+        </figure>
+      ))
+    }
+  </div>
+
+  <button
+    data-lb-close
+    class:list={['absolute top-3 right-3', control]}
+    type="button"
+    aria-label="Close"
+  >
+    <Icon name="lucide:x" class="size-5" />
+  </button>
+
+  <div class={pager}>
+    <button
+      data-lb-prev
+      class={control}
+      type="button"
+      aria-label="Previous screenshot"
+    >
+      <Icon name="lucide:chevron-left" class="size-5" />
+    </button>
+
+    <p data-lb-count class={count} aria-live="polite"></p>
+
+    <button
+      data-lb-next
+      class={control}
+      type="button"
+      aria-label="Next screenshot"
+    >
+      <Icon name="lucide:chevron-right" class="size-5" />
+    </button>
+  </div>
+</dialog>
+
+<script>
+  import { initLightbox } from '@lib/lightbox';
+
+  initLightbox();
+</script>

@@ -23,6 +23,27 @@
     outline-offset: 3px;
     border-radius: var(--radius-sm);
   }
+
+  /*
+   * A project capture's frame, once `lightbox.ts` has made it a control.
+   *
+   * `:where()` so it carries no specificity at all: the frame's own utilities
+   * set its border, fill, padding and corner, and a reset with weight would
+   * cancel them. That is also why this cannot be a utility itself -- two
+   * utilities on one element are settled by stylesheet order, not by which
+   * was written last.
+   */
+  :where(.shot-btn) {
+    display: block;
+    appearance: none;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: zoom-in;
+  }
 }
 
 /* ---------------------------------------------------------------------------

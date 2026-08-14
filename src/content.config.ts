@@ -201,6 +201,13 @@ const projects = defineCollection({
       dark: image().optional(),
       alt: z.string(),
       /**
+       * A label for this capture, shown in the lightbox and nowhere else. Not
+       * the `alt` again: that says what is in the frame, this says what the
+       * frame is an example of, and a screen reader reads both. One line or
+       * two, because the space it takes comes off the capture.
+       */
+      caption: z.string().optional(),
+      /**
        * What the site draws around this one capture, where that differs from
        * the project's own `frame`. A responsive site is shot in a browser and
        * on a phone, and the two need different hardware in the same row.

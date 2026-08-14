@@ -10,10 +10,27 @@
   z-index: 1;
 }
 
+/* A capture growing out of the frame it was opened from. It keeps its own
+   proportions on the way, rather than being stretched between two ratios. */
+::view-transition-old(lb-shot),
+::view-transition-new(lb-shot) {
+  object-fit: contain;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* The block above is the kill switch, and it reaches neither a `::backdrop`
+     nor a view transition's pseudo-elements: none of them is an element, a
+     `::before` or an `::after`. They are stopped by name instead. */
+  dialog::backdrop,
+  ::view-transition-old(lb-shot),
+  ::view-transition-new(lb-shot) {
     animation: none !important;
     transition: none !important;
   }

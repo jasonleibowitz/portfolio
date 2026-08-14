@@ -38,6 +38,9 @@ interface Props {
    */
   bare?: boolean;
   class?: string;
+  /** Anything else lands on the frame, which is what `Screenshot` hangs its
+      lightbox attributes on. */
+  [key: `data-${string}`]: string | undefined;
 }
 
 const frame = tv({
@@ -124,10 +127,11 @@ const {
   size = 'default',
   bare = false,
   class: className,
+  ...rest
 } = Astro.props;
 ---
 
-<div class={frame({ kind, size, chrome: !bare, class: className })}>
+<div class={frame({ kind, size, chrome: !bare, class: className })} {...rest}>
   <slot />
 
   {

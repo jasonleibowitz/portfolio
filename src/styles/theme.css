@@ -34,6 +34,10 @@
      a label on it takes the ink of the opposite theme rather than following the
      page. White held here in dark measured 1.74:1 on the cyan end. */
   --color-on-spectrum: #ffffff;
+  /* The lightbox's ground, and the label on it. Both hold their value in dark
+     mode, so a capture opens on ink whatever the page is doing. */
+  --color-scrim: rgb(9 8 20 / 0.92);
+  --color-on-scrim: #f4f3ff;
   --color-glow-a: rgb(91 61 245 / 0.16);
   --color-glow-b: rgb(14 159 184 / 0.16);
   /* The sun half of the theme toggle keeps its warmth in both themes. */
