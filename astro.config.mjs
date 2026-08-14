@@ -10,8 +10,10 @@ import remarkFigure from './plugins/remark-figure.ts';
 
 // https://astro.build/config
 export default defineConfig({
-  // `site` sets the canonical tag, the og:image URL and the RSS links. CI
-  // overrides it, because a preview serves from a workers.dev host.
+  // `site` sets the canonical tag, the og:image URL and the RSS links. This
+  // default is the production host, and it is the only place that names it: a
+  // production build takes it as it is. A preview overrides it, because a
+  // preview serves from a workers.dev host.
   site: process.env.SITE_URL ?? 'https://leibowitz.me',
   integrations: [mdx(), sitemap(), icon()],
   // A post body writes an image as `![]()`, thus no component can take a prop.

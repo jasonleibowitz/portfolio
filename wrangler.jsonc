@@ -15,6 +15,21 @@
     "not_found_handling": "404-page",
   },
 
+  // The apex is a custom domain, so Cloudflare writes the DNS record and keeps
+  // the certificate. It is declared here and not clicked in the dashboard,
+  // which is the reason this project is on Workers rather than Pages: a deploy
+  // that reads this file is a deploy that cannot disagree with it.
+  //
+  // `www` is deliberately absent. A custom domain makes the Worker answer for
+  // the hostname, and this Worker has no `main` to answer with a redirect, so
+  // `www` would serve a second copy of the site instead of pointing at the
+  // first. It redirects to the apex from a zone rule instead.
+  //
+  // A deploy creates the domain, thus CLOUDFLARE_API_TOKEN needs
+  // `Zone: Workers Routes: Edit` on this zone. Without it a deploy fails here
+  // and not at the build.
+  "routes": [{ "pattern": "leibowitz.me", "custom_domain": true }],
+
   // Preview URLs for each version. CI gives each version an alias with
   // `--preview-alias`, which it sets to `pr-<number>`.
   "preview_urls": true,

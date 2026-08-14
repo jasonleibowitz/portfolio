@@ -102,9 +102,10 @@ jobs:
       - name: Build
         run: pnpm build
 
-  # `preview` and `staging` build again. They do not reuse the `dist/` from
-  # `verify`, because they set SITE_URL, and `preview` also sets SHOW_DRAFTS.
-  # Both jobs need `verify`, so a failed gate publishes no URL.
+  # `preview` and `production` build again rather than take the `dist/` from
+  # `verify`: one job gets no files from another, and a preview needs its own
+  # SITE_URL and SHOW_DRAFTS in any case. Both need `verify`, so a build that
+  # fails a gate publishes no URL.
   preview:
     name: Publish preview
     needs: verify
@@ -221,21 +222,11 @@ jobs:
           recreate: true
           path: preview-comment.md
 
-  # `main` at a stable URL. This is a real deployment, but leibowitz.me still
-  # answers from GitHub Pages. Drafts stay hidden, so this shows the published
-  # set.
-  #
-  # TODO: promote this job to production at DNS cutover. The deploy mechanism
-  # does not change. Three things do:
-  #
-  #   1. Attach leibowitz.me to the `portfolio` Worker as a custom domain.
-  #   2. Set SITE_URL to https://leibowitz.me, so the canonical tag, the
-  #      og:image URL and the RSS links use the real domain.
-  #   3. Delete the `Mark as noindex` step. Production must be indexable.
-  #
-  # Then rename the job to `Deploy production`.
-  staging:
-    name: Deploy staging
+  # `main` at leibowitz.me, which the Worker answers as a custom domain. Drafts
+  # stay hidden, so this serves the published set, and no step marks it
+  # noindex: this is the deployment a crawler is meant to read.
+  production:
+    name: Deploy production
     needs: verify
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -263,13 +254,12 @@ jobs:
           echo "sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "subject=$subject" >> "$GITHUB_OUTPUT"
 
+      # No SITE_URL. `site` in astro.config.mjs already holds the production
+      # host, so one file names the domain and this job takes the default.
+      # `verify` builds the same way, which makes the gate run against the very
+      # URLs that production ships.
       - name: Build
-        env:
-          SITE_URL: https://${{ env.WORKER_NAME }}.${{ vars.CF_WORKERS_SUBDOMAIN }}.workers.dev
         run: pnpm build
-
-      - name: Mark as noindex
-        run: node scripts/noindex.mjs
 
       - name: Deploy
         env:

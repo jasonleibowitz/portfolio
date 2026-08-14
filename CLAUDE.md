@@ -253,37 +253,43 @@ The About bio, the employment record and the "Beyond the CV" numbers are real co
 
 Target is **Cloudflare Workers Static Assets** at leibowitz.me, not Cloudflare Pages. Pages was the original decision; Workers is where Cloudflare's feature work goes, its config lives in a tracked file rather than a dashboard, and `wrangler versions upload` publishes a build without deploying it, which is what a per-PR preview needs.
 
-Until DNS cuts over, the live site is still served by the separate `jasonleibowitz.github.io` repo — and its apex record points at deprecated GitHub Pages IPs, so HTTPS is currently broken. **DNS is most of what holds production back, but not all of it:** the staging job also overrides `SITE_URL` and runs `scripts/noindex.mjs`, and neither belongs in a production build. Everything below is already live on `*.workers.dev`.
-
 `wrangler.jsonc` declares one Worker, `portfolio`, serving `dist/` with no `main` — there is no Worker script, so every request is a static asset request, which Cloudflare does not bill.
+
+**The apex is canonical.** `leibowitz.me` is a custom domain on that Worker, declared in `wrangler.jsonc` rather than clicked in the dashboard, so a deploy reads the same file a reviewer does. `www` redirects to it with a 301 from a zone rule, and is deliberately not a second custom domain: a custom domain makes the Worker answer for the hostname, and a Worker with no `main` has nothing to answer a redirect with, so `www` would serve a duplicate site instead of pointing at the real one.
+
+The zone lives on Cloudflare, which is not a preference: a Worker custom domain needs an active zone in the same account, so the nameservers had to move off Namecheap rather than the records staying there. Cloudflare issues the certificate, which is what fixed the HTTPS failure the old GitHub Pages apex record caused.
 
 ### What deploys where
 
 | Trigger        | Command                                           | URL                                        |
 | -------------- | ------------------------------------------------- | ------------------------------------------ |
 | Pull request   | `wrangler versions upload --preview-alias pr-<n>` | `pr-<n>-portfolio.<subdomain>.workers.dev` |
-| Push to `main` | `wrangler deploy`                                 | `portfolio.<subdomain>.workers.dev`        |
+| Push to `main` | `wrangler deploy`                                 | `leibowitz.me`                             |
 
 A preview is a **version** of the one Worker reached through an alias, not a separate environment. Nothing is provisioned per branch, so nothing needs tearing down — and nothing can be: Cloudflare has no API to delete an alias, only LRU eviction past 1,000 of them.
 
-Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. Both run `scripts/noindex.mjs`, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. That file is generated rather than committed to `public/` on purpose: a committed copy would ship to production and suppress the real site.
+Both jobs `needs: verify`, so a build that fails any of the five gates never produces a URL. **Only the preview job runs `scripts/noindex.mjs`**, which writes `dist/_headers` with `X-Robots-Tag: noindex, nofollow`. Production ships no such header, and must not: that file is generated rather than committed to `public/` precisely so a copy cannot reach the real site and suppress it.
 
-**A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The staging deployment does serve the full value, which is how the two were told apart. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
+**A preview URL serves `X-Robots-Tag: noindex`, not the `noindex, nofollow` in `_headers`.** Cloudflare sets its own header on preview URLs and it wins. The two were told apart back when the `main` deployment wrote `_headers` too and served the full value. Nothing is broken and the file needs no "fix" — checking a preview's headers and finding one directive missing is expected.
+
+The Worker also still answers at `portfolio.<subdomain>.workers.dev`, which is useful for checking a deploy independently of DNS. It serves the same build, whose canonical tag names `leibowitz.me`, so it does not compete with the real site for indexing. Setting `workers_dev: false` would retire that host without touching preview URLs, which are a separate setting.
 
 **Cloudflare edge-caches a preview response.** A URL can still serve the previous build for a while after a green deploy. Append a query string (`?cb=1`) to see the new one. A preview that looks like it did not pick up the last commit is usually this, not a broken upload.
 
 ### Why the preview build is not the production build
 
-Two env vars make a preview deliberately differ, which is why the deploy jobs rebuild instead of reusing `verify`'s `dist/`:
+Two env vars make a preview deliberately differ, and a job gets no files from another job, which together are why the deploy jobs rebuild rather than reuse `verify`'s `dist/`:
 
-- **`SITE_URL`** overrides `site` in `astro.config.mjs`. Left at `https://leibowitz.me`, the canonical tag, `og:image` and every RSS link would point at a domain still serving the old site. CI can compute the value before building because the alias is deterministic.
-- **`SHOW_DRAFTS`** (an `astro:env` boolean, default false) makes `getPublished` return drafts. Set on pull request previews only, so an unpublished post can be reviewed in the real design and shared. Staging leaves it off and shows exactly the published set.
+- **`SITE_URL`** overrides `site` in `astro.config.mjs`, and **only the preview job sets it**. Without it a preview's canonical tag, `og:image` and RSS links would all name `leibowitz.me` and send a reader to production instead of to the thing under review. CI can compute the value before building because the alias is deterministic. A production build sets nothing and takes the default, so `astro.config.mjs` is the one file that names the domain — and `verify` builds the exact URLs production ships.
+- **`SHOW_DRAFTS`** (an `astro:env` boolean, default false) makes `getPublished` return drafts. Set on pull request previews only, so an unpublished post can be reviewed in the real design and shared. Production leaves it off and shows exactly the published set.
 
 ### Setup this depends on
 
 Repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the repo **variable** `CF_WORKERS_SUBDOMAIN` (the `<subdomain>` in the table above, currently `jasonaleibowitz`). It is a variable rather than a secret because it is baked into the built `site` value; without it the workflow builds a URL with an empty segment that will not resolve.
 
-The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and `Memberships`. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages, Containers, Observability), which a static site never touches, and its `Zone: Workers Routes` entry cannot even be saved while the account has no zone. Routes matter at DNS cutover, not before.
+The token carries `Workers Scripts: Edit` plus read on `Account Settings`, `User Details` and `Memberships`, and now `Zone: Workers Routes: Edit` on the `leibowitz.me` zone as well. That last grant could not be saved until the zone existed, which is why it was added at the cutover and not with the others. Cloudflare's "Edit Cloudflare Workers" template grants far more (KV, R2, Pages, Containers, Observability), which a static site never touches.
+
+**The routes grant is what a `main` deploy needs, and only a `main` deploy.** `wrangler deploy` applies the `routes` in `wrangler.jsonc`; `wrangler versions upload` documents that it changes no routing, so a pull request preview keeps working on the narrower token. A deploy that fails after a green build, on a permission rather than on the site, is this.
 
 **`wrangler versions upload` cannot create a Worker.** It fails with "You cannot upload a new version of a Worker that does not yet exist", so a brand new Worker has to be created by one `wrangler deploy` before any preview can upload. This is undocumented and was found by hitting it. It is a one-time bootstrap, already done for `portfolio` — but it repeats for any new Worker, and it means the `preview` job cannot be the first thing that ever runs.
 
