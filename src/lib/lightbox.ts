@@ -24,6 +24,19 @@ const DRAG_SLOP = 10;
 /** How long an open waits for its capture before going without it. */
 const WARM_MS = 220;
 
+/** How far a zoomed capture must be dragged past its own edge to page. */
+const HANDOFF_PX = 90;
+
+/** Symmetric clamp, because every bound here is the same distance either way. */
+const clamp = (value: number, min: number) =>
+  Math.min(Math.max(value, min), -min);
+
+interface Pan {
+  x: number;
+  y: number;
+  scale: number;
+}
+
 /**
  * Picks the rendition that matches the theme on the page.
  *
@@ -65,6 +78,14 @@ interface Slide {
   full: string;
   panzoom?: PanzoomObject;
   loaded?: boolean;
+  /** The drawn size at rest, which every pan bound is measured against. */
+  baseW: number;
+  baseH: number;
+  /** How far the reader has dragged past an edge in this one gesture. */
+  overshoot?: number;
+  /** Set while this file is correcting a pan, so the correction does not
+      re-enter as another change to correct. */
+  clamping?: boolean;
 }
 
 export function initLightbox() {
@@ -163,6 +184,8 @@ export function initLightbox() {
       return {
         el,
         img,
+        baseW: 0,
+        baseH: 0,
         full: fullSrcFor(
           { light: shot.dataset.full!, dark: shot.dataset.fullDark },
           theme
@@ -198,10 +221,16 @@ export function initLightbox() {
    */
   const armZoom = (slide: Slide) => {
     if (!Panzoom) return;
-    const maxScale = maxScaleFor(
-      slide.img.naturalWidth,
-      slide.img.getBoundingClientRect().width
-    );
+
+    /* The drawn size with the zoom taken back out, which is what every bound
+       below is a ratio against. Read rather than stored, so a rotation or a
+       resize cannot leave it describing a capture that has since changed. */
+    const scaleNow = slide.panzoom?.getScale() ?? 1;
+    const rect = slide.img.getBoundingClientRect();
+    slide.baseW = rect.width / scaleNow;
+    slide.baseH = rect.height / scaleNow;
+
+    const maxScale = maxScaleFor(slide.img.naturalWidth, slide.baseW);
 
     if (slide.panzoom) {
       slide.panzoom.setOptions({ maxScale });
@@ -212,12 +241,16 @@ export function initLightbox() {
       maxScale,
       minScale: 1,
       /*
-       * `inside`, not `outside`. A capture is letterboxed in its slide, so its
-       * box is narrower than the slide it sits in, and `outside` asks it to
-       * cover a parent it can never cover: Panzoom answered that with a
-       * 3107px translation and put the picture off screen at rest.
+       * No `contain`. Panzoom's two modes both assume a fixed relationship
+       * between the element and its parent that a fitted capture does not
+       * have. `'outside'` asks a letterboxed capture to cover a parent it
+       * cannot cover, and answered with a 3107px translation that put the
+       * picture off screen at rest. `'inside'` is worse in the other
+       * direction: a capture fitted to its slide already fills it, so
+       * "never leave the parent" pins the scale at 1 and there is no zoom at
+       * all. `clampPan` below holds the picture instead, and it is a function
+       * of the zoom rather than a mode.
        */
-      contain: 'inside',
       /* Apple's rule, and Panzoom states it as an option: at rest a drag is
          the rail paging, and only a zoomed capture takes the drag as a pan. */
       panOnlyWhenZoomed: true,
@@ -232,10 +265,60 @@ export function initLightbox() {
       step: 0.35,
     });
 
+    slide.img.addEventListener('panzoomstart', () => {
+      slide.overshoot = 0;
+    });
+
     slide.img.addEventListener('panzoomchange', (event) => {
       const { scale } = (event as CustomEvent<{ scale: number }>).detail;
       slide.el.toggleAttribute('data-zoomed', scale > 1.01);
+      clampPan(slide, event as CustomEvent<Pan>);
     });
+  };
+
+  /**
+   * Holds a zoomed capture inside its own edges, and hands a drag that pushes
+   * past them to the rail.
+   *
+   * Panning is bounded by how far the picture reaches beyond the slide, which
+   * is nothing until it is zoomed: at rest the limit is zero on both axes, so
+   * a capture recentres itself the moment the reader zooms back out.
+   *
+   * What the reader drags past that limit is not thrown away. It accumulates,
+   * and enough of it in one direction moves to the next capture, which is what
+   * makes a zoomed capture still feel like one of a set rather than a dead end.
+   * iOS composes this out of nested scroll views; on the web the outer one is
+   * the rail and this is the join between them.
+   *
+   * The total is cleared per gesture, by `panzoomstart`, and never by a pan
+   * that lands in bounds. Correcting a pan makes Panzoom report the corrected
+   * value back, and that report arrives after the guard below has cleared, so
+   * treating an in-bounds value as "the reader stopped pushing" zeroed the
+   * total on every frame and no amount of dragging ever reached the threshold.
+   */
+  const clampPan = (slide: Slide, event: CustomEvent<Pan>) => {
+    if (slide.clamping) return;
+    const { x, y, scale } = event.detail;
+
+    const limit = (base: number, box: number) =>
+      Math.max(0, base / 2 - box / (2 * scale));
+    const cx = clamp(x, -limit(slide.baseW, slide.el.clientWidth));
+    const cy = clamp(y, -limit(slide.baseH, slide.el.clientHeight));
+
+    if (cx === x && cy === y) return;
+
+    slide.clamping = true;
+    slide.panzoom!.pan(cx, cy, { animate: false, force: true });
+    slide.clamping = false;
+
+    /* Only sideways. Pushing past the top of a capture means the reader is at
+       the top of it, not that they want the next one. */
+    slide.overshoot = (slide.overshoot ?? 0) + (x - cx);
+    if (Math.abs(slide.overshoot) < HANDOFF_PX) return;
+
+    const forward = slide.overshoot < 0;
+    slide.overshoot = 0;
+    go(index + (forward ? 1 : -1));
   };
 
   /** Loads Panzoom the first time a capture is opened, and never before. */

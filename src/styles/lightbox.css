@@ -90,13 +90,17 @@
   scroll-snap-align: center;
   scroll-snap-stop: always;
   /*
-   * Small, and the chrome floats over the capture rather than being given a
-   * band of its own. A capture fits by its height on nearly every viewport, so
-   * padding comes straight off the one dimension that decides how large it is
-   * drawn: at 56px top and bottom a phone came out 263px wide, under the 280px
-   * where its body copy resolves, which is the width the row already fails at.
+   * The foot is the pager's, and the capture never reaches into it. A capture
+   * fits by its height on nearly every viewport, so every pixel of padding
+   * comes off the one dimension that decides how large it is drawn, which is
+   * why the other three sides stay at 16: at 56px all round a phone came out
+   * 263px wide, under the 280px where its body copy resolves.
+   *
+   * Only the close control still floats over a capture. It sits in the top
+   * corner, which on a phone screenshot is the status bar, and reserving a
+   * second band for one button costs more than that corner is worth.
    */
-  padding: 16px;
+  padding: 16px 16px 68px;
 }
 
 /*
@@ -153,13 +157,9 @@
  * that one capture draws a line taller than the rest, so paging past it moved
  * every other capture by 18px. The track still grows for a caption that needs
  * a third line; nothing is ever cut off.
- *
- * The padding clears the pager, which may float over a capture but must never
- * sit on top of a caption.
  */
 .lb-rail[data-captioned] .lb-slide {
   grid-template-rows: minmax(0, 1fr) minmax(calc(var(--text-meta) * 3), auto);
-  padding-bottom: 68px;
 }
 
 /* ------------------------------------------------------------------- chrome */
@@ -168,17 +168,22 @@
  * Chrome sits on the scrim in both themes, so it takes its color from
  * `--color-on-scrim` and not from `--color-ink`, which re-derives with the
  * page and would be invisible here in dark mode.
+ *
+ * The fill is the scrim and not a wash of the label color. A control floats
+ * over the capture wherever the capture fills the screen, which on a phone is
+ * always, and a light wash over a bright screenshot is a control nobody can
+ * find. Dark under a light glyph reads over any capture either theme produces.
  */
 .lb-btn {
   color: var(--color-on-scrim);
-  background: color-mix(in srgb, var(--color-on-scrim) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-on-scrim) 16%, transparent);
+  background: color-mix(in srgb, var(--color-scrim) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-on-scrim) 24%, transparent);
   transition:
     background-color 0.18s var(--ease-orbit),
     opacity 0.18s var(--ease-orbit);
 }
 .lb-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-on-scrim) 20%, transparent);
+  background: var(--color-scrim);
 }
 .lb-btn:disabled {
   opacity: 0.3;
@@ -205,7 +210,10 @@
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   letter-spacing: var(--tracking-data);
-  color: color-mix(in srgb, var(--color-on-scrim) 72%, transparent);
+  color: var(--color-on-scrim);
+  background: color-mix(in srgb, var(--color-scrim) 88%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
   margin: 0;
   min-width: 5ch;
   text-align: center;
