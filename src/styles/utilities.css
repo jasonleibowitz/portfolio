@@ -146,7 +146,7 @@
 
   /* The touch path. A finger delivers no hover, and `:active` lasts only while
      it is down, so a tap shorter than the rise would decay from halfway.
-     `chrome.ts` holds the attribute past the rise and then lets go: holding a
+     `charge.ts` holds the attribute past the rise and then lets go: holding a
      state after its input has ended is the one thing CSS cannot express. */
   &:where([data-charged]) {
     --lit-ink: var(--color-ink);
