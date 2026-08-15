@@ -345,7 +345,7 @@ A dashed `line-strong` circle around the homepage portrait, rotating once every 
 - **Don't** put a `backdrop-filter` on anything but the header and the dock.
 - **Don't** give a `Panel` a shadow, or give a photograph none.
 - **Don't** let Aurora Teal carry body text, or be the only signal that something is active.
-- **Don't** add a key to the `--spacing` namespace in `@theme`; it silently breaks every numeric spacing utility in the project.
+- **Don't** clear the `--spacing` namespace in `@theme`; that silently deletes every numeric spacing utility. Adding a key to it is fine, and the Add-Don't-Clear Rule above holds the measurement.
 - **Don't** introduce a fourth type family, or set prose in monospace.
 - **Don't** let a display headline break wherever the browser lands — set the breaks explicitly.
 - **Don't** renumber a ranked list when it is filtered; rank comes from the data, not from `<ol>` or a CSS counter.
