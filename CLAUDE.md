@@ -211,13 +211,14 @@ Vanilla TypeScript in `src/lib/`, imported from an Astro `<script>`:
 
 A capture may carry an optional `caption`, which the lightbox shows under it and nothing else ever shows. The rule is the one post figures follow: the caption names what the frame is an example of, the `alt` describes what is in it, and a caption that repeats the alt says one thing twice. A row where any capture has one reserves the same foot under every capture in that row, including the ones with none, so a capture does not change size as the reader pages past them.
 
-Three things that will bite here:
+Four things that will bite about the lightbox:
 
 - **`panOnlyWhenZoomed` is what stops the two drags fighting.** At rest a horizontal drag is the rail paging; zoomed, it is Panzoom panning. Pair it with `touchAction: ''` — Panzoom otherwise writes `touch-action: none` onto the image _and_ the rail, which stops the rail scrolling at all, so the capture's own utilities own that pair and key it off `data-zoomed`. Pass `cursor: ''` for the same reason: Panzoom writes a cursor inline whether asked or not, and an inline style outranks any class.
 - **No `contain` at all; `clampPan` holds the picture instead.** Neither Panzoom mode fits a fitted capture. `'outside'` asks a letterboxed capture to cover a parent it cannot cover, and answered with a 3107px translation that put the picture off screen at rest. `'inside'` is worse the other way: a capture fitted to its slide already fills it, so "never leave the parent" pins the scale at 1 and there is no zoom at all. The bound is a function of how far the picture reaches past the slide, which is nothing until it is zoomed, so a capture also recentres itself on the way back down.
+- **A zoomed capture does not page, and that is deliberate.** Three attempts at handing a drag past the edge to the rail, the way iOS hands a pan to the scroll view outside it, all paged when the reader meant to look around: a finger resting past the edge, a vertical drag on a capture already pinned sideways, and a pinch whose midpoint drifts. Every gesture can produce numbers that look like a deliberate sideways push. Zoomed is its own mode instead, `data-zoomed` on the dialog, and `[data-lb-fit]` is the way out. A library built for this, PhotoSwipe among them, has the tested version; this does not.
 - **A trackpad pinch is a `wheel` event with `ctrlKey`, and a two-finger scroll is the same event without it.** Panzoom's `zoomWithWheel` does not read the flag, and its own docs say it "may not handle all use cases", so binding it directly zooms the capture whenever a reader scrolls.
 
-Two things that will bite:
+Two more that will bite anywhere in this folder:
 
 - **`viewTransition.ready` rejects** whenever the browser skips the transition — a hidden tab, or a second click mid-transition. The theme has already applied, so it just needs `.catch(() => {})` to stay out of the console.
 - **A ranked list must not renumber when filtered.** Rank comes from the item's index in the data and is written into the markup. `<ol>` numbering or a CSS counter both renumber the moment a row above is hidden.

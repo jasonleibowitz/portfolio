@@ -77,8 +77,11 @@ const rail = [
    anchor and carries the page's own surface. The fill is the scrim and not a
    wash of the label color, because a light wash over bright poster art
    measured 1.07:1 against its own glyph. */
+/* No `display` here. The fit control below is shown by a variant, and an
+   unconditional `inline-flex` in this list would outrank the `hidden` that
+   keeps it away until a capture is zoomed. */
 const control = [
-  'inline-flex size-11 items-center justify-center rounded-full',
+  'size-11 items-center justify-center rounded-full',
   'text-on-scrim bg-[color-mix(in_srgb,var(--color-scrim)_88%,transparent)]',
   'border border-[color-mix(in_srgb,var(--color-on-scrim)_24%,transparent)]',
   'transition-[background-color,opacity] duration-200 ease-orbit',
@@ -165,17 +168,35 @@ const count = [
 
   <button
     data-lb-close
-    class:list={['absolute top-3 right-3', control]}
+    class:list={['absolute top-3 right-3 inline-flex', control]}
     type="button"
     aria-label="Close"
   >
     <Icon name="lucide:x" class="size-5" />
   </button>
 
+  {
+    /* Only while a capture is zoomed, and always visible while it is: a
+      reader who has zoomed in cannot swipe out of it, so the way back has to
+      be on screen rather than behind a hover or a remembered gesture. It sits
+      opposite the close control, because both undo a state. */
+  }
+  <button
+    data-lb-fit
+    class:list={[
+      'absolute top-3 left-3 hidden group-data-[zoomed]:inline-flex',
+      control,
+    ]}
+    type="button"
+    aria-label="Zoom out"
+  >
+    <Icon name="lucide:zoom-out" class="size-5" />
+  </button>
+
   <div class={pager}>
     <button
       data-lb-prev
-      class={control}
+      class:list={['inline-flex', control]}
       type="button"
       aria-label="Previous screenshot"
     >
@@ -186,7 +207,7 @@ const count = [
 
     <button
       data-lb-next
-      class={control}
+      class:list={['inline-flex', control]}
       type="button"
       aria-label="Next screenshot"
     >
