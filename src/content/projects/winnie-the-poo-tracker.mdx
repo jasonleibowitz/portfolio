@@ -58,19 +58,17 @@ I was diagnosed with Crohn's Disease in 2020 (during the height of the Covid loc
 
 ## What it does
 
-The main screen is your log, grouped by day. Adding an entry is one screen and a few taps, because a tracker you have to remember to fill in later is a tracker you stop using.
+The main screen is your log, grouped by day. Adding an entry is only a couple of taps and can be done in seconds, because a tracker you have to remember to fill in later is a tracker you stop using.
 
-Stats turns that history into the things a doctor actually asks about: your total, a daily average, an average Bristol type and your current streak, over a week, a month, six months or a year, each against the period before. The Poo Report puts the last six months on one page, and that page is the one you hand across the desk at an appointment.
+Stats turns that history into the things a doctor actually asks about, including overall trends and highlights. You can share a Poo Report with your doctor, which puts six months of data and trends into an easily digestible report.
 
 ## How it's built
 
-Swift and SwiftUI, for iOS 26 and up. There is no server and no account. Your poos live in SwiftData on your phone and sync through your own private iCloud database with CloudKit, so a new phone picks up where the old one left off and nothing about a poo ever reaches me. It works with no signal, because the store is on the phone and iCloud catches up later.
+Swift and SwiftUI, for iOS 26 and up. There is no server and no account. Your data is saved locally via SwiftData and syncs through your own private iCloud account with CloudKit. The app fully works offline, and data syncs when you regain service. Your poos sync only to your own iCloud, and no other server or cloud ever stores them.
 
-The app's rules live in a Swift package that imports no Apple UI or storage framework, and SwiftData sits behind a protocol that package owns. That keeps the rules testable on Linux, where every pull request runs them in seconds without a simulator. Xcode Cloud builds what goes to TestFlight and the App Store.
+Most of the app is built with Apple's own toolkit. Swift Charts draws Stats. MapKit draws the Map and looks up a place name for each poo. App Intents lets you log a poo from Siri, Spotlight or the Home Screen. The one-page Poo Report for your doctor is a SwiftUI view rendered to a PDF.
 
-Most of the rest is Apple's own toolkit. Swift Charts draws Stats. MapKit draws the Map and looks up a place name for each poo. App Intents lets you log one from Siri, Spotlight or the Home Screen. The one-page Poo Report for your doctor is a SwiftUI view rendered to a PDF. On the iPhone Duo the same screens adapt to either display, Split View and landscape, with no separate Duo interface.
-
-Sentry reports crashes and PostHog counts which features get used, and the line for both is the same: nothing about a poo leaves the phone.
+Sentry reports crashes and PostHog counts which features get used, and neither ever receives anything about your private health data.
 
 ## What I'd do differently
 
