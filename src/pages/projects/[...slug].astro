@@ -45,11 +45,11 @@ const shareIcon = data.icon
  * A row holding one shape draws it as large as the column allows. A row
  * holding both a phone and a browser has to settle on one height for the two,
  * which makes each of them smaller, thus it is only paid for where it is owed.
+ * A foldable owes nothing: its `shot` size already takes the height of a
+ * phone, so a row of phones and a foldable stays at `shot`.
  */
-const shotSize =
-  new Set(data.screenshots.map((shot) => shot.frame ?? data.frame)).size > 1
-    ? 'mixed'
-    : 'shot';
+const kinds = new Set(data.screenshots.map((shot) => shot.frame ?? data.frame));
+const shotSize = kinds.has('window') && kinds.size > 1 ? 'mixed' : 'shot';
 
 /** The beta invite first, because it is the one that asks for a reply. */
 const ctas = [

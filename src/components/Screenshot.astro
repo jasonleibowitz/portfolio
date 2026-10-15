@@ -19,7 +19,7 @@ interface Props {
     alt: string;
     caption?: string;
   };
-  kind?: 'phone' | 'window';
+  kind?: 'phone' | 'window' | 'foldable';
   size?: 'default' | 'wide' | 'shot' | 'mixed';
   class?: string;
   /**
@@ -40,6 +40,13 @@ interface Props {
 const INTRINSIC = {
   phone: { default: 150, wide: 210, shot: 290, mixed: 220 },
   window: { default: 250, wide: 290, shot: 650, mixed: 650 },
+  foldable: { default: 250, wide: 290, shot: 840, mixed: 650 },
+} as const;
+
+/** The corner of the screen, which is the corner of the body less the bezel. */
+const SCREEN_RADIUS = {
+  phone: 'rounded-[calc(var(--shot-w)*0.120)]',
+  foldable: 'rounded-[calc(var(--shot-w)*0.039)]',
 } as const;
 
 const {
@@ -54,7 +61,7 @@ const {
    shadow are in the picture, so it gets width and nothing else. A capture of
    an app holds only the screen, so the site draws the phone. */
 const bare = kind === 'window';
-const radius = bare ? '' : 'rounded-[calc(var(--shot-w)*0.120)]';
+const radius = kind === 'window' ? '' : SCREEN_RADIUS[kind];
 const shared = `block w-full ${radius}`;
 
 /**

@@ -29,7 +29,7 @@ import { tv } from '@lib/tv';
  * One container unit means every reader gets the same number.
  */
 interface Props {
-  kind?: 'phone' | 'window';
+  kind?: 'phone' | 'window' | 'foldable';
   size?: 'default' | 'wide' | 'shot' | 'mixed';
   /**
    * Give the slot its width and nothing else. A capture of a browser arrives
@@ -53,6 +53,10 @@ const frame = tv({
     kind: {
       phone: '',
       window: '',
+      /* Shorter than the phones beside it in all but the widest column, and
+         the row stretches its items, which hung an empty bezel under the
+         screen. */
+      foldable: 'self-center',
     },
     size: { default: '', wide: '', shot: '', mixed: '' },
   },
@@ -66,6 +70,11 @@ const frame = tv({
       chrome: true,
       kind: 'window',
       class: 'rounded-[calc(var(--shot-w)*0.045)]',
+    },
+    {
+      chrome: true,
+      kind: 'foldable',
+      class: 'rounded-[calc(var(--shot-w)*0.060)]',
     },
     { kind: 'phone', size: 'default', class: '[--shot-w:140px]' },
     {
@@ -117,6 +126,34 @@ const frame = tv({
       kind: 'window',
       size: 'shot',
       class: '[--shot-w:min(640px,calc(100cqw-40px))]',
+    },
+
+    /*
+     * The open iPhone Duo, beside phones. It would take the height of a 280px
+     * phone at 830px, which is wider than the write-up column, so in practice
+     * it takes the width of the column and sits shorter than the phones:
+     *
+     *   a screen 2853x2007 in a bezel, thus 0.7159 as tall as it is wide
+     *   a phone in a bezel is 2.1214 as tall as it is wide
+     *   280 * 2.1214 / 0.7159 = 830
+     *
+     * No island: the Duo's inner display has its camera in the side rail.
+     */
+    { kind: 'foldable', size: 'default', class: '[--shot-w:240px]' },
+    {
+      kind: 'foldable',
+      size: 'wide',
+      class: '[--shot-w:240px] card:[--shot-w:280px]',
+    },
+    {
+      kind: 'foldable',
+      size: 'shot',
+      class: '[--shot-w:min(830px,calc(100cqw-40px))]',
+    },
+    {
+      kind: 'foldable',
+      size: 'mixed',
+      class: '[--shot-w:min(642px,calc(100cqw-40px))]',
     },
   ],
   defaultVariants: { kind: 'phone', size: 'default', chrome: true },

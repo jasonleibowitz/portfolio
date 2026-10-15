@@ -210,9 +210,10 @@ const projects = defineCollection({
       /**
        * What the site draws around this one capture, where that differs from
        * the project's own `frame`. A responsive site is shot in a browser and
-       * on a phone, and the two need different hardware in the same row.
+       * on a phone, and the two need different hardware in the same row. An
+       * app that runs on the open iPhone Duo shows that screen as `foldable`.
        */
-      frame: z.enum(['phone', 'window']).optional(),
+      frame: z.enum(['phone', 'window', 'foldable']).optional(),
     });
 
     const project = z.object({
