@@ -2,41 +2,51 @@
 title: 'Winnie the Poo Tracker'
 description: 'Bowel movement tracker for IBS/IBD patients.'
 icon: './icons/winnie-the-poo-tracker.webp'
-status: 'development'
+status: 'live'
 stack:
   [
-    'Expo',
-    'Expo Router',
-    'React Native',
-    'TypeScript',
-    'TanStack Query',
-    'MMKV',
-    'Zod',
-    'React Hook Form',
+    'Swift',
+    'SwiftUI',
+    'SwiftData',
+    'CloudKit',
+    'Swift Charts',
+    'MapKit',
+    'App Intents',
+    'Swift Testing',
+    'Xcode Cloud',
     'Sentry',
-    'Supabase',
+    'PostHog',
   ]
 frame: 'phone'
 screenshots:
-  - light: './screenshots/winnie-the-poo-tracker/trends-light.webp'
-    dark: './screenshots/winnie-the-poo-tracker/trends-dark.webp'
-    alt: 'The Trends screen, showing a daily average, a weekly total, an average Bristol type, a current streak and an all-time count, above a bar chart comparing this month with last.'
-  - light: './screenshots/winnie-the-poo-tracker/average-type-light.webp'
-    dark: './screenshots/winnie-the-poo-tracker/average-type-dark.webp'
-    alt: 'A stats card reading "Keep Up The Good Work!", explaining what an average Bristol type of 4 means, with an illustration of that type.'
+  - light: './screenshots/winnie-the-poo-tracker/stats-light.webp'
+    dark: './screenshots/winnie-the-poo-tracker/stats-dark.webp'
+    alt: 'The Stats screen over six months, with cards for the total, the daily average and the average Bristol type, each against the six months before, and a card for the current streak against the longest streak, above a Bristol types breakdown.'
+  - light: './screenshots/winnie-the-poo-tracker/duo-stats-light.webp'
+    dark: './screenshots/winnie-the-poo-tracker/duo-stats-dark.webp'
+    alt: 'The same Stats screen on the open iPhone Duo, with the four cards in one row above the Bristol types breakdown, and the tabs in a rail down the right side.'
+    frame: 'foldable'
   - light: './screenshots/winnie-the-poo-tracker/add-entry-light.webp'
     dark: './screenshots/winnie-the-poo-tracker/add-entry-dark.webp'
-    alt: 'The logging form, with segmented controls for date, speed, urgency and amount, a Bristol type slider with a live illustration, and a row of color swatches.'
+    alt: 'The Add Poo form, with a row of illustrated Bristol types to pick from, rows for time, speed, amount, color and urgency, and an optional location.'
   - light: './screenshots/winnie-the-poo-tracker/log-list-light.webp'
     dark: './screenshots/winnie-the-poo-tracker/log-list-dark.webp'
-    alt: 'The log, grouped by day, each entry showing a time, an illustration of its Bristol type, and its amount, speed and urgency.'
+    alt: 'The Poos list, grouped by day, each day with a timeline of when its poos happened, and each entry showing its Bristol type, time, speed, amount and urgency.'
+  - light: './screenshots/winnie-the-poo-tracker/map-light.webp'
+    dark: './screenshots/winnie-the-poo-tracker/map-dark.webp'
+    alt: 'The Map, showing Manhattan with clusters of poo pins counting how many were logged in each place.'
 specs:
-  - { label: 'Status', value: 'In Development' }
+  - { label: 'Status', value: 'Live' }
   - { label: 'Platform', value: 'iOS' }
-  - { label: 'Client', value: 'Expo · RN' }
-  - { label: 'Backend', value: 'Supabase' }
+  - { label: 'Client', value: 'Swift · SwiftUI' }
+  - { label: 'Backend', value: 'iCloud' }
   - { label: 'Started', value: 'Dec 2023' }
-is_beta_open: true
+  - { label: 'Released', value: 'Oct 2026' }
+cta:
+  label: 'App Store'
+  href: 'https://apps.apple.com/app/id1638359440'
+  icon: 'simple-icons:appstore'
+is_beta_open: false
 is_featured: true
 order: 1
 draft: false
@@ -48,18 +58,24 @@ I was diagnosed with Crohn's Disease in 2020 (during the height of the Covid loc
 
 ## What it does
 
-The main screen is your log, grouped by day. Adding an entry is one screen and a few taps, because a tracker you have to remember to fill in later is a tracker you stop using.
+The main screen is your log, grouped by day. Adding an entry is only a couple of taps and can be done in seconds, because a tracker you have to remember to fill in later is a tracker you stop using.
 
-Trends turns that history into the things a doctor actually asks about: a daily average, a weekly total, an average Bristol type, your current streak, and this month against last. That screen is the one you hand across the desk at an appointment.
+Stats turns that history into the things a doctor actually asks about, including overall trends and highlights. You can share a Poo Report with your doctor, which puts six months of data and trends into an easily digestible report.
 
 ## How it's built
 
-Expo and React Native, with Supabase behind it. It works offline first, because the moments you need to log something are not always moments you have signal: everything keeps working with no connection and catches up on its own once you are back, without you having to think about it.
+Swift and SwiftUI, for iOS 26 and up. There is no server and no account. Your data is saved locally via SwiftData and syncs through your own private iCloud account with CloudKit. The app fully works offline, and data syncs when you regain service. Your poos sync only to your own iCloud, and no other server or cloud ever stores them.
 
-Health data means privacy is not a feature you add later, so access is enforced at the database rather than trusted to the app.
+Most of the app is built with Apple's own toolkit. Swift Charts draws Stats. MapKit draws the Map and looks up a place name for each poo. App Intents lets you log a poo from Siri, Spotlight or the Home Screen. The one-page Poo Report for your doctor is a SwiftUI view rendered to a PDF.
+
+Sentry reports crashes and PostHog counts which features get used, and neither ever receives anything about your private health data.
 
 ## What I'd do differently
 
 This was my first React Native app, and I started by reaching for a hosted sync engine to keep the device and the database in step. Its free tier stopped the app after a spell of inactivity and the paid tier was hard to justify for a beta, so I pulled it out and built the syncing myself.
 
 I would make that call sooner now. The dependency was doing work I could describe precisely, which is usually a sign I should just write it.
+
+The bigger call came later. In September 2026 I started rewriting Winnie in native Swift, and it shipped in October. Most of what that sync code did went away. The React Native app needed Supabase to store your poos, an account to sign in with, and my own code to keep the phone and the database in step. In Swift, SwiftData and CloudKit sync through each person's own iCloud: no server for me to run, no account for you to make, and far less code for me to own.
+
+The same held for the rest of the platform. MapKit gave me the Map and a place name for every poo without a third party SDK. App Intents, Swift Charts and the iPhone Duo's adaptive layout came from the same toolkit as the views themselves. In React Native, each of those meant a wrapper library to vet or a native module to write.
